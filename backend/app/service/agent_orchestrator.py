@@ -6,10 +6,10 @@ from collections.abc import AsyncGenerator
 from typing import Literal
 
 from app.service.consultant_agent import AgentKey, run_planning_phase, run_quality_review
-from app.service.market_agent import run_market_agent
-from app.service.strategy_agent import run_strategy_agent
-from app.service.content_agent import run_content_agent
-from app.service.visual_agent import run_visual_agent
+from app.service.market_agent import run_market_agent_stream
+from app.service.strategy_agent import run_strategy_agent_stream
+from app.service.content_agent import run_content_agent_stream
+from app.service.visual_agent import run_visual_agent_stream
 
 logger = logging.getLogger(__name__)
 
@@ -21,36 +21,30 @@ def _sse(event: str, data: str) -> str:
     return f"event: {event}\ndata: {data.replace(chr(10), chr(92) + 'n')}\n\n"
 
 
+def _sse_raw(event: str, data: str) -> str:
+    """原始 SSE（chunk 内容不做换行转义，直接流式推送）"""
+    return f"event: {event}\ndata: {data}\n\n"
+
+
 class AgentOrchestrator:
     """
-    品牌咨询 Agent 编排器（动态路由版）
+    品牌咨询 Agent 编排器（动态路由 + 流式输出版）
 
     工作流：
       品牌顾问（需求分析 + 路由决策）
-        → 动态选择并运行所需专业 Agent
+        → 动态选择并运行所需专业 Agent（流式 token 推送）
         → 品牌顾问（质量审核 + 最终报告）
 
     NOTE: 并非所有请求都走完整 4 步流程，
           顾问根据用户输入智能决定只调用必要的 Agent。
     """
 
-    # 专业 Agent 的执行函数映射
-    # 每个函数接受 (user_prompt, **所需上游 context) → str
-    _AGENT_RUNNERS = {
-        "market":   lambda p, ctx: run_market_agent(p),
-        "strategy": lambda p, ctx: run_strategy_agent(p, ctx.get("market", "")),
-        "content":  lambda p, ctx: run_content_agent(p, ctx.get("market", ""), ctx.get("strategy", "")),
-        "visual":   lambda p, ctx: run_visual_agent(
-            p, ctx.get("market", ""), ctx.get("strategy", ""), ctx.get("content", "")
-        ),
-    }
-
     async def run_session(
         self,
         user_prompt: str,
     ) -> AsyncGenerator[str, None]:
         """
-        执行完整品牌咨询工作流（动态路由）
+        执行完整品牌咨询工作流（动态路由 + 实时流式输出）
         yield 每条符合 text/event-stream 规范的 SSE 事件字符串
         """
         context: dict[str, str] = {}
@@ -67,22 +61,48 @@ class AgentOrchestrator:
         yield _sse("agent_complete", "consultant_plan")
         logger.info("路由决策完成：%s", selected_agents)
 
-        # ─── 动态执行选定的专业 Agent ────────────────────────
+        # ─── 动态执行选定的专业 Agent（流式推送 token）────────
         for agent_key in selected_agents:
-            runner = self._AGENT_RUNNERS.get(agent_key)
-            if not runner:
+            yield _sse("agent_start", agent_key)
+            logger.info("启动 Agent: %s（流式模式）", agent_key)
+
+            accumulated = ""
+
+            # 根据 agent_key 选择对应的流式生成器，并传入已有上下文
+            if agent_key == "market":
+                stream = run_market_agent_stream(user_prompt)
+            elif agent_key == "strategy":
+                stream = run_strategy_agent_stream(user_prompt, context.get("market", ""))
+            elif agent_key == "content":
+                stream = run_content_agent_stream(
+                    user_prompt,
+                    context.get("market", ""),
+                    context.get("strategy", ""),
+                )
+            elif agent_key == "visual":
+                stream = run_visual_agent_stream(
+                    user_prompt,
+                    context.get("market", ""),
+                    context.get("strategy", ""),
+                    context.get("content", ""),
+                )
+            else:
                 logger.warning("未知 Agent key: %s，跳过", agent_key)
                 continue
 
-            yield _sse("agent_start", agent_key)
-            logger.info("启动 Agent: %s（由顾问调度）", agent_key)
+            # NOTE: 逐 token 推送 agent_chunk，前端实时累积显示思考过程
+            async for chunk in stream:
+                accumulated += chunk
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": agent_key, "chunk": chunk}, ensure_ascii=False),
+                )
 
-            output = await runner(user_prompt, context)
-            context[agent_key] = output
-
-            yield _sse("agent_output", json.dumps({"id": agent_key, "content": output}))
+            # 全部 chunk 推完后，发送完整输出供前端最终渲染（保留 Markdown 结构）
+            context[agent_key] = accumulated
+            yield _sse("agent_output", json.dumps({"id": agent_key, "content": accumulated}))
             yield _sse("agent_complete", agent_key)
-            logger.info("Agent %s 完成，输出: %d 字", agent_key, len(output))
+            logger.info("Agent %s 完成，输出: %d 字", agent_key, len(accumulated))
 
         # ─── 品牌顾问：质量审核 & 最终综合报告 ───────────────
         yield _sse("agent_start", "consultant_review")

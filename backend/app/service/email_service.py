@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def _build_message(to_email: str, otp: str) -> MIMEMultipart:
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"Woloong AI 验证码：{otp}"
+    msg["Subject"] = f"Branint AI 验证码：{otp}"
     msg["From"]    = f"{settings.smtp_from_name} <{settings.smtp_user}>"
     msg["To"]      = to_email
 
@@ -32,7 +32,7 @@ def _build_message(to_email: str, otp: str) -> MIMEMultipart:
                 max-width: 480px; margin: 0 auto; padding: 32px 24px;
                 background: #fff; border-radius: 12px;">
         <div style="font-size: 22px; font-weight: 700; color: #D97706; margin-bottom: 24px;">
-            &#9889; Woloong AI
+            &#9889; Branint AI
         </div>
         <p style="color: #444; font-size: 15px; margin-bottom: 8px;">您好！</p>
         <p style="color: #444; font-size: 15px; margin-bottom: 24px;">
@@ -51,7 +51,7 @@ def _build_message(to_email: str, otp: str) -> MIMEMultipart:
             如非本人操作，请忽略此邮件。
         </p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-        <p style="color: #bbb; font-size: 12px;">Woloong AI — AI 品牌咨询平台</p>
+        <p style="color: #bbb; font-size: 12px;">Branint AI — AI 品牌咨询平台</p>
     </div>
     </body>
     </html>

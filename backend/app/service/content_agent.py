@@ -1,4 +1,6 @@
-from app.service.llm_provider import call_llm
+from __future__ import annotations
+from collections.abc import AsyncGenerator
+from app.service.llm_provider import call_llm, call_llm_stream
 
 CONTENT_AGENT_SYSTEM_PROMPT = """你是一位顶级的品牌内容策划专家，擅长将品牌战略转化为具体可执行的内容方向。
 你将基于市场研究和品牌战略，制定全面的内容营销计划。
@@ -47,9 +49,7 @@ async def run_content_agent(
     brand_strategy: str,
 ) -> str:
     """
-    内容策划 Agent
-    输入：用户原始需求 + 市场研究 + 品牌战略（完整上下文）
-    输出：内容营销策划手册
+    内容策划 Agent（非流式，用于上下文传递）
     """
     messages = [
         {"role": "system", "content": CONTENT_AGENT_SYSTEM_PROMPT},
@@ -63,3 +63,27 @@ async def run_content_agent(
         },
     ]
     return await call_llm(messages)
+
+
+async def run_content_agent_stream(
+    user_prompt: str,
+    market_research: str,
+    brand_strategy: str,
+) -> AsyncGenerator[str, None]:
+    """
+    内容策划 Agent（流式）
+    yield 每个 token，供 orchestrator 实时推送给前端
+    """
+    messages = [
+        {"role": "system", "content": CONTENT_AGENT_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"品牌需求：\n{user_prompt}\n\n"
+                f"【市场研究结果】：\n{market_research}\n\n"
+                f"【品牌战略方向】：\n{brand_strategy}"
+            ),
+        },
+    ]
+    async for chunk in call_llm_stream(messages):
+        yield chunk

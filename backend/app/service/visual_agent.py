@@ -1,4 +1,6 @@
-from app.service.llm_provider import call_llm
+from __future__ import annotations
+from collections.abc import AsyncGenerator
+from app.service.llm_provider import call_llm, call_llm_stream
 
 VISUAL_AGENT_SYSTEM_PROMPT = """你是一位顶级的品牌视觉设计顾问，专注于将品牌个性转化为具体的视觉语言规范。
 你将基于品牌战略和内容方向，制定完整的视觉识别系统建议。
@@ -52,9 +54,7 @@ async def run_visual_agent(
     content_strategy: str,
 ) -> str:
     """
-    视觉设计 Agent
-    输入：所有上游 Agent 的完整输出作为上下文
-    输出：视觉识别系统手册（VI 规范）
+    视觉设计 Agent（非流式，用于上下文传递）
     """
     messages = [
         {"role": "system", "content": VISUAL_AGENT_SYSTEM_PROMPT},
@@ -69,3 +69,29 @@ async def run_visual_agent(
         },
     ]
     return await call_llm(messages)
+
+
+async def run_visual_agent_stream(
+    user_prompt: str,
+    market_research: str,
+    brand_strategy: str,
+    content_strategy: str,
+) -> AsyncGenerator[str, None]:
+    """
+    视觉设计 Agent（流式）
+    yield 每个 token，供 orchestrator 实时推送给前端
+    """
+    messages = [
+        {"role": "system", "content": VISUAL_AGENT_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"品牌需求：\n{user_prompt}\n\n"
+                f"【市场研究结果】：\n{market_research}\n\n"
+                f"【品牌战略方向】：\n{brand_strategy}\n\n"
+                f"【内容策划方向】：\n{content_strategy}"
+            ),
+        },
+    ]
+    async for chunk in call_llm_stream(messages):
+        yield chunk

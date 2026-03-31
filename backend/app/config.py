@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     smtp_port: int = 465        # SSL 加密端口
     smtp_user: str = ""          # 你的 QQ 邮箱地址
     smtp_password: str = ""      # 邮箱授权码（非登录密码）
-    smtp_from_name: str = "Woloong AI"
+    smtp_from_name: str = "Branint AI"
 
     # JWT 认证
     jwt_secret: str = "woloong-jwt-secret-change-in-prod"

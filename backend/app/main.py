@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 configure_litellm_keys()
 
 app = FastAPI(
-    title="Woloong AI 品牌咨询平台 API",
+    title="Branint AI 品牌咨询平台 API",
     description="多 Agent 协作的品牌战略生成平台",
     version="0.1.0",
 )
