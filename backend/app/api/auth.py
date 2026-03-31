@@ -28,11 +28,41 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 bearer = HTTPBearer(auto_error=False)
 
-# NOTE: MVP 阶段内存存储，后端重启后需重新登录；生产环境替换为数据库
-_user_store: Dict[str, dict] = {}  # email → { user_id, password_hash }
+import json
+import os
+from pathlib import Path
+
+# NOTE: JSON 文件持久化，重启后数据不丢失
+# 生产环境建议替换为 PostgreSQL
+_DATA_DIR = Path(__file__).parent.parent.parent / "data"
+_USERS_FILE = _DATA_DIR / "users.json"
 
 
+def _load_users() -> Dict[str, dict]:
+    """从 JSON 文件加载用户数据，文件不存在时返回空字典"""
+    try:
+        if _USERS_FILE.exists():
+            return json.loads(_USERS_FILE.read_text(encoding="utf-8"))
+    except Exception as e:
+        logger.error("加载用户数据失败: %s", e)
+    return {}
 
+
+def _save_users(store: Dict[str, dict]) -> None:
+    """将用户数据持久化到 JSON 文件"""
+    try:
+        _DATA_DIR.mkdir(parents=True, exist_ok=True)
+        _USERS_FILE.write_text(
+            json.dumps(store, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception as e:
+        logger.error("保存用户数据失败: %s", e)
+
+
+# 启动时加载已有用户
+_user_store: Dict[str, dict] = _load_users()
+logger.info("已加载 %d 个用户账号", len(_user_store))
 
 # ── 密码工具 ──────────────────────────────────────────────────────
 
@@ -157,6 +187,7 @@ async def register(req: RegisterRequest) -> TokenResponse:
         "user_id": user_id,
         "password_hash": _hash_password(req.password),
     }
+    _save_users(_user_store)  # 持久化到 JSON 文件，重启后不丢失
     logger.info("新用户注册: email=%s", email)
 
     token = _create_jwt(user_id, email)
