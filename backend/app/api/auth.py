@@ -28,8 +28,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 bearer = HTTPBearer(auto_error=False)
 
-# NOTE: MVP 阶段内存存储，服务重启数据重置；生产环境替换为数据库
+# NOTE: MVP 阶段内存存储，后端重启后需重新登录；生产环境替换为数据库
 _user_store: Dict[str, dict] = {}  # email → { user_id, password_hash }
+
+
 
 
 # ── 密码工具 ──────────────────────────────────────────────────────

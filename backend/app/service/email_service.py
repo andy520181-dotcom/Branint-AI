@@ -65,7 +65,7 @@ def _try_starttls(msg: MIMEMultipart, to_email: str) -> None:
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    with smtplib.SMTP(settings.smtp_host, 587, timeout=20) as server:
+    with smtplib.SMTP(settings.smtp_host, 587, timeout=30) as server:
         server.ehlo()
         server.starttls(context=ctx)
         server.ehlo()
@@ -78,7 +78,7 @@ def _try_ssl(msg: MIMEMultipart, to_email: str) -> None:
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    with smtplib.SMTP_SSL(settings.smtp_host, 465, context=ctx, timeout=20) as server:
+    with smtplib.SMTP_SSL(settings.smtp_host, 465, context=ctx, timeout=30) as server:
         server.ehlo()
         server.login(settings.smtp_user, settings.smtp_password)
         server.sendmail(settings.smtp_user, [to_email], msg.as_string())
@@ -87,8 +87,10 @@ def _try_ssl(msg: MIMEMultipart, to_email: str) -> None:
 def send_otp_email(to_email: str, otp: str) -> None:
     """
     发送 OTP 验证码邮件。
-    优先尝试 STARTTLS(587)，失败后自动回退到 SSL(465)。
+    优先尝试直连 SSL(465)，失败后回退到 STARTTLS(587)。
     未配置 SMTP 时打印到终端（开发模式）。
+
+    NOTE: STARTTLS(587) 在部分代理环境下 SSL 握手会超时，故优先使用 SSL(465)
     """
     if not settings.smtp_user or not settings.smtp_password:
         logger.warning("SMTP 未配置 — 开发模式，验证码打印到终端")
@@ -99,24 +101,25 @@ def send_otp_email(to_email: str, otp: str) -> None:
 
     msg = _build_message(to_email, otp)
 
-    # 优先用 STARTTLS(587)
+    # 优先用直连 SSL(465)，握手更简单，不受 STARTTLS 代理干扰
     try:
-        _try_starttls(msg, to_email)
-        logger.info("OTP 邮件发送成功 (STARTTLS): to=%s", to_email)
+        _try_ssl(msg, to_email)
+        logger.info("OTP 邮件发送成功 (SSL/465): to=%s", to_email)
         return
     except smtplib.SMTPAuthenticationError:
         logger.error("SMTP 授权码错误")
         raise ValueError("邮箱授权码错误，请重新生成后配置")
     except Exception as e:
-        logger.warning("STARTTLS 发送失败，尝试 SSL: %s", str(e))
+        logger.warning("SSL(465) 发送失败，尝试 STARTTLS(587): %s", str(e))
 
-    # 回退：SSL(465)
+    # 回退：STARTTLS(587)
     try:
-        _try_ssl(msg, to_email)
-        logger.info("OTP 邮件发送成功 (SSL): to=%s", to_email)
+        _try_starttls(msg, to_email)
+        logger.info("OTP 邮件发送成功 (STARTTLS/587): to=%s", to_email)
     except smtplib.SMTPAuthenticationError:
         logger.error("SMTP 授权码错误")
         raise ValueError("邮箱授权码错误，请重新生成后配置")
     except Exception as e:
         logger.error("邮件发送最终失败: %s", str(e))
         raise ValueError(f"邮件发送失败，请检查网络或稍后重试（{str(e)}）")
+

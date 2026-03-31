@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
 from typing import Literal
 
+from app.service.consultant_agent import AgentKey, run_planning_phase, run_quality_review
 from app.service.market_agent import run_market_agent
 from app.service.strategy_agent import run_strategy_agent
 from app.service.content_agent import run_content_agent
@@ -13,130 +13,91 @@ from app.service.visual_agent import run_visual_agent
 
 logger = logging.getLogger(__name__)
 
-AgentId = Literal["market", "strategy", "content", "visual"]
+AgentId = Literal["consultant_plan", "market", "strategy", "content", "visual", "consultant_review"]
 
-# NOTE: SSE 事件格式严格遵循 text/event-stream 规范
-# 前端 EventSource 通过 event 字段区分不同类型的消息
-def _sse_event(event: str, data: str) -> str:
-    """格式化单条 SSE 事件"""
-    # 数据中的换行符需要转义，避免破坏 SSE 协议格式
-    safe_data = data.replace("\n", "\\n")
-    return f"event: {event}\ndata: {safe_data}\n\n"
+
+def _sse(event: str, data: str) -> str:
+    """格式化单条 SSE 事件，换行符转义避免破坏协议格式"""
+    return f"event: {event}\ndata: {data.replace(chr(10), chr(92) + 'n')}\n\n"
 
 
 class AgentOrchestrator:
     """
-    品牌咨询 Agent 编排器（核心）
-    按顺序调用 4 个专业 Agent，每个 Agent 的输出作为下一个 Agent 的上下文
-    通过 SSE 实时将进度和内容推流给前端
+    品牌咨询 Agent 编排器（动态路由版）
+
+    工作流：
+      品牌顾问（需求分析 + 路由决策）
+        → 动态选择并运行所需专业 Agent
+        → 品牌顾问（质量审核 + 最终报告）
+
+    NOTE: 并非所有请求都走完整 4 步流程，
+          顾问根据用户输入智能决定只调用必要的 Agent。
     """
+
+    # 专业 Agent 的执行函数映射
+    # 每个函数接受 (user_prompt, **所需上游 context) → str
+    _AGENT_RUNNERS = {
+        "market":   lambda p, ctx: run_market_agent(p),
+        "strategy": lambda p, ctx: run_strategy_agent(p, ctx.get("market", "")),
+        "content":  lambda p, ctx: run_content_agent(p, ctx.get("market", ""), ctx.get("strategy", "")),
+        "visual":   lambda p, ctx: run_visual_agent(
+            p, ctx.get("market", ""), ctx.get("strategy", ""), ctx.get("content", "")
+        ),
+    }
 
     async def run_session(
         self,
         user_prompt: str,
     ) -> AsyncGenerator[str, None]:
         """
-        执行完整的品牌咨询工作流
-        yield 的每条字符串都是一个符合 SSE 规范的事件字符串
+        执行完整品牌咨询工作流（动态路由）
+        yield 每条符合 text/event-stream 规范的 SSE 事件字符串
         """
-        context: dict[AgentId, str] = {}
+        context: dict[str, str] = {}
 
-        # ─── Agent 1：市场研究 ───────────────────────────
-        yield _sse_event("agent_start", "market")
-        logger.info("开始执行 市场研究 Agent")
+        # ─── 品牌顾问：需求分析 & 路由决策 ──────────────────
+        yield _sse("agent_start", "consultant_plan")
+        logger.info("品牌顾问 — 开始需求分析，制定执行计划")
 
-        market_output = await run_market_agent(user_prompt)
-        context["market"] = market_output
+        selected_agents, plan_text = await run_planning_phase(user_prompt)
 
-        yield _sse_event("agent_output", json.dumps({"id": "market", "content": market_output}))
-        yield _sse_event("agent_complete", "market")
-        logger.info("市场研究 Agent 完成，输出长度: %d", len(market_output))
+        # NOTE: 将路由决策通知前端，前端据此动态渲染 Agent 步骤列表
+        yield _sse("routing_decided", json.dumps(selected_agents))
+        yield _sse("consultant_plan", plan_text)
+        yield _sse("agent_complete", "consultant_plan")
+        logger.info("路由决策完成：%s", selected_agents)
 
-        # ─── Agent 2：品牌战略 ───────────────────────────
-        yield _sse_event("agent_start", "strategy")
-        logger.info("开始执行 品牌战略 Agent")
+        # ─── 动态执行选定的专业 Agent ────────────────────────
+        for agent_key in selected_agents:
+            runner = self._AGENT_RUNNERS.get(agent_key)
+            if not runner:
+                logger.warning("未知 Agent key: %s，跳过", agent_key)
+                continue
 
-        strategy_output = await run_strategy_agent(user_prompt, context["market"])
-        context["strategy"] = strategy_output
+            yield _sse("agent_start", agent_key)
+            logger.info("启动 Agent: %s（由顾问调度）", agent_key)
 
-        yield _sse_event("agent_output", json.dumps({"id": "strategy", "content": strategy_output}))
-        yield _sse_event("agent_complete", "strategy")
-        logger.info("品牌战略 Agent 完成，输出长度: %d", len(strategy_output))
+            output = await runner(user_prompt, context)
+            context[agent_key] = output
 
-        # ─── Agent 3：内容策划 ───────────────────────────
-        yield _sse_event("agent_start", "content")
-        logger.info("开始执行 内容策划 Agent")
+            yield _sse("agent_output", json.dumps({"id": agent_key, "content": output}))
+            yield _sse("agent_complete", agent_key)
+            logger.info("Agent %s 完成，输出: %d 字", agent_key, len(output))
 
-        content_output = await run_content_agent(
-            user_prompt, context["market"], context["strategy"]
+        # ─── 品牌顾问：质量审核 & 最终综合报告 ───────────────
+        yield _sse("agent_start", "consultant_review")
+        logger.info("品牌顾问 — 开始质量审核，生成最终报告")
+
+        final_report = await run_quality_review(
+            user_prompt=user_prompt,
+            selected_agents=selected_agents,
+            context=context,
         )
-        context["content"] = content_output
 
-        yield _sse_event("agent_output", json.dumps({"id": "content", "content": content_output}))
-        yield _sse_event("agent_complete", "content")
-        logger.info("内容策划 Agent 完成，输出长度: %d", len(content_output))
+        yield _sse("consultant_review", final_report)
+        yield _sse("agent_complete", "consultant_review")
+        logger.info("品牌顾问审核完成，最终报告: %d 字", len(final_report))
 
-        # ─── Agent 4：视觉设计 ───────────────────────────
-        yield _sse_event("agent_start", "visual")
-        logger.info("开始执行 视觉设计 Agent")
-
-        visual_output = await run_visual_agent(
-            user_prompt,
-            context["market"],
-            context["strategy"],
-            context["content"],
-        )
-        context["visual"] = visual_output
-
-        yield _sse_event("agent_output", json.dumps({"id": "visual", "content": visual_output}))
-        yield _sse_event("agent_complete", "visual")
-        logger.info("视觉设计 Agent 完成，输出长度: %d", len(visual_output))
-
-        # ─── 全部完成，推送汇总报告 ──────────────────────
-        final_report = self._assemble_report(user_prompt, context)
-        yield _sse_event(
-            "session_complete",
-            json.dumps({"report": final_report}),
-        )
-        logger.info("品牌咨询工作流全部完成")
-
-    def _assemble_report(
-        self,
-        user_prompt: str,
-        context: dict[AgentId, str],
-    ) -> str:
-        """
-        将 4 个 Agent 的输出汇总为完整品牌战略报告
-        """
-        return f"""# 品牌战略报告
-
-> 品牌需求：{user_prompt}
-
----
-
-# 一、市场研究报告
-
-{context.get("market", "")}
-
----
-
-# 二、品牌战略手册
-
-{context.get("strategy", "")}
-
----
-
-# 三、内容策划手册
-
-{context.get("content", "")}
-
----
-
-# 四、视觉识别系统规范
-
-{context.get("visual", "")}
-
----
-
-*本报告由 Woloong AI 品牌咨询平台生成*
-"""
+        # ─── 会话完成 ─────────────────────────────────────────
+        yield _sse("session_complete", json.dumps({"report": final_report}))
+        logger.info("品牌咨询全流程完成，共执行 Agent: %s", selected_agents)
