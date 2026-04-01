@@ -1,0 +1,134 @@
+.wrap {
+  position: relative;
+}
+
+/* 头像按钮：自定义图或占位图标 */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  /* NOTE: 与 Agent 头像、系统设置头像统一的轻阴影参数 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.avatar:hover { opacity: 0.88; transform: scale(1.05); }
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.avatarPlaceholderSvg {
+  width: 18px;
+  height: 18px;
+}
+
+/* 下拉菜单 */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 8px;
+  z-index: 200;
+  animation: popIn 150ms ease;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+/* 邮箱行 */
+.emailRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 12px;
+}
+.avatarSm {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+}
+.avatarImgSm {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.avatarPlaceholderSm {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.avatarPlaceholderSvgSm {
+  width: 14px;
+  height: 14px;
+}
+.emailText {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 分隔线 */
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 4px 0;
+}
+
+/* 菜单项 */
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 13px;
+  color: #444;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+.menuItem:hover { background: #F5F4EF; color: #111; }
+
+.menuItemDanger { color: #DC2626; }
+.menuItemDanger:hover { background: rgba(220, 38, 38, 0.06); color: #DC2626; }
