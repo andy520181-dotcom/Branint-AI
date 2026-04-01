@@ -5,7 +5,12 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Literal
 
-from app.service.consultant_agent import AgentKey, run_planning_phase, run_quality_review
+from app.service.consultant_agent import (
+    AgentKey,
+    run_planning_phase_stream,
+    run_quality_review_stream,
+    _parse_routing_response,
+)
 from app.service.market_agent import run_market_agent_stream
 from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
@@ -49,15 +54,26 @@ class AgentOrchestrator:
         """
         context: dict[str, str] = {}
 
-        # ─── 品牌顾问：需求分析 & 路由决策 ──────────────────
+        # ─── 品牌顾问：需求分析 & 路由决策（流式） ──────────────
         yield _sse("agent_start", "consultant_plan")
         logger.info("品牌顾问 — 开始需求分析，制定执行计划")
 
-        selected_agents, plan_text = await run_planning_phase(user_prompt)
+        # NOTE: 逐 token 推送顾问思考过程，前端实时显示
+        plan_accumulated = ""
+        async for chunk in run_planning_phase_stream(user_prompt):
+            plan_accumulated += chunk
+            yield _sse_raw(
+                "agent_chunk",
+                json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+            )
+
+        # 累积完成后解析路由决策
+        selected_agents, plan_text = _parse_routing_response(plan_accumulated)
 
         # NOTE: 将路由决策通知前端，前端据此动态渲染 Agent 步骤列表
         yield _sse("routing_decided", json.dumps(selected_agents))
-        yield _sse("consultant_plan", plan_text)
+        # 发送解析后的计划文本作为最终 agent_output（覆盖累积文本中的 ROUTING 行）
+        yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_text}))
         yield _sse("agent_complete", "consultant_plan")
         logger.info("路由决策完成：%s", selected_agents)
 
@@ -104,20 +120,28 @@ class AgentOrchestrator:
             yield _sse("agent_complete", agent_key)
             logger.info("Agent %s 完成，输出: %d 字", agent_key, len(accumulated))
 
-        # ─── 品牌顾问：质量审核 & 最终综合报告 ───────────────
+        # ─── 品牌顾问：质量审核 & 最终综合报告（流式） ─────────
         yield _sse("agent_start", "consultant_review")
         logger.info("品牌顾问 — 开始质量审核，生成最终报告")
 
-        final_report = await run_quality_review(
+        # NOTE: 逐 token 推送审核过程，前端实时显示
+        review_accumulated = ""
+        async for chunk in run_quality_review_stream(
             user_prompt=user_prompt,
             selected_agents=selected_agents,
             context=context,
-        )
+        ):
+            review_accumulated += chunk
+            yield _sse_raw(
+                "agent_chunk",
+                json.dumps({"id": "consultant_review", "chunk": chunk}, ensure_ascii=False),
+            )
 
-        yield _sse("consultant_review", final_report)
+        # 发送完整审核报告作为 agent_output
+        yield _sse("agent_output", json.dumps({"id": "consultant_review", "content": review_accumulated}))
         yield _sse("agent_complete", "consultant_review")
-        logger.info("品牌顾问审核完成，最终报告: %d 字", len(final_report))
+        logger.info("品牌顾问审核完成，最终报告: %d 字", len(review_accumulated))
 
         # ─── 会话完成 ─────────────────────────────────────────
-        yield _sse("session_complete", json.dumps({"report": final_report}))
+        yield _sse("session_complete", json.dumps({"report": review_accumulated}))
         logger.info("品牌咨询全流程完成，共执行 Agent: %s", selected_agents)

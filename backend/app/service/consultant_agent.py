@@ -12,9 +12,10 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import AsyncGenerator
 from typing import Literal
 
-from app.service.llm_provider import call_llm
+from app.service.llm_provider import call_llm, call_llm_stream
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +158,25 @@ async def run_planning_phase(user_prompt: str) -> tuple[list[AgentKey], str]:
     return _parse_routing_response(raw)
 
 
+async def run_planning_phase_stream(
+    user_prompt: str,
+) -> AsyncGenerator[str, None]:
+    """
+    品牌顾问 — 需求分析 & 路由决策（流式版）
+    逐 token yield，供 orchestrator 实时推送给前端
+    orchestrator 需自行累积完整文本后调用 _parse_routing_response 解析
+    """
+    messages = [
+        {"role": "system", "content": ROUTING_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。",
+        },
+    ]
+    async for chunk in call_llm_stream(messages):
+        yield chunk
+
+
 async def run_quality_review(
     user_prompt: str,
     selected_agents: list[AgentKey],
@@ -195,3 +215,44 @@ async def run_quality_review(
         {"role": "user", "content": user_message},
     ]
     return await call_llm(messages)
+
+
+async def run_quality_review_stream(
+    user_prompt: str,
+    selected_agents: list[AgentKey],
+    context: dict[str, str],
+) -> AsyncGenerator[str, None]:
+    """
+    品牌顾问 — 质量审核 & 最终报告（流式版）
+    逐 token yield，供 orchestrator 实时推送给前端
+    """
+    section_names = {
+        "market":   "市场研究 · 核心洞察",
+        "strategy": "品牌战略 · 定位框架",
+        "content":  "内容策略 · 传播规划",
+        "visual":   "视觉识别 · 设计方向",
+    }
+    sections_template = "\n\n---\n\n".join(
+        f"## {i + 1}、{section_names[a]}\n（基于 {section_names[a].split('·')[0].strip()} Agent 成果提炼）"
+        for i, a in enumerate(selected_agents)
+    )
+
+    agent_outputs = _build_review_sections(context, selected_agents)
+
+    system_prompt = QUALITY_REVIEW_SYSTEM_PROMPT.replace(
+        "{sections}", sections_template
+    )
+
+    user_message = (
+        f"用户品牌需求：\n{user_prompt}\n\n"
+        f"本次执行的 Agent：{', '.join(selected_agents)}\n\n"
+        f"---\n\n{agent_outputs}\n\n"
+        "---\n请以首席品牌顾问的身份，审核以上报告，输出最终品牌策略综合报告。"
+    )
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    async for chunk in call_llm_stream(messages):
+        yield chunk
