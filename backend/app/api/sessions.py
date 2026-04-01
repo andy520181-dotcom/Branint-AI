@@ -7,13 +7,28 @@ from fastapi.responses import StreamingResponse
 
 from app.schema.session import CreateSessionRequest, CreateSessionResponse
 from app.service.agent_orchestrator import AgentOrchestrator
+from app.storage.session_persist import (
+    extract_report_from_sse_chunk,
+    load_session_disk,
+    save_session_disk,
+)
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
 
-# NOTE: 简单的内存存储，用于 MVP 阶段记录会话信息
-# FIXME: Phase 2 需要替换为 Supabase 数据库持久化
+# NOTE: 内存索引；会话正文同时落盘到 data/sessions，便于分享链接在重启后仍可拉取
+# FIXME: Phase 2 可替换为 Supabase 数据库持久化
 _sessions: dict[str, dict] = {}
+
+
+def _ensure_session_loaded(session_id: str) -> bool:
+    if session_id in _sessions:
+        return True
+    data = load_session_disk(session_id)
+    if not data:
+        return False
+    _sessions[session_id] = data
+    return True
 
 
 @router.post("", response_model=CreateSessionResponse)
@@ -29,6 +44,7 @@ async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
         "status": "pending",
         "report": None,
     }
+    save_session_disk(session_id, _sessions[session_id])
     logger.info("创建新会话: %s, 用户: %s", session_id, body.user_id)
     return CreateSessionResponse(session_id=session_id)
 
@@ -39,7 +55,7 @@ async def stream_session(session_id: str) -> StreamingResponse:
     SSE 流式接口：连接后自动开始执行 4 个 Agent
     前端使用 EventSource 连接此接口接收实时输出
     """
-    if session_id not in _sessions:
+    if not _ensure_session_loaded(session_id):
         raise HTTPException(status_code=404, detail="会话不存在")
 
     session = _sessions[session_id]
@@ -49,13 +65,21 @@ async def stream_session(session_id: str) -> StreamingResponse:
 
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
+            final_report: str | None = None
             async for event in orchestrator.run_session(user_prompt):
+                r = extract_report_from_sse_chunk(event)
+                if r is not None:
+                    final_report = r
                 yield event
             _sessions[session_id]["status"] = "completed"
+            if final_report is not None:
+                _sessions[session_id]["report"] = final_report
+            save_session_disk(session_id, _sessions[session_id])
         except Exception as e:
             logger.error("会话执行失败: %s, 错误: %s", session_id, e)
             yield f"event: error\ndata: {str(e)}\n\n"
             _sessions[session_id]["status"] = "error"
+            save_session_disk(session_id, _sessions[session_id])
 
     return StreamingResponse(
         event_generator(),
@@ -71,7 +95,7 @@ async def stream_session(session_id: str) -> StreamingResponse:
 @router.get("/{session_id}/report")
 async def get_report(session_id: str) -> dict:
     """获取已完成会话的报告（用于分享链接只读访问）"""
-    if session_id not in _sessions:
+    if not _ensure_session_loaded(session_id):
         raise HTTPException(status_code=404, detail="会话不存在")
     session = _sessions[session_id]
     if session["status"] != "completed":
