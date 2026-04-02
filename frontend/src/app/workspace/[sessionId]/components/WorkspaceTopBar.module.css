@@ -1,0 +1,70 @@
+/* ── 顶部导航栏（min-height / padding / z-index 与 globals .site-nav 共用变量，避免与主页切换时闪跳） ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: var(--app-nav-min-height);
+  padding: var(--app-nav-padding-y) var(--app-nav-padding-x);
+  position: sticky;
+  top: 0;
+  z-index: var(--app-nav-z);
+  box-sizing: border-box;
+  /* 侧栏打开时仍盖住左侧抽屉视觉层，与全局顶栏一致的底衬，避免 Logo 与侧栏内容叠字 */
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.topBarBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  min-width: 0;
+  min-height: var(--app-nav-brand-row-min-height);
+}
+/* Logo 右侧：打开历史侧边栏 */
+.topBarHistoryBtn {
+  flex-shrink: 0;
+}
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+}
+.dotDone  { width: 7px; height: 7px; background: var(--color-gold); border-radius: 50%; }
+.dotRed   { width: 7px; height: 7px; background: var(--color-error); border-radius: 50%; }
+.dotPulse {
+  width: 7px; height: 7px;
+  background: var(--color-gold);
+  border-radius: 50%;
+  animation: pulse 1.5s ease infinite;
+}
+.dotIdle {
+  width: 7px; height: 7px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  opacity: 0.55;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.4); }
+}
+/* ── 历史记录：切换按钮（顶栏使用，尺寸偏小） ── */
+.historyToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.historyToggleBtn svg {
+  display: block;
+}
+.historyToggleBtn:hover { background: var(--color-surface-2); color: var(--text-primary); }
+.historyToggleBtnActive { color: var(--color-gold); background: var(--color-gold-dim); }

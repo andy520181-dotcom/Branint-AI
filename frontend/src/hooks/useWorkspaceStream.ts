@@ -15,6 +15,7 @@ export function useWorkspaceStream(sessionId: string | null) {
     setAgentStatus,
     setAgentOutput,
     appendAgentOutput,
+    addAgentImage,
     setCurrentAgent,
     setSelectedAgents,
     setFinalReport,
@@ -73,6 +74,26 @@ export function useWorkspaceStream(sessionId: string | null) {
       try {
         const { id, content } = JSON.parse(e.data) as { id: AgentId; content: string };
         setAgentOutput(id, content);
+      } catch {
+        // 忽略解析错误
+      }
+    });
+
+    // 接收 Agent 附带生成的图片 (如视觉 Agent 的 Logo)
+    es.addEventListener('agent_image', (e) => {
+      try {
+        const { id, type, data_url } = JSON.parse(e.data) as { id: AgentId; type: string; data_url: string };
+        addAgentImage(id, type, data_url);
+      } catch {
+        // 忽略解析错误
+      }
+    });
+
+    // 接收 Agent 附带生成的视频 (如视觉 Agent 的即梦概念片)
+    es.addEventListener('agent_video', (e) => {
+      try {
+        const { id, type, data_url } = JSON.parse(e.data) as { id: AgentId; type: string; data_url: string };
+        useWorkspaceStore.getState().addAgentVideo(id, type, data_url);
       } catch {
         // 忽略解析错误
       }

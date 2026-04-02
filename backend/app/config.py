@@ -7,11 +7,16 @@ class Settings(BaseSettings):
     deepseek_api_key: str = ""
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    google_api_key: str = ""
     dashscope_api_key: str = ""
+    volc_accesskey: str = ""
+    volc_secretkey: str = ""
 
     # NOTE: MVP 阶段固定 DeepSeek，Phase 2 根据用户订阅级别动态切换
     default_model: str = "deepseek/deepseek-chat"
     pro_model: str = "gpt-4o"
+    # NOTE: 美术指导 Agent 使用 Gemini 3 Flash，擅长创意设计类任务
+    visual_model: str = "gemini/gemini-3-flash-preview"
 
     # 应用
     secret_key: str = "dev-secret-key"
@@ -30,7 +35,8 @@ class Settings(BaseSettings):
     jwt_secret: str = "woloong-jwt-secret-change-in-prod"
     jwt_expire_days: int = 30
 
-
+    # 单条用户输入（user_prompt）最大字符数；正式上线可与 DB/对象存储及模型上下文策略一并调整（环境变量 USER_PROMPT_MAX_CHARS）
+    user_prompt_max_chars: int = 500_000
 
     class Config:
         env_file = ".env"
@@ -49,3 +55,5 @@ def configure_litellm_keys() -> None:
         os.environ["OPENAI_API_KEY"] = settings.openai_api_key
     if settings.anthropic_api_key:
         os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key
+    if settings.google_api_key:
+        os.environ["GEMINI_API_KEY"] = settings.google_api_key

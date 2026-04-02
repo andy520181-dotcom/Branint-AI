@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { AgentId, AgentStatus, AGENT_CONFIGS } from '@/types';
+import { AGENT_CONFIGS } from '@/data/agentConfigs';
+import { AgentId, AgentStatus } from '@/types';
 
 interface AgentState {
   id: AgentId;
@@ -26,6 +27,8 @@ const storageKey = (sessionId: string) => `${CACHE_PREFIX}${sessionId}`;
 interface PersistedState {
   agents: AgentsMap;
   selectedAgents: AgentId[] | null;
+  agentImages?: AgentImage[];
+  agentVideos?: AgentVideo[];
   finalReport: string;
   isComplete: boolean;
   userPrompt: string;
@@ -62,6 +65,20 @@ export const loadSession = (sessionId: string): PersistedState | null => {
   } catch { return null; }
 };
 
+/** Agent 生成的图片 */
+interface AgentImage {
+  agentId: AgentId;
+  type: string;
+  dataUrl: string;
+}
+
+/** Agent 生成的视频 */
+interface AgentVideo {
+  agentId: AgentId;
+  type: string;
+  dataUrl: string;
+}
+
 interface WorkspaceState {
   sessionId: string;
   userPrompt: string;
@@ -69,6 +86,10 @@ interface WorkspaceState {
   currentAgentId: AgentId | null;
   // NOTE: 由顾问路由决策后设定，null 表示决策前（显示全部占位）
   selectedAgents: AgentId[] | null;
+  /** 视觉 Agent 生成的品牌参考图 */
+  agentImages: AgentImage[];
+  /** 视觉 Agent 生成的品牌视频 */
+  agentVideos: AgentVideo[];
   finalReport: string;
   isComplete: boolean;
   isStreaming: boolean;
@@ -81,6 +102,10 @@ interface WorkspaceActions {
   setAgentOutput: (id: AgentId, output: string) => void;
   /** NOTE: 流式推送时逐 chunk 追加，不覆盖已有内容 */
   appendAgentOutput: (id: AgentId, chunk: string) => void;
+  /** 添加 Agent 生成的图片 */
+  addAgentImage: (agentId: AgentId, type: string, dataUrl: string) => void;
+  /** 添加 Agent 生成的视频 */
+  addAgentVideo: (agentId: AgentId, type: string, dataUrl: string) => void;
   setCurrentAgent: (id: AgentId | null) => void;
   setSelectedAgents: (agents: AgentId[]) => void;
   setFinalReport: (report: string) => void;
@@ -96,6 +121,8 @@ const initialState: WorkspaceState = {
   agents: initialAgents(),
   currentAgentId: null,
   selectedAgents: null,
+  agentImages: [],
+  agentVideos: [],
   finalReport: '',
   isComplete: false,
   isStreaming: false,
@@ -106,7 +133,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
   ...initialState,
 
   initSession: (sessionId, userPrompt) =>
-    set({ ...initialState, agents: initialAgents(), sessionId, userPrompt, isStreaming: true }),
+    set({ ...initialState, agents: initialAgents(), agentImages: [], agentVideos: [], sessionId, userPrompt, isStreaming: true }),
 
   setAgentStatus: (id, status) =>
     set((s) => ({
@@ -116,7 +143,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
   setAgentOutput: (id, output) =>
     set((s) => {
       const agents = { ...s.agents, [id]: { ...s.agents[id], output } };
-      saveSession(s.sessionId, { agents, selectedAgents: s.selectedAgents, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
+      saveSession(s.sessionId, { agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
       return { agents };
     }),
 
@@ -127,20 +154,34 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
       return { agents };
     }),
 
+  addAgentImage: (agentId, type, dataUrl) =>
+    set((s) => {
+      const nextImages = [...s.agentImages, { agentId, type, dataUrl }];
+      saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: nextImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
+      return { agentImages: nextImages };
+    }),
+
+  addAgentVideo: (agentId, type, dataUrl) =>
+    set((s) => {
+      const nextVideos = [...s.agentVideos, { agentId, type, dataUrl }];
+      saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: nextVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
+      return { agentVideos: nextVideos };
+    }),
+
   setCurrentAgent: (id) => set({ currentAgentId: id }),
 
   setSelectedAgents: (agents) => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: agents, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
+    saveSession(s.sessionId, { agents: s.agents, selectedAgents: agents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
     return { selectedAgents: agents };
   }),
 
   setFinalReport: (report) => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, finalReport: report, isComplete: s.isComplete, userPrompt: s.userPrompt });
+    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: report, isComplete: s.isComplete, userPrompt: s.userPrompt });
     return { finalReport: report };
   }),
 
   setComplete: () => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, finalReport: s.finalReport, isComplete: true, userPrompt: s.userPrompt });
+    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: true, userPrompt: s.userPrompt });
     return { isComplete: true, isStreaming: false, currentAgentId: null };
   }),
 

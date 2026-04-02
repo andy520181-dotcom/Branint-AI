@@ -1,0 +1,230 @@
+/* ── 历史记录：遮罩（从顶栏下缘开始，不盖住 Logo 行） ── */
+.historyOverlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--app-nav-min-height);
+  bottom: 0;
+  background: var(--overlay-scrim);
+  z-index: 40;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── 历史记录：侧边栏（与顶栏等高错位，不侵占 Logo 区域） ── */
+.historySidebar {
+  position: fixed;
+  top: var(--app-nav-min-height);
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+}
+.historySidebarOpen {
+  transform: translateX(0);
+}
+
+/* 侧边栏头部（略收紧高度，与顶栏比例协调） */
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  flex-shrink: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+.historyTitle {
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.historyCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.historyCloseBtn:hover { background: var(--color-surface-2); color: var(--text-primary); }
+
+/* 滚动内容区 */
+.historyBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0 24px;
+}
+.historyEmpty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  padding: 48px 20px;
+}
+
+/* 分组标签 */
+.historyGroup { margin-bottom: 4px; }
+.historyGroupLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 20px 6px;
+}
+
+/* 单条历史：主行 + 三点菜单 */
+.historyItemRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 6px 0 12px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+.historyItemRow:hover {
+  background: var(--color-surface-2);
+}
+.historyItemRowActive {
+  background: var(--color-gold-dim);
+}
+.historyItemRowActive:hover {
+  background: color-mix(in srgb, var(--color-gold) 12%, var(--color-surface));
+}
+
+.historyItemMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 4px 9px 8px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+}
+.historyItemRowActive .historyItemTitle {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.historyItemTitle {
+  flex: 1;
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+.historyItemTime {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.historyMenuRoot {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  align-self: center;
+}
+
+.historyItemMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.historyItemMore:hover,
+.historyItemMoreOpen {
+  background: var(--color-surface-2);
+  color: var(--text-primary);
+}
+.historyItemMoreDots {
+  font-size: var(--font-size-body-lg);
+  letter-spacing: 0;
+  transform: translateY(-1px);
+}
+
+.historyDropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 2px;
+  z-index: 80;
+  min-width: 168px;
+  padding: 6px;
+  list-style: none;
+  margin: 4px 0 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+}
+
+.historyDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  font-size: var(--font-size-caption);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast);
+}
+.historyDropdownItem:hover {
+  background: var(--color-surface-2);
+}
+.historyDropdownItemDanger {
+  color: var(--color-error);
+}
+.historyDropdownItemDanger:hover {
+  background: var(--color-error-bg-medium);
+}
+[data-theme='dark'] .historyDropdownItemDanger:hover {
+  background: var(--color-error-soft);
+}
+
+.historyDropdownIcon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .historySidebar {
+    width: 85vw;
+  }
+}

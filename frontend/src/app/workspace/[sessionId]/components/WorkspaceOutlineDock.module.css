@@ -1,0 +1,165 @@
+/* ── 右侧：本轮对话导航（短划 + 鼠标进入展开；点击该导航以外区域收起） ── */
+.outlineDock {
+  position: fixed;
+  right: 0;
+  top: calc(var(--app-nav-min-height) + 6px);
+  bottom: 100px;
+  z-index: 35;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 0;
+  padding: 8px 12px 8px 36px;
+  background: transparent;
+  overflow: visible;
+}
+
+/*
+ * 单层白底圆角条；展开由 .outlinePanelScrollOpen 控制
+ */
+.outlinePanelScroll {
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  max-height: min(420px, calc(100vh - 160px));
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.16s ease;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px var(--color-border);
+  padding: 10px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.outlinePanelScrollOpen {
+  width: 220px;
+  min-width: 220px;
+  opacity: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  pointer-events: auto;
+  padding: 10px 10px 10px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+}
+
+.outlinePanelScrollOpen::-webkit-scrollbar {
+  width: 5px;
+}
+
+.outlinePanelScrollOpen::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.outlinePanelScrollOpen::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .outlinePanelScrollOpen {
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+[data-theme="dark"] .outlinePanelScrollOpen::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme="dark"] .outlinePanelScroll {
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--color-border);
+}
+
+.outlineRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+/* 标题：默认浅灰，悬停深灰；无行内灰底，避免盖住白底圆角条（当前段落仍由右侧短划标识） */
+.outlineRowText {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-caption);
+  line-height: 1.45;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition-fast);
+}
+
+.outlineRow:hover .outlineRowText {
+  color: var(--text-primary);
+}
+
+.outlineRow:focus-visible .outlineRowText {
+  color: var(--text-primary);
+}
+
+.outlineRowMark {
+  flex-shrink: 0;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] .outlineRowMark {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.outlineRowMark[data-active="true"] {
+  height: 3px;
+  background: var(--agent-market);
+}
+
+.outlineMinimap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  flex-shrink: 0;
+}
+
+.outlineDash {
+  width: 14px;
+  height: 2px;
+  padding: 0;
+  border: none;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: background 0.15s ease, height 0.12s ease;
+}
+
+[data-theme="dark"] .outlineDash {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.outlineDash[data-active="true"] {
+  height: 3px;
+  background: var(--agent-market);
+}
+
+@media (max-width: 900px) {
+  .outlineDock {
+    display: none;
+  }
+}
