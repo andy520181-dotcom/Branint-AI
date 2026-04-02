@@ -15,8 +15,8 @@ from google import genai
 
 logger = logging.getLogger(__name__)
 
-# NOTE: 图片生成使用 Google GenAI SDK 直接调用，不走 LiteLLM
-IMAGE_MODEL = "gemini-3-pro-image-preview"
+# NOTE: Gemini 内置的 fast/nano 级别图片模型
+IMAGE_MODEL = "imagen-4.0-fast-generate-001"
 
 
 def _get_client() -> genai.Client:
@@ -81,27 +81,28 @@ async def generate_brand_images(
     )
 
     try:
-        logger.info("开始生成品牌 Logo 概念图...")
-        response = client.models.generate_content(
+        logger.info("开始调用内置 Nano/Fast 图片生成模型 (Banner 款)...")
+        # 使用专用的 generate_images 接口，支持指定长宽比 (Banner 常规比例 16:9)
+        response = client.models.generate_images(
             model=IMAGE_MODEL,
-            contents=[logo_prompt],
+            prompt=logo_prompt,
+            config=dict(
+                number_of_images=1,
+                aspect_ratio="16:9",  # Banner 比例
+                output_mime_type="image/jpeg",
+            )
         )
 
-        for part in response.candidates[0].content.parts:
-            if part.inline_data is not None:
-                img_b64 = base64.b64encode(part.inline_data.data).decode("utf-8")
-                mime = part.inline_data.mime_type or "image/jpeg"
+        for img in response.generated_images:
+            if img.image and img.image.image_bytes:
+                img_b64 = base64.b64encode(img.image.image_bytes).decode("utf-8")
+                mime = "image/jpeg"
                 results.append({
-                    "type": "logo",
+                    "type": "banner",
                     "mime": mime,
                     "data_url": f"data:{mime};base64,{img_b64}",
                 })
-                logger.info(
-                    "Logo 图片生成成功，大小: %d bytes",
-                    len(part.inline_data.data),
-                )
-            elif part.text is not None:
-                logger.info("图片生成附带文本: %s", part.text[:100])
+                logger.info("Nano Banner 图片生成成功，大小: %d bytes", len(img.image.image_bytes))
 
     except Exception as e:
         logger.error("图片生成失败: %s", e)
