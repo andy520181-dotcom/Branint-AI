@@ -1,12 +1,10 @@
 """
-即梦文生视频服务（Jimeng Text-to-Video）
+即梦文生视频服务（Jimeng Text-to-Video 3.0 1080P）
 
-使用火山引擎即梦 3.0 视频生成模型，通过异步任务轮询获取视频 URL。
+使用火山引擎即梦 3.0 1080P 视频生成模型，通过异步任务轮询获取视频 URL。
 
-接口文档：
-  - 文生视频 3.0 720P: https://www.volcengine.com/docs/85621/1792704
-  - Action: CVSync2AsyncSubmitTask（提交）/ CVSync2AsyncGetResult（查询）
-  - req_key: jimeng_t2v_v30
+接口文档：https://www.volcengine.com/docs/85621/1792711
+Action: CVSync2AsyncSubmitTask（提交）/ CVSync2AsyncGetResult（查询）
 """
 import asyncio
 import logging
@@ -17,10 +15,7 @@ from volcengine.visual.VisualService import VisualService
 
 logger = logging.getLogger(__name__)
 
-# NOTE: 已开通的即梦视频生成服务（见控制台截图）：
-#   - jimeng_t2v_v30_1080p     → 即梦AI-视频生成3.0 1080P（纯文生视频）
-#   - jimeng_ti2v_v30_pro      → 即梦AI-视频生成3.0 Pro 1080P（文/图生视频）
-# 默认使用纯文生视频版本
+# 即梦视频生成 3.0 1080P（纯文生视频，控制台已开通）
 VIDEO_REQ_KEY = "jimeng_t2v_v30_1080p"
 
 
