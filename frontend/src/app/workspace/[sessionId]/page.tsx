@@ -28,7 +28,7 @@ export default function WorkspacePage() {
   const { getHistory, updateHistoryTitle, removeHistoryItem, pinHistoryToTop } = useHistory();
   const { t, resolvedLocale } = useLocale();
 
-  const { agents, currentAgentId, selectedAgents, agentImages, finalReport, isComplete, isStreaming, error, initSession, userPrompt } =
+  const { agents, currentAgentId, selectedAgents, agentImages, agentVideos, finalReport, isComplete, isStreaming, error, initSession, userPrompt } =
     useWorkspaceStore();
 
   const [restored, setRestored] = useState<boolean | null>(null);
@@ -36,7 +36,6 @@ export default function WorkspacePage() {
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [heroFocused, setHeroFocused] = useState(false);
-  void finalReport;
 
   const [previousRounds, setPreviousRounds] = useState<RoundSnapshot[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
@@ -424,6 +423,7 @@ export default function WorkspacePage() {
               agents={agents}
               visibleConfigs={visibleConfigs}
               agentImages={agentImages}
+              agentVideos={agentVideos}
               handoffMsg={handoffMsg}
               error={error}
               t={t}

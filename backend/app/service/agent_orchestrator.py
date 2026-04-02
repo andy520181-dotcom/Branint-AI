@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -187,8 +188,6 @@ class AgentOrchestrator:
                     from app.service.video_generator import generate_brand_video_async
                     logger.info("开始排队并后台生成即梦文生视频...")
                     yield _sse("agent_video_start", "visual")
-                    # 使用当前事件循环启动后台任务
-                    import asyncio
                     video_task = asyncio.create_task(generate_brand_video_async(accumulated))
                 except Exception as e:
                     logger.error("排队即梦视频任务失败: %s", e)
@@ -215,7 +214,6 @@ class AgentOrchestrator:
         # NOTE: 拦截等待视频生成完成（如果尚未完成）
         if video_task:
             try:
-                import asyncio
                 logger.info("等待即梦视频生成任务返回结果...")
                 # 为了防止它无限卡死导致无法出结果，加一个总兜底超时
                 videos = await asyncio.wait_for(video_task, timeout=605)

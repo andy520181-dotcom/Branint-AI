@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
-import { AgentId, AgentStatus } from '@/types';
+import { AgentId, AgentStatus, AgentImage, AgentVideo } from '@/types';
 
 interface AgentState {
   id: AgentId;
@@ -65,20 +65,6 @@ export const loadSession = (sessionId: string): PersistedState | null => {
   } catch { return null; }
 };
 
-/** Agent 生成的图片 */
-interface AgentImage {
-  agentId: AgentId;
-  type: string;
-  dataUrl: string;
-}
-
-/** Agent 生成的视频 */
-interface AgentVideo {
-  agentId: AgentId;
-  type: string;
-  dataUrl: string;
-}
-
 interface WorkspaceState {
   sessionId: string;
   userPrompt: string;
@@ -129,6 +115,18 @@ const initialState: WorkspaceState = {
   error: null,
 };
 
+/** NOTE: 统一的持久化调用点，避免每个 action 重复手写完整的 PersistedState */
+const persist = (s: WorkspaceState) =>
+  saveSession(s.sessionId, {
+    agents: s.agents,
+    selectedAgents: s.selectedAgents,
+    agentImages: s.agentImages,
+    agentVideos: s.agentVideos,
+    finalReport: s.finalReport,
+    isComplete: s.isComplete,
+    userPrompt: s.userPrompt,
+  });
+
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set) => ({
   ...initialState,
 
@@ -143,7 +141,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
   setAgentOutput: (id, output) =>
     set((s) => {
       const agents = { ...s.agents, [id]: { ...s.agents[id], output } };
-      saveSession(s.sessionId, { agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
+      persist({ ...s, agents });
       return { agents };
     }),
 
@@ -156,32 +154,33 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
 
   addAgentImage: (agentId, type, dataUrl) =>
     set((s) => {
-      const nextImages = [...s.agentImages, { agentId, type, dataUrl }];
-      saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: nextImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
-      return { agentImages: nextImages };
+      const agentImages = [...s.agentImages, { agentId, type, dataUrl }];
+      persist({ ...s, agentImages });
+      return { agentImages };
     }),
 
   addAgentVideo: (agentId, type, dataUrl) =>
     set((s) => {
-      const nextVideos = [...s.agentVideos, { agentId, type, dataUrl }];
-      saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: nextVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
-      return { agentVideos: nextVideos };
+      const agentVideos = [...s.agentVideos, { agentId, type, dataUrl }];
+      persist({ ...s, agentVideos });
+      return { agentVideos };
     }),
 
   setCurrentAgent: (id) => set({ currentAgentId: id }),
 
   setSelectedAgents: (agents) => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: agents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: s.isComplete, userPrompt: s.userPrompt });
-    return { selectedAgents: agents };
+    const selectedAgents = agents;
+    persist({ ...s, selectedAgents });
+    return { selectedAgents };
   }),
 
   setFinalReport: (report) => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: report, isComplete: s.isComplete, userPrompt: s.userPrompt });
+    persist({ ...s, finalReport: report });
     return { finalReport: report };
   }),
 
   setComplete: () => set((s) => {
-    saveSession(s.sessionId, { agents: s.agents, selectedAgents: s.selectedAgents, agentImages: s.agentImages, agentVideos: s.agentVideos, finalReport: s.finalReport, isComplete: true, userPrompt: s.userPrompt });
+    persist({ ...s, isComplete: true });
     return { isComplete: true, isStreaming: false, currentAgentId: null };
   }),
 
