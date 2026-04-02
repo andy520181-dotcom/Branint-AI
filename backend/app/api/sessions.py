@@ -41,11 +41,12 @@ async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
     _sessions[session_id] = {
         "user_id": body.user_id,
         "user_prompt": body.user_prompt,
+        "conversation_history": [r.model_dump() for r in body.conversation_history],
         "status": "pending",
         "report": None,
     }
     save_session_disk(session_id, _sessions[session_id])
-    logger.info("创建新会话: %s, 用户: %s", session_id, body.user_id)
+    logger.info("创建新会话: %s, 用户: %s, 历史轮次: %d", session_id, body.user_id, len(body.conversation_history))
     return CreateSessionResponse(session_id=session_id)
 
 
@@ -60,13 +61,14 @@ async def stream_session(session_id: str) -> StreamingResponse:
 
     session = _sessions[session_id]
     user_prompt = session["user_prompt"]
+    conversation_history = session.get("conversation_history", [])
 
     orchestrator = AgentOrchestrator()
 
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
             final_report: str | None = None
-            async for event in orchestrator.run_session(user_prompt):
+            async for event in orchestrator.run_session(user_prompt, conversation_history):
                 r = extract_report_from_sse_chunk(event)
                 if r is not None:
                     final_report = r

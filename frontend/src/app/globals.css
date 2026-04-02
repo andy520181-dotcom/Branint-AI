@@ -36,12 +36,112 @@
   --radius-xl: 28px;
   --radius-full: 100px;
 
+  /* 间距刻度（rem，随根字号缩放） */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+
   --transition-fast:   150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow:   400ms ease;
 
   --shadow-gold: 0 0 30px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-hero-input: 0 2px 16px rgba(0, 0, 0, 0.07);
+  --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.14);
+
+  /*
+   * 字号刻度（唯一真源）：step0 最大 → step12 最小，约 1～2px 递减。
+   * 组件请优先用语义别名（--font-size-body 等）；特殊场景再用 --font-step-N。
+   */
+  --font-step-0: 2.25rem;
+  --font-step-1: 1.75rem;
+  --font-step-2: 1.4rem;
+  --font-step-3: 1.3rem;
+  --font-step-4: 1.25rem;
+  --font-step-5: 1.05rem;
+  --font-step-6: 1rem;
+  --font-step-7: 0.9375rem;
+  --font-step-8: 0.875rem;
+  --font-step-9: 0.8125rem;
+  --font-step-10: 0.75rem;
+  --font-step-11: 0.6875rem;
+  --font-step-12: 0.625rem;
+  --font-size-icon-xl: 2.5rem;
+  --font-size-icon-lg: 1.375rem;
+
+  --font-size-hero: var(--font-step-0);
+  --font-size-title: var(--font-step-1);
+  --font-size-heading: var(--font-step-2);
+  --font-size-subheading: var(--font-step-3);
+  --font-size-brand: var(--font-step-4);
+  --font-size-prose-h3: var(--font-step-5);
+  --font-size-body-lg: var(--font-step-6);
+  --font-size-md: var(--font-step-7);
+  --font-size-body: var(--font-step-8);
+  --font-size-caption: var(--font-step-9);
+  --font-size-sm: var(--font-step-10);
+  --font-size-xs: var(--font-step-11);
+  --font-size-2xs: var(--font-step-12);
+
+  /* 字重（OpenType/CSS 数值刻度，组件用语义别名） */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 语义色：错误、反色底、禁用、Toast */
+  --color-error: #DC2626;
+  --color-error-bg-subtle: rgba(220, 38, 38, 0.05);
+  --color-error-border: rgba(220, 38, 38, 0.15);
+  --color-error-bg-medium: rgba(220, 38, 38, 0.08);
+  --color-error-soft: rgba(248, 113, 113, 0.12);
+  --color-control-disabled: #D8D6D0;
+  --color-on-inverse: #ffffff;
+  --color-inverse-fill: #1a1a1a;
+  --color-inverse-fill-hover: #333333;
+  --color-spinner-ring-on-inverse: rgba(255, 255, 255, 0.3);
+  --color-toast-bg: rgba(30, 30, 30, 0.88);
+  --color-toast-text: #ffffff;
+  /* 遮罩（历史侧栏等） */
+  --overlay-scrim: rgba(0, 0, 0, 0.18);
+  --overlay-modal: rgba(0, 0, 0, 0.45);
+  /* 登录等次级弹层（略浅于设置遮罩） */
+  --overlay-dialog: rgba(0, 0, 0, 0.35);
+  --color-border-hover: rgba(0, 0, 0, 0.15);
+  --color-link: #2563eb;
+  --color-link-hover: #1d4ed8;
+
+  /* 落地页 .page 背景（随 [data-theme] 切换） */
+  --color-landing-page-fallback: #ffffff;
+  --gradient-landing-page: linear-gradient(
+    180deg,
+    #e4e8fd 0%,
+    #eaedfb 26%,
+    #f2f4fc 48%,
+    #fafbff 78%,
+    #ffffff 100%
+  );
+
+  /* Hero 装饰光晕（大输入区与首页共用） */
+  --hero-glow-neutral: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+  --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
+
+  /* 导航栏头像骨架 shimmer */
+  --skeleton-shimmer-low: rgba(0, 0, 0, 0.06);
+  --skeleton-shimmer-mid: rgba(0, 0, 0, 0.1);
+
+  --color-btn-primary-start: #666666;
+  --color-btn-primary-end: #333333;
+  --gradient-btn-primary: linear-gradient(135deg, var(--color-btn-primary-start) 0%, var(--color-btn-primary-end) 100%);
 
   /* 吸顶导航：与页面背景协调，随主题切换 */
   --nav-bg: rgba(248, 247, 242, 0.92);
@@ -60,7 +160,7 @@
   --app-nav-brand-row-min-height: 40px;
 
   /* 品牌 Logo：主页 / 生成页等顶栏统一字号与行高，避免 logo 垂直位置跳动 */
-  --brand-logo-font-size: 20px;
+  --brand-logo-font-size: var(--font-step-4);
   --brand-logo-font-weight: 800;
   --brand-logo-line-height: 1.25;
 
@@ -90,6 +190,42 @@
   --text-muted:     #8e8e93;
 
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-hero-input: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  --color-error: #f87171;
+  --color-error-bg-subtle: rgba(248, 113, 113, 0.1);
+  --color-error-border: rgba(248, 113, 113, 0.28);
+  --color-error-bg-medium: rgba(248, 113, 113, 0.14);
+  --color-error-soft: rgba(248, 113, 113, 0.18);
+  --color-control-disabled: #4a4a4c;
+  --color-spinner-ring-on-inverse: rgba(255, 255, 255, 0.28);
+  --color-border-hover: rgba(255, 255, 255, 0.18);
+  --overlay-scrim: rgba(0, 0, 0, 0.5);
+  --overlay-modal: rgba(0, 0, 0, 0.55);
+  --overlay-dialog: rgba(0, 0, 0, 0.45);
+  --color-link: #60a5fa;
+  --color-link-hover: #93c5fd;
+
+  --color-landing-page-fallback: #1a1a1c;
+  --gradient-landing-page: linear-gradient(
+    180deg,
+    #23252e 0%,
+    #1d1e24 40%,
+    #1a1a1c 100%
+  );
+
+  --hero-glow-neutral: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+
+  --skeleton-shimmer-low: rgba(255, 255, 255, 0.06);
+  --skeleton-shimmer-mid: rgba(255, 255, 255, 0.12);
+
+  --color-btn-primary-start: #9a9a9e;
+  --color-btn-primary-end: #5c5c60;
+  --gradient-btn-primary: linear-gradient(135deg, var(--color-btn-primary-start) 0%, var(--color-btn-primary-end) 100%);
 
   --nav-bg: rgba(26, 26, 28, 0.94);
   --nav-link-hover-bg: rgba(255, 255, 255, 0.08);
@@ -146,10 +282,10 @@ input, textarea { font-family: inherit; outline: none; }
   justify-content: center;
   gap: 8px;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #666666 0%, #333333 100%);
-  color: #FFFFFF;
+  background: var(--gradient-btn-primary);
+  color: var(--color-on-inverse);
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--font-size-body-lg);
   border-radius: var(--radius-md);
   transition: all var(--transition-normal);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -167,22 +303,22 @@ input, textarea { font-family: inherit; outline: none; }
   color: var(--text-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   background: var(--color-surface);
   transition: all var(--transition-fast);
 }
 .btn-ghost:hover { color: var(--text-primary); border-color: var(--color-border-accent); background: var(--color-surface-2); }
 
 /* Markdown 渲染 */
-.markdown-body h1 { font-size: 1.8rem; font-weight: 700; margin: 1.5rem 0 1rem; color: var(--text-primary); }
-.markdown-body h2 { font-size: 1.3rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; }
-.markdown-body h3 { font-size: 1.05rem; font-weight: 600; margin: 1rem 0 0.5rem; color: var(--text-primary); }
+.markdown-body h1 { font-size: var(--font-size-title); font-weight: 700; margin: 1.5rem 0 1rem; color: var(--text-primary); }
+.markdown-body h2 { font-size: var(--font-size-subheading); font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; }
+.markdown-body h3 { font-size: var(--font-size-prose-h3); font-weight: 600; margin: 1rem 0 0.5rem; color: var(--text-primary); }
 .markdown-body p { margin: 0.75rem 0; color: var(--text-secondary); line-height: 1.8; }
 .markdown-body ul, .markdown-body ol { padding-left: 1.5rem; margin: 0.5rem 0; }
 .markdown-body li { color: var(--text-secondary); margin: 0.3rem 0; line-height: 1.7; }
 .markdown-body strong { color: var(--text-primary); font-weight: 600; }
 .markdown-body blockquote { border-left: 3px solid var(--color-gold); padding-left: 1rem; margin: 1rem 0; color: var(--text-secondary); font-style: italic; }
-.markdown-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+.markdown-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: var(--font-size-body); }
 .markdown-body th { background: var(--color-surface-2); color: var(--text-primary); padding: 10px 14px; text-align: left; border: 1px solid var(--color-border); font-weight: 600; }
 .markdown-body td { padding: 9px 14px; border: 1px solid var(--color-border); color: var(--text-secondary); }
 .markdown-body tr:nth-child(even) td { background: var(--color-surface-2); }
@@ -198,8 +334,8 @@ input, textarea { font-family: inherit; outline: none; }
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #1a1a1a;
-  color: #ffffff;
+  background: var(--color-inverse-fill);
+  color: var(--color-on-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,7 +344,7 @@ input, textarea { font-family: inherit; outline: none; }
   cursor: pointer;
   transition: background var(--transition-fast), transform var(--transition-fast);
 }
-.icon-btn-circle:hover:not(:disabled) { background: #333333; transform: scale(1.06); }
+.icon-btn-circle:hover:not(:disabled) { background: var(--color-inverse-fill-hover); transform: scale(1.06); }
 .icon-btn-circle:active:not(:disabled) { transform: scale(0.96); }
 .icon-btn-circle:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -235,13 +371,12 @@ input, textarea { font-family: inherit; outline: none; }
   color: var(--text-primary);
   text-decoration: none;
 }
-/* emoji 与文字行盒对齐，减轻跨页切换时基线/字体的轻微上下错觉 */
-.site-nav-logo > span:first-child {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+.site-nav-logo-img {
+  display: block;
   flex-shrink: 0;
+  height: 1.08em;
+  width: auto;
+  object-fit: contain;
 }
 .site-nav-left {
   display: flex;
@@ -257,7 +392,7 @@ input, textarea { font-family: inherit; outline: none; }
 }
 .site-nav-link {
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   color: var(--text-muted);
   border-radius: var(--radius-full);
@@ -279,6 +414,75 @@ input, textarea { font-family: inherit; outline: none; }
   align-items: center;
   gap: 12px;
 }
+
+/* 顶栏：从 localStorage 恢复登录态前占位（与 UserMenu 头像 36px 一致，避免刷新先闪「登录」） */
+.site-nav-auth-skeleton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-agent-avatar);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-shimmer-low) 25%,
+    var(--skeleton-shimmer-mid) 50%,
+    var(--skeleton-shimmer-low) 75%
+  );
+  background-size: 200% 100%;
+  animation: site-nav-auth-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes site-nav-auth-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-nav-auth-skeleton {
+    animation: none;
+    background: var(--color-surface-2);
+  }
+}
+
 @media (max-width: 640px) {
   .site-nav-links { display: none; }
+}
+
+/* NOTE: 内联脚本在 HTML 解析阶段写入 data-auth='1'（已登录）或 '0'（未登录）。
+   - 已登录：保留骨架作为头像占位（停止 shimmer，变静态圆形），React 替换为真实头像时过渡无感。
+   - 未登录：隐藏骨架，React 直接渲染「登录」按钮。 */
+html[data-auth='1'] .site-nav-auth-skeleton {
+  animation: none !important;
+  background: var(--color-surface-2) !important;
+}
+html[data-auth='0'] .site-nav-auth-skeleton {
+  display: none !important;
+}
+
+/* NOTE: 内联脚本在 HTML 解析阶段写入 data-splash-done，
+   此规则放在 globals.css 确保首帧即生效（CSS module 随组件 chunk 加载，时序不可靠）。
+   选择器使用 data-component 属性而非 CSS module 哈希类名。 */
+html[data-splash-done='1'] [data-component='splash'] {
+  display: none !important;
+}
+
+/* NOTE: Agent 头像首帧保底样式。
+   page.module.css 随组件 chunk 加载，在首帧之前可能未到达。
+   此规则在 globals.css 中保证容器在 CSS module 加载前就有正确的尺寸和背景，
+   消除图片从「无容器约束」到「有容器约束」的布局偏移。 */
+[data-component='agent-avatar'] {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--color-surface-2);
+}
+[data-component='agent-avatar'] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }

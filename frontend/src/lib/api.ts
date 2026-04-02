@@ -5,12 +5,29 @@
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
-/** 创建品牌咨询会话，返回 session_id */
-export async function createSession(userId: string, prompt: string): Promise<string> {
+/** 一轮对话的历史记录（用户输入 + 各 Agent 输出） */
+export interface ConversationRound {
+  user_prompt: string;
+  agent_outputs: Record<string, string>;
+}
+
+/**
+ * 创建品牌咨询会话，返回 session_id
+ * @param conversationHistory 之前轮次的对话记录，首轮为空
+ */
+export async function createSession(
+  userId: string,
+  prompt: string,
+  conversationHistory: ConversationRound[] = [],
+): Promise<string> {
   const res = await fetch(`${API_BASE}/api/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId, user_prompt: prompt }),
+    body: JSON.stringify({
+      user_id: userId,
+      user_prompt: prompt,
+      conversation_history: conversationHistory,
+    }),
   });
   if (!res.ok) throw new Error(`创建会话失败 (${res.status})`);
   const data = await res.json() as { session_id: string };

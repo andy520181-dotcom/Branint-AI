@@ -1,54 +1,20 @@
-/* 自顶栏起：#E4E8FD → 白，顶区略加深 */
+/* 自顶栏起淡紫 → 白，顶区略加深（色标见 globals --gradient-landing-page） */
 .page {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
-  background-image: linear-gradient(
-    180deg,
-    #e4e8fd 0%,
-    #eaedfb 26%,
-    #f2f4fc 48%,
-    #fafbff 78%,
-    #ffffff 100%
-  );
-}
-
-:global([data-theme='dark']) .page {
-  background-color: #1a1a1c;
-  background-image: linear-gradient(
-    180deg,
-    #23252e 0%,
-    #1d1e24 40%,
-    #1a1a1c 100%
-  );
+  background-color: var(--color-landing-page-fallback);
+  background-image: var(--gradient-landing-page);
 }
 
 /* 导航由全局 .site-nav / .site-nav-logo / .site-nav-right 提供基础样式 */
 .navUser { display: flex; align-items: center; gap: 12px; }
-.navEmail { font-size: 13px; color: var(--text-muted); }
+.navEmail { font-size: var(--font-size-caption); color: var(--text-muted); }
 
-/* 导航栏 loading 骨架 — 与头像等大，验证 token 期间防止"登录"按钮闪烁 */
-.avatarSkeleton {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.06) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s ease-in-out infinite;
-}
+/* 顶栏登录态骨架见 globals .site-nav-auth-skeleton */
 
-.hero {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 36px 24px 60px;
-  position: relative;
-  overflow: hidden;
-}
+/* Hero / 大输入区样式见 components/landing/landingHero.module.css */
 
 .agentsSection {
   width: 100%;
@@ -62,157 +28,15 @@
   margin: 0;
   pointer-events: none;
 }
-/* 极淡的装饰光晕，浅色背景下几乎不可见，仅保留层次感 */
-.glowOrb1 {
-  position: absolute;
-  top: -80px;
-  left: 50%;
-  transform: translateX(-60%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
-  pointer-events: none;
-}
-.glowOrb2 {
-  position: absolute;
-  bottom: 0;
-  right: 10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-
-.headline {
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-  color: var(--text-primary);
-}
-.headlineGold {
-  color: var(--text-primary);
-}
-
-.subheadline {
-  font-size: 0.875rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1.9;
-  max-width: 560px;
-  margin-bottom: 48px;
-  letter-spacing: 0.01em;
-}
-
-.inputWrapper {
-  width: 100%;
-  max-width: 850px;
-  background: var(--color-surface);
-  border: none;
-  border-radius: var(--radius-xl);
-  padding: 20px 20px 16px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
-  transition: box-shadow var(--transition-normal);
-  margin-bottom: 24px;
-  position: relative;
-}
-.inputWrapper:focus-within {
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-}
-
-/* textarea + LED 的相对定位容器 */
-.textareaWrap {
-  position: relative;
-}
-
-/* LED 轮播覆盖层 — 绝对定位，完全对齐 textarea 的文字起始位置 */
-.ledOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-start;
-  cursor: text;
-  overflow: hidden;
-  pointer-events: auto;
-  padding: 2px 0 0 0;   /* 与 textarea 顶部内边距一致 */
-}
-.ledText {
-  font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.7;      /* 与 textarea line-height 一致 */
-}
-
-/* 从下方滑入 → 向上滑出，同一方向 */
-.ledIn {
-  animation: ledEnter 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.ledOut {
-  animation: ledExit 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes ledEnter {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-@keyframes ledExit {
-  from { opacity: 1; transform: translateY(0);     }
-  to   { opacity: 0; transform: translateY(-14px); }
-}
-
-.textarea {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 14px;
-  line-height: 1.7;
-  resize: none;
-  min-height: 50px;
-  overflow: hidden;
-  padding: 2px 0 0 0;
-}
-.textarea::placeholder { color: var(--text-muted); }
-
-.inputFooter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
-
-/* 无输入内容时：浅灰背景（与工作台 bottomSendBtn:disabled 一致） */
-.submitBtn:disabled {
-  background: #D8D6D0;
-  opacity: 1;           /* 覆盖全局 .icon-btn-circle:disabled 的 opacity:0.5 */
-  cursor: not-allowed;
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
-}
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.error { margin-top: 10px; font-size: 13px; color: #DC2626; text-align: left; }
 
 .toast {
   position: fixed;
   bottom: 48px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(30, 30, 30, 0.88);
-  color: #fff;
-  font-size: 14px;
+  background: var(--color-toast-bg);
+  color: var(--color-toast-text);
+  font-size: var(--font-size-body);
   padding: 10px 22px;
   border-radius: var(--radius-full);
   white-space: nowrap;
@@ -228,7 +52,7 @@
 
 .agentsRow {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: nowrap;
   justify-content: center;
   width: 100%;
@@ -251,8 +75,8 @@
 .agentPill:hover {
   transform: translateY(-2px);
   background: var(--color-surface);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  border-color: rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-agent-pill-hover);
+  border-color: var(--color-border-hover);
 }
 
 /* 上方：头像 + 名称 横排 */
@@ -274,7 +98,7 @@
 }
 
 .agentPillCharName {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 400;
   color: var(--text-muted);
   white-space: nowrap;
@@ -287,8 +111,9 @@
   flex-shrink: 0;
   overflow: hidden;
   /* NOTE: 去掉圆框，改用轻投影提升层次感 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
-  background: transparent;
+  box-shadow: var(--shadow-agent-avatar);
+  /* 图片未解码前避免透明底闪一下 */
+  background: var(--color-surface-2);
 }
 .agentPillAvatar img {
   width: 100%;
@@ -297,7 +122,7 @@
   object-position: center top;
 }
 .agentPillName {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -307,7 +132,7 @@
 
 /* 下方：描述文字 */
 .agentPillTags {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
@@ -318,6 +143,5 @@
 }
 
 @media (max-width: 640px) {
-  .hero { padding: 48px 16px 40px; }
   .agentPill { min-width: 160px; padding: 12px 16px; }
 }

@@ -23,7 +23,7 @@
 
 .back {
   display: inline-block;
-  font-size: 14px;
+  font-size: var(--font-size-body);
   color: var(--text-muted);
   margin-bottom: 20px;
   transition: opacity var(--transition-fast);
@@ -34,14 +34,14 @@
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 20px;
 }
 
 .body {
-  font-size: 15px;
+  font-size: var(--font-size-md);
   line-height: 1.65;
   color: var(--text-secondary);
 }

@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from 'react';
@@ -41,8 +42,8 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     setResolved(resolved);
   }, []);
 
-  useEffect(() => {
-    // 客户端 mount 后立即读取实际语言偏好
+  // useLayoutEffect：在浏览器绘制前同步语言，避免首帧中文、下一帧英文的整页闪跳
+  useLayoutEffect(() => {
     sync(getStoredLocalePreference());
     setMounted(true);
   }, [sync]);

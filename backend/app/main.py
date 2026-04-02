@@ -45,3 +45,15 @@ app.include_router(auth.router)
 async def health_check() -> dict:
     """健康检查接口"""
     return {"status": "ok", "model": settings.default_model}
+
+
+@app.post("/api/admin/reload-prompts")
+async def reload_prompts() -> dict:
+    """
+    热更新 Agent 规则文件
+    修改 agents/*.md 后调用此接口即可立即生效，无需重启后端
+    """
+    from app.service.prompt_loader import reload_all
+    reload_all()
+    logger.info("Agent 规则文件已热更新")
+    return {"status": "ok", "message": "Agent 规则文件缓存已清空，下次调用将加载最新规则"}

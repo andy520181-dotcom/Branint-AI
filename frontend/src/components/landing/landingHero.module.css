@@ -1,0 +1,190 @@
+/**
+ * 落地页 Hero：主标题 + 大输入区
+ * 由首页与生成页空白态共用，避免 workspace 依赖 app/page.module.css
+ */
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* 顶/底随视口略伸缩，主内容区在顶栏下垂直居中，避免整块堆在上方 */
+  padding: clamp(16px, 5vh, 48px) 24px clamp(28px, 6vh, 72px);
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* 极淡的装饰光晕（仅首页使用，生成页可不渲染） */
+.glowOrb1 {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-60%);
+  width: 600px;
+  height: 600px;
+  background: var(--hero-glow-neutral);
+  pointer-events: none;
+}
+.glowOrb2 {
+  position: absolute;
+  bottom: 0;
+  right: 10%;
+  width: 400px;
+  height: 400px;
+  background: var(--hero-glow-accent);
+  pointer-events: none;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+  max-width: min(920px, 100%);
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+.headlinePrimary {
+  font-size: var(--font-size-hero);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-align: center;
+}
+.headlineSub {
+  font-size: var(--font-size-prose-h3);
+  font-weight: var(--font-weight-light);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 36em;
+}
+@media (max-width: 520px) {
+  .headline {
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+  .headlinePrimary {
+    font-size: clamp(1.2rem, 4.8vw, 2.25rem);
+  }
+  .headlineSub {
+    font-size: var(--font-size-body);
+  }
+  .inputWrapper {
+    margin-bottom: var(--space-7);
+  }
+}
+/* 兼容旧类名（若其它处引用） */
+.headlineGold {
+  color: var(--text-primary);
+}
+
+.inputWrapper {
+  width: 100%;
+  max-width: 850px;
+  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: 20px 20px 16px;
+  box-shadow: var(--shadow-hero-input);
+  transition: box-shadow var(--transition-normal);
+  margin-bottom: var(--space-8);
+  position: relative;
+}
+.inputWrapper:focus-within {
+  box-shadow: var(--shadow-hero-input-focus);
+}
+
+.textareaWrap {
+  position: relative;
+}
+
+.ledOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  cursor: text;
+  overflow: hidden;
+  pointer-events: auto;
+  padding: 2px 0 0 0;
+}
+.ledText {
+  font-size: var(--font-size-body);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.ledIn {
+  animation: ledEnter 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ledOut {
+  animation: ledExit 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ledEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes ledExit {
+  from { opacity: 1; transform: translateY(0);     }
+  to   { opacity: 0; transform: translateY(-14px); }
+}
+
+.textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  line-height: 1.7;
+  resize: none;
+  min-height: 50px;
+  overflow: hidden;
+  padding: 2px 0 0 0;
+}
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.inputFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.submitBtn:disabled {
+  background: var(--color-control-disabled);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-spinner-ring-on-inverse);
+  border-top-color: var(--color-on-inverse);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.error {
+  margin-top: 10px;
+  font-size: var(--font-size-caption);
+  color: var(--color-error);
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: clamp(12px, 4vh, 32px) 16px clamp(20px, 5vh, 40px);
+  }
+}

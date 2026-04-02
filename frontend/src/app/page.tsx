@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
+import { SiteNavLogo } from '@/components/SiteNavLogo';
 import { useRouter } from 'next/navigation';
 import AuthModal from '@/components/auth/AuthModal';
-import UserMenu from '@/components/UserMenu';
+import { SiteNavAuth } from '@/components/SiteNavAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { useHistory } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { createSession } from '@/lib/api';
-import { AGENT_CONFIGS } from '@/types';
+import { USER_PROMPT_MAX_CHARS } from '@/lib/promptLimits';
+import { AGENT_CONFIGS } from '@/data/agentConfigs';
+import heroStyles from '@/components/landing/landingHero.module.css';
+import { AppSplash, shouldSkipSplash } from '@/components/landing/AppSplash';
 import styles from './page.module.css';
 
 /** 落地页展示的 5 个 Agent（按 index 升序，排除 consultant_review） */
@@ -53,8 +57,14 @@ export default function LandingPage() {
   const [error, setError] = useState('');
   const [pendingSubmit, setPendingSubmit] = useState(false);
   const [toast, setToast] = useState('');
+  /** 启动页：首帧与 SSR 一致为 false，避免 hydration 不匹配；再在 layoutEffect 里同步 sessionStorage */
+  const [splashDone, setSplashDone] = useState(false);
   /** 与 SSR 首屏一致为 /history，挂载后再读 localStorage，避免 Nav Link hydration mismatch */
   const [workspaceHref, setWorkspaceHref] = useState('/history');
+
+  useLayoutEffect(() => {
+    if (shouldSkipSplash()) setSplashDone(true);
+  }, []);
 
   useEffect(() => {
     const recent = getHistory()[0];
@@ -136,13 +146,13 @@ export default function LandingPage() {
 
   return (
     <div className={styles.page}>
+      {!splashDone && (
+        <AppSplash onComplete={() => setSplashDone(true)} />
+      )}
       {/* 导航栏 */}
       <nav className="site-nav">
         <div className="site-nav-left">
-          <Link href="/" className="site-nav-logo">
-            <span>⚡</span>
-            <span>Brandclaw AI</span>
-          </Link>
+          <SiteNavLogo />
           <div className="site-nav-links">
             <a href="#features" className="site-nav-link">{t('nav.features')}</a>
             <a href="#pricing" className="site-nav-link">{t('nav.pricing')}</a>
@@ -152,38 +162,35 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="site-nav-right">
-          {user
-            ? <UserMenu userId={user.id} email={user.email} />
-            : <button className="btn-ghost" onClick={() => setShowAuth(true)} id="nav-login-btn">{t('nav.login')}</button>
-          }
+          <SiteNavAuth onLoginClick={() => setShowAuth(true)} loginButtonId="nav-login-btn" />
         </div>
       </nav>
 
       {/* Hero 区域 */}
-      <main className={styles.hero}>
+      <main className={heroStyles.hero}>
         {/* 装饰光晕 */}
-        <div className={styles.glowOrb1} />
-        <div className={styles.glowOrb2} />
+        <div className={heroStyles.glowOrb1} />
+        <div className={heroStyles.glowOrb2} />
 
         {/* 主标题 */}
-        <h1 className={styles.headline}>
-          {t('hero.line1')}<br />
-          <span className={styles.headlineGold}>{t('hero.line2')}</span>
+        <h1 className={heroStyles.headline}>
+          <span className={heroStyles.headlinePrimary}>{t('hero.line1')}</span>
+          <span className={heroStyles.headlineSub}>{t('hero.line2')}</span>
         </h1>
 
 
         {/* 输入框 */}
-        <div className={styles.inputWrapper}>
-          <div className={styles.textareaWrap}>
+        <div className={heroStyles.inputWrapper}>
+          <div className={heroStyles.textareaWrap}>
             {/* LED 示例轮播 — 绝对定位覆盖，不影响 textarea 高度 */}
             {!prompt && !focused && (
               <div
-                className={styles.ledOverlay}
+                className={heroStyles.ledOverlay}
                 onClick={() => { setPrompt(examplePrompts[ledIndex]); }}
               >
                 <span
                   key={ledIndex}
-                  className={`${styles.ledText} ${ledVisible ? styles.ledIn : styles.ledOut}`}
+                  className={`${heroStyles.ledText} ${ledVisible ? heroStyles.ledIn : heroStyles.ledOut}`}
                 >
                   {examplePrompts[ledIndex]}
                 </span>
@@ -192,30 +199,30 @@ export default function LandingPage() {
           <textarea
             ref={textareaRef}
             id="brand-prompt-input"
-            className={styles.textarea}
+            className={heroStyles.textarea}
             placeholder={focused ? t('input.placeholder') : ''}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            maxLength={20000}
+            maxLength={USER_PROMPT_MAX_CHARS}
             rows={1}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
             }}
           />
           </div>
-          <div className={styles.inputFooter}>
+          <div className={heroStyles.inputFooter}>
             <button
               id="start-analysis-btn"
               type="button"
-              className={`icon-btn-circle ${styles.submitBtn}`}
+              className={`icon-btn-circle ${heroStyles.submitBtn}`}
               onClick={handleSubmit}
               disabled={!prompt.trim() || submitting}
               title={t('input.submitTitle')}
             >
               {submitting ? (
-                <span className={styles.spinner} />
+                <span className={heroStyles.spinner} />
               ) : (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -223,7 +230,7 @@ export default function LandingPage() {
               )}
             </button>
           </div>
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={heroStyles.error}>{error}</p>}
         </div>
 
         {/* Agent 展示 */}
@@ -233,8 +240,8 @@ export default function LandingPage() {
             <div key={a.id} className={styles.agentPill} style={{ '--agent-color': a.color } as React.CSSProperties}>
               {/* 上方：头像 + 名称 */}
               <div className={styles.agentPillBody}>
-                <div className={styles.agentPillAvatar}>
-                  <img src={a.avatar} alt={a.charName} />
+                <div className={styles.agentPillAvatar} data-component="agent-avatar">
+                  <img src={a.avatar} alt={a.charName} width={34} height={34} fetchPriority="high" decoding="sync" />
                 </div>
                 <div className={styles.agentPillHeader}>
                   <span className={styles.agentPillName}>{t(`agent.${a.id}.name`)}</span>

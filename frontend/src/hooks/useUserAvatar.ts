@@ -5,7 +5,10 @@ import { getAvatarStorageKey, getStoredAvatarDataUrl, PROFILE_UPDATE_EVENT } fro
 
 /** 本地缓存的头像 data URL，随 PROFILE_UPDATE_EVENT 与其它组件同步 */
 export function useUserAvatar(userId: string | undefined | null) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  // NOTE: 惰性初始化同步读取 localStorage，避免首帧 null → 下一帧 dataUrl 的闪跳
+  const [dataUrl, setDataUrl] = useState<string | null>(
+    () => (userId ? getStoredAvatarDataUrl(userId) : null),
+  );
 
   useEffect(() => {
     if (!userId) {

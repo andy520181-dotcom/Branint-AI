@@ -1,0 +1,40 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 32px;
+  box-sizing: border-box;
+  background: var(--gradient-landing-page, linear-gradient(180deg, #e4e8fd 0%, #ffffff 100%));
+  transition: opacity 420ms ease, visibility 420ms ease;
+}
+
+.root[data-exiting='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08));
+}
+
+.logo {
+  display: block;
+  width: min(64px, 18vw);
+  height: auto;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition-duration: 80ms;
+  }
+}

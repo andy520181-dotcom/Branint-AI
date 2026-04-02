@@ -268,7 +268,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
                         value={displayName}
                         placeholder={t('settings.account.notSet')}
                         maxLength={64}
-                        autoComplete="nickname"
+                        autoComplete="off"
                         onChange={(e) => setDisplayName(e.target.value)}
                         onBlur={() => setStoredDisplayName(user.id, displayName)}
                       />

@@ -22,12 +22,15 @@ async def call_llm_stream(
     target_model = model or settings.default_model
     logger.info("调用 LLM 模型: %s", target_model)
 
+    # NOTE: Gemini 3 系列要求 temperature >= 1.0，否则会触发无限循环和推理性能下降
+    temp = 1.0 if "gemini-3" in target_model else 0.7
+
     try:
         response = await litellm.acompletion(
             model=target_model,
             messages=messages,
             stream=True,
-            temperature=0.7,
+            temperature=temp,
             max_tokens=4096,
         )
 
@@ -51,11 +54,14 @@ async def call_llm(
     target_model = model or settings.default_model
     logger.info("调用 LLM 模型（非流式）: %s", target_model)
 
+    # NOTE: Gemini 3 系列要求 temperature >= 1.0
+    temp = 1.0 if "gemini-3" in target_model else 0.7
+
     response = await litellm.acompletion(
         model=target_model,
         messages=messages,
         stream=False,
-        temperature=0.7,
+        temperature=temp,
         max_tokens=4096,
     )
     return response.choices[0].message.content or ""

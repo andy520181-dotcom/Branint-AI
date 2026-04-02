@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SiteNavLogo } from '@/components/SiteNavLogo';
 import { useLocale } from '@/hooks/useLocale';
 import styles from '../legal/document.module.css';
 
@@ -11,10 +12,7 @@ export default function PrivacyPage() {
     <div className={styles.page}>
       <nav className={`site-nav ${styles.navBordered}`}>
         <div className="site-nav-left">
-          <Link href="/" className="site-nav-logo">
-            <span>⚡</span>
-            <span>Brandclaw AI</span>
-          </Link>
+          <SiteNavLogo />
         </div>
       </nav>
 

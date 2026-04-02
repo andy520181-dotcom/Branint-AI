@@ -16,80 +16,11 @@ from collections.abc import AsyncGenerator
 from typing import Literal
 
 from app.service.llm_provider import call_llm, call_llm_stream
+from app.service.prompt_loader import load_agent_prompt
 
 logger = logging.getLogger(__name__)
 
 AgentKey = Literal["market", "strategy", "content", "visual"]
-
-# ── 智能路由 Prompt ────────────────────────────────────────────────────────
-ROUTING_SYSTEM_PROMPT = """你是 Brandclaw AI 的首席品牌顾问，负责根据客户需求灵活调度专业智能体。
-
-可调用的专业智能体：
-- market   : 市场研究 Agent（竞品分析、消费者画像、市场机会）
-- strategy : 品牌战略 Agent（品牌定位、命名、MVV、USP）
-- content  : 内容策划 Agent（品牌故事、Slogan、内容矩阵）
-- visual   : 视觉设计 Agent（色板、字体、Logo 方向、VI 规范）
-
-**调度原则**：
-1. 只选择用户真正需要的智能体，不多不少
-2. 若用户只需视觉设计 → 只调用 visual
-3. 若用户需要内容与视觉 → 调用 content + visual
-4. 若是完整品牌项目 → 调用全部四个
-5. 若需要战略但没有市场数据做支撑 → 同时调用 market + strategy
-6. 若用户已有明确定位只需内容落地 → 只调用 content（可选 visual）
-
-**输出格式（严格按此格式，不加任何多余内容）**：
-第一行：ROUTING:<JSON数组，只含上述 agent key>
-第二行：---
-之后：执行计划文本（Markdown）
-
-执行计划文本结构：
-## 🧑‍💼 需求理解
-（2-3句精准概括核心诉求与关键挑战）
-
-## 📋 调度安排
-（说明为何调用这些 Agent，以及协作逻辑）
-
-## 🎯 关键成功指标
-（3-5条，简洁有力）"""
-
-
-# ── 质量审核 & 最终报告 Prompt ────────────────────────────────────────────
-QUALITY_REVIEW_SYSTEM_PROMPT = """你是 Brandclaw AI 的首席品牌顾问，拥有 15 年以上顶级品牌咨询经验。
-
-专业 Agent 已完成各自的分析工作。现在你需要：
-1. 以品牌顾问的专业视角，审核各份报告的质量与一致性
-2. 提炼最核心的战略洞察
-3. 整合输出一份完整、连贯的最终品牌策略报告（只包含本次实际执行的部分）
-
-最终报告要求：
-- 以品牌顾问的口吻撰写，有观点、有温度，不是机械拼接
-- 确保各模块逻辑自洽，相互支撑
-- 末尾给出「顾问建议」：3 条最重要的优先行动建议
-
-输出格式（Markdown）：
-
-# 品牌策略综合报告
-
-> 品牌需求：{user_prompt}
-
----
-
-## 顾问前言
-（2-3句，点出核心战略方向）
-
----
-
-{sections}
-
----
-
-## 顾问建议 · 优先行动清单
-（3 条最重要、需立即启动的行动建议，每条附简短理由）
-
----
-
-*本报告由 Brandclaw AI 品牌顾问智能体审核输出*"""
 
 
 def _parse_routing_response(raw: str) -> tuple[list[AgentKey], str]:
@@ -107,12 +38,11 @@ def _parse_routing_response(raw: str) -> tuple[list[AgentKey], str]:
     if match:
         try:
             agents_raw: list[str] = json.loads(match.group(1))
-            # 过滤无效 key，保持原始顺序
             selected = [a for a in agents_raw if a in valid_agents]  # type: ignore[misc]
         except (json.JSONDecodeError, TypeError):
-            selected = list(valid_agents)  # 解析失败，fallback 全部
+            selected = list(valid_agents)
     else:
-        selected = list(valid_agents)  # 找不到路由，fallback 全部
+        selected = list(valid_agents)
 
     # 提取计划文本（--- 分割线之后）
     parts = re.split(r"^---\s*$", raw, maxsplit=1, flags=re.MULTILINE)
@@ -122,37 +52,101 @@ def _parse_routing_response(raw: str) -> tuple[list[AgentKey], str]:
     return selected, plan_text  # type: ignore[return-value]
 
 
+def _build_history_context(conversation_history: list[dict]) -> str:
+    """
+    将多轮对话历史构建为可注入 Prompt 的上下文文本。
+    每轮包含用户原始输入和各 Agent 的完整输出，
+    使品牌顾问在后续轮次中理解之前的分析内容。
+    """
+    if not conversation_history:
+        return ""
+
+    agent_label = {
+        "consultant_plan": "品牌顾问（执行计划）",
+        "market": "市场研究 Agent",
+        "strategy": "品牌战略 Agent",
+        "content": "内容策划 Agent",
+        "visual": "美术指导 Agent",
+        "consultant_review": "品牌顾问（综合报告）",
+    }
+
+    parts: list[str] = []
+    for i, round_data in enumerate(conversation_history, 1):
+        round_text = f"\n====== 第{i}轮对话 ======\n"
+        round_text += f"用户需求：{round_data.get('user_prompt', '')}"
+
+        agent_outputs = round_data.get("agent_outputs", {})
+        for agent_id, output in agent_outputs.items():
+            label = agent_label.get(agent_id, agent_id)
+            round_text += f"\n\n【{label} 输出】：\n{output}"
+
+        parts.append(round_text)
+
+    return "\n".join(parts)
+
+
 def _build_review_sections(
-    context: dict[str, str],
+    project_context: dict,
     selected_agents: list[AgentKey],
 ) -> str:
-    """根据实际运行的 Agent 构建审核提示词中的 sections 描述"""
-    section_map = {
-        "market":   "【市场研究 Agent 输出】",
-        "strategy": "【品牌战略 Agent 输出】",
-        "content":  "【内容策划 Agent 输出】",
-        "visual":   "【视觉设计 Agent 输出】",
+    """
+    为审核阶段构建双层注入内容：
+    第一层：所有 Agent 的 handoff 交接摘要（快速总览）
+    第二层：各 Agent 的完整输出（深度审核引用）
+    """
+    agent_label = {
+        "market": "市场研究 Agent",
+        "strategy": "品牌战略 Agent",
+        "content": "内容策划 Agent",
+        "visual": "美术指导 Agent",
     }
-    parts = []
+
+    handoffs = project_context.get("handoffs", {})
+    full_outputs = project_context.get("full_outputs", {})
+
+    # 第一层：handoff 总览
+    handoff_parts: list[str] = []
     for key in selected_agents:
-        if key in context and context[key]:
-            parts.append(f"{section_map[key]}：\n{context[key]}")
-    return "\n\n---\n\n".join(parts)
+        if key in handoffs and handoffs[key]:
+            handoff_parts.append(f"【{agent_label.get(key, key)} · 交接摘要】：\n{handoffs[key]}")
+    handoff_summary = "\n\n".join(handoff_parts)
+
+    # 第二层：完整输出
+    full_parts: list[str] = []
+    for key in selected_agents:
+        if key in full_outputs and full_outputs[key]:
+            full_parts.append(f"【{agent_label.get(key, key)} · 完整输出】：\n{full_outputs[key]}")
+    full_text = "\n\n---\n\n".join(full_parts)
+
+    return (
+        "═══ 第一层：交接摘要（快速总览） ═══\n\n"
+        f"{handoff_summary}\n\n"
+        "═══ 第二层：完整输出（深度审核引用） ═══\n\n"
+        f"{full_text}"
+    )
 
 
-async def run_planning_phase(user_prompt: str) -> tuple[list[AgentKey], str]:
+async def run_planning_phase(
+    user_prompt: str,
+    conversation_history: list[dict] | None = None,
+) -> tuple[list[AgentKey], str]:
     """
     品牌顾问 — 需求分析 & 路由决策阶段
-    返回：(selected_agents, plan_text)
-      - selected_agents: 需要运行的 Agent key 列表（有序）
-      - plan_text:       人类可读的执行计划文本（Markdown）
     """
+    history_text = _build_history_context(conversation_history or [])
+
+    if history_text:
+        user_content = (
+            f"【历史对话上下文】\n{history_text}\n\n"
+            f"====== 本轮用户输入 ======\n{user_prompt}\n\n"
+            "请基于以上历史上下文和本轮用户输入，分析需求，选择合适的智能体并制定执行计划。"
+        )
+    else:
+        user_content = f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。"
+
     messages = [
-        {"role": "system", "content": ROUTING_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。",
-        },
+        {"role": "system", "content": load_agent_prompt("consultant_plan")},
+        {"role": "user", "content": user_content},
     ]
     raw = await call_llm(messages)
     return _parse_routing_response(raw)
@@ -160,18 +154,25 @@ async def run_planning_phase(user_prompt: str) -> tuple[list[AgentKey], str]:
 
 async def run_planning_phase_stream(
     user_prompt: str,
+    conversation_history: list[dict] | None = None,
 ) -> AsyncGenerator[str, None]:
     """
     品牌顾问 — 需求分析 & 路由决策（流式版）
-    逐 token yield，供 orchestrator 实时推送给前端
-    orchestrator 需自行累积完整文本后调用 _parse_routing_response 解析
     """
+    history_text = _build_history_context(conversation_history or [])
+
+    if history_text:
+        user_content = (
+            f"【历史对话上下文】\n{history_text}\n\n"
+            f"====== 本轮用户输入 ======\n{user_prompt}\n\n"
+            "请基于以上历史上下文和本轮用户输入，分析需求，选择合适的智能体并制定执行计划。"
+        )
+    else:
+        user_content = f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。"
+
     messages = [
-        {"role": "system", "content": ROUTING_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。",
-        },
+        {"role": "system", "content": load_agent_prompt("consultant_plan")},
+        {"role": "user", "content": user_content},
     ]
     async for chunk in call_llm_stream(messages):
         yield chunk
@@ -180,38 +181,23 @@ async def run_planning_phase_stream(
 async def run_quality_review(
     user_prompt: str,
     selected_agents: list[AgentKey],
-    context: dict[str, str],
+    project_context: dict,
 ) -> str:
     """
     品牌顾问 — 质量审核 & 最终报告阶段
-    只整合本次实际运行的 Agent 输出，以顾问视角审核并生成综合品牌策略报告
+    使用双层注入：handoff 总览（快速理解）+ 全文引用（深度审核）
     """
-    section_names = {
-        "market":   "市场研究 · 核心洞察",
-        "strategy": "品牌战略 · 定位框架",
-        "content":  "内容策略 · 传播规划",
-        "visual":   "视觉识别 · 设计方向",
-    }
-    sections_template = "\n\n---\n\n".join(
-        f"## {i + 1}、{section_names[a]}\n（基于 {section_names[a].split('·')[0].strip()} Agent 成果提炼）"
-        for i, a in enumerate(selected_agents)
-    )
-
-    agent_outputs = _build_review_sections(context, selected_agents)
-
-    system_prompt = QUALITY_REVIEW_SYSTEM_PROMPT.replace(
-        "{sections}", sections_template
-    )
+    review_content = _build_review_sections(project_context, selected_agents)
 
     user_message = (
         f"用户品牌需求：\n{user_prompt}\n\n"
         f"本次执行的 Agent：{', '.join(selected_agents)}\n\n"
-        f"---\n\n{agent_outputs}\n\n"
+        f"---\n\n{review_content}\n\n"
         "---\n请以首席品牌顾问的身份，审核以上报告，输出最终品牌策略综合报告。"
     )
 
     messages = [
-        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": load_agent_prompt("consultant_review")},
         {"role": "user", "content": user_message},
     ]
     return await call_llm(messages)
@@ -220,38 +206,22 @@ async def run_quality_review(
 async def run_quality_review_stream(
     user_prompt: str,
     selected_agents: list[AgentKey],
-    context: dict[str, str],
+    project_context: dict,
 ) -> AsyncGenerator[str, None]:
     """
     品牌顾问 — 质量审核 & 最终报告（流式版）
-    逐 token yield，供 orchestrator 实时推送给前端
     """
-    section_names = {
-        "market":   "市场研究 · 核心洞察",
-        "strategy": "品牌战略 · 定位框架",
-        "content":  "内容策略 · 传播规划",
-        "visual":   "视觉识别 · 设计方向",
-    }
-    sections_template = "\n\n---\n\n".join(
-        f"## {i + 1}、{section_names[a]}\n（基于 {section_names[a].split('·')[0].strip()} Agent 成果提炼）"
-        for i, a in enumerate(selected_agents)
-    )
-
-    agent_outputs = _build_review_sections(context, selected_agents)
-
-    system_prompt = QUALITY_REVIEW_SYSTEM_PROMPT.replace(
-        "{sections}", sections_template
-    )
+    review_content = _build_review_sections(project_context, selected_agents)
 
     user_message = (
         f"用户品牌需求：\n{user_prompt}\n\n"
         f"本次执行的 Agent：{', '.join(selected_agents)}\n\n"
-        f"---\n\n{agent_outputs}\n\n"
+        f"---\n\n{review_content}\n\n"
         "---\n请以首席品牌顾问的身份，审核以上报告，输出最终品牌策略综合报告。"
     )
 
     messages = [
-        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": load_agent_prompt("consultant_review")},
         {"role": "user", "content": user_message},
     ]
     async for chunk in call_llm_stream(messages):

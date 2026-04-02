@@ -34,8 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 首屏在浏览器绘制前从 localStorage 恢复登录态，减少顶栏「登录↔头像」闪一下
-  // NOTE: MVP 阶段 token 失效时仍可能显示头像，需用户重新登录
+  // 首屏在浏览器绘制前从 localStorage 恢复登录态
+  // NOTE: 闪跳由 layout.tsx 内联脚本 + CSS 在更早阶段解决，此处仅负责 React 状态同步
   useLayoutEffect(() => {
     setUser(loadUser());
     setLoading(false);

@@ -22,7 +22,8 @@ export function useHistory() {
 
   const addHistory = useCallback((item: HistoryItem) => {
     const history = getHistory();
-    const updated = [item, ...history].slice(0, 50);
+    const withoutDup = history.filter((h) => h.sessionId !== item.sessionId);
+    const updated = [item, ...withoutDup].slice(0, 50);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   }, [getHistory]);
 

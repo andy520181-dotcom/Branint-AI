@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth, useHistory } from '@/hooks/useAuth';
+import { SiteNavLogo } from '@/components/SiteNavLogo';
+import { useHistory } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
-import UserMenu from '@/components/UserMenu';
+import { SiteNavAuth } from '@/components/SiteNavAuth';
 import AuthModal from '@/components/auth/AuthModal';
 import { HistoryItem } from '@/types';
 import styles from './page.module.css';
 
 export default function HistoryPage() {
-  const { user } = useAuth();
   const { t, resolvedLocale } = useLocale();
   const { getHistory } = useHistory();
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -31,20 +31,14 @@ export default function HistoryPage() {
       {/* 导航栏 */}
       <nav className={`site-nav ${styles.navBordered}`}>
         <div className="site-nav-left">
-          <Link href="/" className="site-nav-logo">
-            <span>⚡</span>
-            <span>Brandclaw AI</span>
-          </Link>
+          <SiteNavLogo />
           <div className="site-nav-links">
             <a href="/#features" className="site-nav-link">{t('nav.features')}</a>
             <a href="/#pricing" className="site-nav-link">{t('nav.pricing')}</a>
           </div>
         </div>
         <div className="site-nav-right">
-          {user
-            ? <UserMenu userId={user.id} email={user.email} />
-            : <button className="btn-ghost" onClick={() => setShowAuth(true)}>{t('nav.login')}</button>
-          }
+          <SiteNavAuth onLoginClick={() => setShowAuth(true)} />
         </div>
       </nav>
 
@@ -64,9 +58,9 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className={styles.list}>
-            {items.map((item) => (
+            {items.map((item, index) => (
               <Link
-                key={item.sessionId}
+                key={`${item.sessionId}-${item.createdAt}-${index}`}
                 href={`/workspace/${item.sessionId}`}
                 className={styles.card}
               >
