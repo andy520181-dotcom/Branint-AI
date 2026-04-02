@@ -1,3 +1,9 @@
+# Python 虚拟环境（勿提交）
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
 # 本地会话快照（含报告正文，勿提交）
 data/sessions/*.json
 data/sessions/*.json.tmp
