@@ -48,7 +48,7 @@ settings = Settings()
 # NOTE: LiteLLM 需要通过环境变量获取各厂商 API Key
 # 在应用启动时统一注入，避免在各处重复设置
 def configure_litellm_keys() -> None:
-    """将配置中的 API Key 统一注入环境变量供 LiteLLM 读取"""
+    """将配置中的 API Key 统一注入环境变量供 LiteLLM 及各 SDK 读取"""
     if settings.deepseek_api_key:
         os.environ["DEEPSEEK_API_KEY"] = settings.deepseek_api_key
     if settings.openai_api_key:
@@ -56,4 +56,11 @@ def configure_litellm_keys() -> None:
     if settings.anthropic_api_key:
         os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key
     if settings.google_api_key:
+        # NOTE: LiteLLM 使用 GEMINI_API_KEY；Google GenAI SDK 使用 GOOGLE_API_KEY
+        # 两个都注入，确保所有 SDK 均可读取
         os.environ["GEMINI_API_KEY"] = settings.google_api_key
+        os.environ["GOOGLE_API_KEY"] = settings.google_api_key
+    if settings.volc_accesskey:
+        os.environ["VOLC_ACCESSKEY"] = settings.volc_accesskey
+    if settings.volc_secretkey:
+        os.environ["VOLC_SECRETKEY"] = settings.volc_secretkey
