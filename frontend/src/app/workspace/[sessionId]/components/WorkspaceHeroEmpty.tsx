@@ -2,7 +2,6 @@
 
 import type { RefObject } from 'react';
 import heroStyles from '@/components/landing/landingHero.module.css';
-import { USER_PROMPT_MAX_CHARS } from '@/lib/promptLimits';
 
 type TFn = (key: string) => string;
 
@@ -51,7 +50,6 @@ export function WorkspaceHeroEmpty({
             onFocus={() => setHeroFocused(true)}
             onBlur={() => setHeroFocused(false)}
             rows={1}
-            maxLength={USER_PROMPT_MAX_CHARS}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

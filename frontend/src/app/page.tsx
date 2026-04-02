@@ -10,7 +10,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useHistory } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { createSession } from '@/lib/api';
-import { USER_PROMPT_MAX_CHARS } from '@/lib/promptLimits';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import heroStyles from '@/components/landing/landingHero.module.css';
 import { AppSplash, shouldSkipSplash } from '@/components/landing/AppSplash';
@@ -54,7 +53,6 @@ export default function LandingPage() {
   }, [prompt]);
   const [showAuth, setShowAuth] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [pendingSubmit, setPendingSubmit] = useState(false);
   const [toast, setToast] = useState('');
   /** 启动页：首帧与 SSR 一致为 false，避免 hydration 不匹配；再在 layoutEffect 里同步 sessionStorage */
@@ -71,9 +69,9 @@ export default function LandingPage() {
     setWorkspaceHref(recent ? `/workspace/${recent.sessionId}` : '/history');
   }, [getHistory]);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, durationMs = 2800) => {
     setToast(msg);
-    setTimeout(() => setToast(''), 2000);
+    setTimeout(() => setToast(''), durationMs);
   };
   // LED 轮播
   const [ledIndex, setLedIndex] = useState(0);
@@ -106,12 +104,8 @@ export default function LandingPage() {
     currentUser: { id: string; email: string },
     currentPrompt: string,
   ) => {
-    if (!currentPrompt.trim() || currentPrompt.trim().length < 10) {
-      setError(t('error.minChars'));
-      return;
-    }
+    if (!currentPrompt.trim()) return;
     setSubmitting(true);
-    setError('');
     try {
       const session_id = await createSession(currentUser.id, currentPrompt.trim());
       addHistory({
@@ -125,7 +119,7 @@ export default function LandingPage() {
       sessionStorage.setItem(`prompt_${session_id}`, currentPrompt.trim());
       router.push(`/workspace/${session_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error.network'));
+      showToast(err instanceof Error ? err.message : t('error.network'), 3200);
       setSubmitting(false);
     }
   };
@@ -137,10 +131,7 @@ export default function LandingPage() {
       setShowAuth(true);
       return;
     }
-    if (!prompt.trim()) {
-      showToast(t('toast.emptyPrompt'));
-      return;
-    }
+    if (!prompt.trim()) return;
     await doSubmit(user, prompt);
   };
 
@@ -205,7 +196,6 @@ export default function LandingPage() {
             onChange={(e) => setPrompt(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            maxLength={USER_PROMPT_MAX_CHARS}
             rows={1}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
@@ -230,7 +220,6 @@ export default function LandingPage() {
               )}
             </button>
           </div>
-          {error && <p className={heroStyles.error}>{error}</p>}
         </div>
 
         {/* Agent 展示 */}

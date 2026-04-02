@@ -79,7 +79,7 @@ export function useWorkspaceStream(sessionId: string | null) {
       }
     });
 
-    // 接收 Agent 附带生成的图片 (如视觉 Agent 的 Logo)
+    // 接收 Agent 附带生成的图片（如美术指导 Agent 的 Logo）
     es.addEventListener('agent_image', (e) => {
       try {
         const { id, type, data_url } = JSON.parse(e.data) as { id: AgentId; type: string; data_url: string };
@@ -89,7 +89,7 @@ export function useWorkspaceStream(sessionId: string | null) {
       }
     });
 
-    // 接收 Agent 附带生成的视频 (如视觉 Agent 的即梦概念片)
+    // 接收 Agent 附带生成的视频（如美术指导 Agent 的即梦概念片）
     es.addEventListener('agent_video', (e) => {
       try {
         const { id, type, data_url } = JSON.parse(e.data) as { id: AgentId; type: string; data_url: string };

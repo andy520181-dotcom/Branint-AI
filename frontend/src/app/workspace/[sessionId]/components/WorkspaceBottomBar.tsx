@@ -1,7 +1,6 @@
 'use client';
 
 import type { RefObject } from 'react';
-import { USER_PROMPT_MAX_CHARS } from '@/lib/promptLimits';
 import styles from './WorkspaceBottomBar.module.css';
 
 type TFn = (key: string) => string;
@@ -39,7 +38,6 @@ export function WorkspaceBottomBar({
             value={bottomPrompt}
             onChange={(e) => setBottomPrompt(e.target.value)}
             rows={1}
-            maxLength={USER_PROMPT_MAX_CHARS}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

@@ -72,9 +72,9 @@ interface WorkspaceState {
   currentAgentId: AgentId | null;
   // NOTE: 由顾问路由决策后设定，null 表示决策前（显示全部占位）
   selectedAgents: AgentId[] | null;
-  /** 视觉 Agent 生成的品牌参考图 */
+  /** 美术指导 Agent（visual）生成的品牌参考图 */
   agentImages: AgentImage[];
-  /** 视觉 Agent 生成的品牌视频 */
+  /** 美术指导 Agent（visual）生成的品牌视频 */
   agentVideos: AgentVideo[];
   finalReport: string;
   isComplete: boolean;

@@ -59,14 +59,14 @@ export interface HistoryItem {
 
 /** Agent 静态配置见 `@/data/agentConfigs` */
 
-/** 视觉 Agent 生成的品牌参考图 */
+/** 美术指导 Agent（visual）生成的品牌参考图 */
 export interface AgentImage {
   agentId: AgentId;
   type: string;
   dataUrl: string;
 }
 
-/** 视觉 Agent 生成的品牌视频 */
+/** 美术指导 Agent（visual）生成的品牌视频 */
 export interface AgentVideo {
   agentId: AgentId;
   type: string;

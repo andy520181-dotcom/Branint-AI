@@ -31,22 +31,32 @@
 
 .toast {
   position: fixed;
-  bottom: 48px;
+  bottom: max(28px, env(safe-area-inset-bottom, 0px));
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
   background: var(--color-toast-bg);
   color: var(--color-toast-text);
   font-size: var(--font-size-body);
-  padding: 10px 22px;
+  padding: 12px 22px;
   border-radius: var(--radius-full);
-  white-space: nowrap;
+  max-width: min(92vw, 420px);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.45;
   pointer-events: none;
   z-index: 9999;
-  animation: toastIn 0.2s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  animation: toastSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(48px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 

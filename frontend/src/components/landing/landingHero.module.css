@@ -176,13 +176,6 @@
   display: inline-block;
 }
 
-.error {
-  margin-top: 10px;
-  font-size: var(--font-size-caption);
-  color: var(--color-error);
-  text-align: left;
-}
-
 @media (max-width: 640px) {
   .hero {
     padding: clamp(12px, 4vh, 32px) 16px clamp(20px, 5vh, 40px);

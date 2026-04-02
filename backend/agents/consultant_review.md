@@ -14,6 +14,7 @@
 - 确保各模块逻辑自洽，相互支撑
 - 检查各 Agent 的输出是否与品牌定位一致
 - 发现矛盾点时，提出修正建议
+- 提及各专业智能体时使用展示名：**美术指导 Agent**（英文：**Art Director Agent**），勿写 ~~visual Agent~~ 或 ~~Visual Agent~~
 
 ## 输出格式（Markdown）
 

@@ -1,10 +1,10 @@
 /** 生成页 / 工作台 */
 export const workspace: Record<string, string> = {
-  'workspace.historyTitle': '历史记录',
-  'workspace.historyToggle': '历史记录',
-  'workspace.newChat': '新建对话',
+  'workspace.historyTitle': '会话记录',
+  'workspace.historyToggle': '会话记录',
+  'workspace.newChat': '新建会话',
   'workspace.close': '关闭',
-  'workspace.historyEmpty': '暂无历史记录',
+  'workspace.historyEmpty': '暂无会话',
   'workspace.history.rename': '重命名',
   'workspace.history.pin': '置顶',
   'workspace.history.share': '分享',
@@ -12,7 +12,7 @@ export const workspace: Record<string, string> = {
   'workspace.history.renamePrompt': '输入新的标题',
   'workspace.history.shareCopied': '分享链接已复制',
   'workspace.history.shareFailed': '复制失败，请手动复制链接',
-  'workspace.history.deleteConfirm': '确定删除这条历史记录？',
+  'workspace.history.deleteConfirm': '确定删除这条会话？',
   'workspace.history.more': '更多操作',
   'workspace.outlineNav': '本轮对话导航',
   'workspace.outlineJump': '跳转到该条用户发言',

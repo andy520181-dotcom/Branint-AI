@@ -298,9 +298,6 @@ export function WorkspaceFeed({
         {error && (
           <div className={styles.errorCard}>
             <p>⚠️ {translateWorkspaceError(error, t)}</p>
-            <a href="/" className="btn-ghost">
-              {t('workspace.retry')}
-            </a>
           </div>
         )}
       </div>

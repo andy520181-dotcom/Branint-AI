@@ -18,7 +18,7 @@ export const agents: Record<string, string> = {
   'agent.content.description': '规划品牌故事、Slogan 与全渠道内容矩阵',
   'agent.visual.name': '美术指导 Agent',
   'agent.visual.desc': 'VI系统·平面设计·文生图片·文生视频',
-  'agent.visual.role': 'Art Director Agent',
+  'agent.visual.role': 'Art Director · 美术指导',
   'agent.visual.description': '输出 VI 与平面方向，支持文生图片、文生视频与物料延展',
   'agent.consultant_review.name': '品牌顾问 Agent',
   'agent.consultant_review.desc': '质量审核·综合报告',

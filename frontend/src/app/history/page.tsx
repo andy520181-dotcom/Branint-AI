@@ -42,39 +42,42 @@ export default function HistoryPage() {
         </div>
       </nav>
 
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>{t('history.title')}</h1>
-          <p className={styles.subtitle}>{t('history.subtitle')}</p>
-        </div>
-
+      <main className={`${styles.main} ${items.length === 0 ? styles.mainEmpty : ''}`}>
         {items.length === 0 ? (
-          <div className={styles.empty}>
-            <span className={styles.emptyIcon}>📋</span>
-            <p className={styles.emptyText}>{t('history.empty')}</p>
+          <div className={styles.emptyState}>
+            <h1 className={styles.srOnly}>{t('history.title')}</h1>
+            <p className={styles.emptyHint}>{t('history.empty')}</p>
+            <span className={styles.emptyArrow} aria-hidden>
+              →
+            </span>
             <Link href="/" className={`btn-primary ${styles.startBtn}`}>
               {t('history.cta')}
             </Link>
           </div>
         ) : (
-          <div className={styles.list}>
-            {items.map((item, index) => (
-              <Link
-                key={`${item.sessionId}-${item.createdAt}-${index}`}
-                href={`/workspace/${item.sessionId}`}
-                className={styles.card}
-              >
-                <div className={styles.cardIcon}>📄</div>
-                <div className={styles.cardBody}>
-                  <p className={styles.cardTitle}>{item.title}</p>
-                  <p className={styles.cardDate}>{formatDate(item.createdAt)}</p>
-                </div>
-                <svg className={styles.cardArrow} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6"/>
-                </svg>
-              </Link>
-            ))}
-          </div>
+          <>
+            <header className={styles.header}>
+              <h1 className={styles.title}>{t('history.title')}</h1>
+            </header>
+            <div className={styles.list}>
+              {items.map((item, index) => (
+                <Link
+                  key={`${item.sessionId}-${item.createdAt}-${index}`}
+                  href={`/workspace/${item.sessionId}`}
+                  className={styles.card}
+                >
+                  <div className={styles.cardIcon}>📄</div>
+                  <div className={styles.cardBody}>
+                    <p className={styles.cardTitle}>{item.title}</p>
+                    <p className={styles.cardDate}>{formatDate(item.createdAt)}</p>
+                  </div>
+                  <svg className={styles.cardArrow} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </main>
 
