@@ -168,29 +168,34 @@ class AgentOrchestrator:
                 agent_key, len(accumulated), len(handoff),
             )
 
-            # NOTE: 美术指导 Agent 完成后，自动触发图片生成，并后台排队等待视频生成
+            # NOTE: 美术指导 Agent 完成后，按需触发多模态生成引擎
             if agent_key == "visual":
-                try:
-                    from app.service.image_generator import generate_brand_images
-                    logger.info("美术指导 Agent 完成文本输出，开始生成品牌参考图...")
-                    images = await generate_brand_images(accumulated, user_prompt)
-                    for img in images:
-                        yield _sse("agent_image", json.dumps({
-                            "id": "visual",
-                            "type": img["type"],
-                            "data_url": img["data_url"],
-                        }))
-                    logger.info("品牌参考图生成完成，共 %d 张", len(images))
-                except Exception as e:
-                    logger.error("品牌参考图生成失败（不影响主流程）: %s", e)
+                need_image = "<generate_image>True</generate_image>" in accumulated
+                need_video = "<generate_video>True</generate_video>" in accumulated
+
+                if need_image:
+                    try:
+                        from app.service.image_generator import generate_brand_images
+                        logger.info("检测到 <generate_image> 标识，开始生成品牌参考图...")
+                        images = await generate_brand_images(accumulated, user_prompt)
+                        for img in images:
+                            yield _sse("agent_image", json.dumps({
+                                "id": "visual",
+                                "type": img["type"],
+                                "data_url": img["data_url"],
+                            }))
+                        logger.info("品牌参考图生成完成，共 %d 张", len(images))
+                    except Exception as e:
+                        logger.error("品牌参考图生成失败（不影响主流程）: %s", e)
                 
-                try:
-                    from app.service.video_generator import generate_brand_video_async
-                    logger.info("开始排队并后台生成即梦文生视频...")
-                    yield _sse("agent_video_start", "visual")
-                    video_task = asyncio.create_task(generate_brand_video_async(accumulated))
-                except Exception as e:
-                    logger.error("排队即梦视频任务失败: %s", e)
+                if need_video:
+                    try:
+                        from app.service.video_generator import generate_brand_video_async
+                        logger.info("检测到 <generate_video> 标识，开始排队生成即梦文生视频...")
+                        yield _sse("agent_video_start", "visual")
+                        video_task = asyncio.create_task(generate_brand_video_async(accumulated))
+                    except Exception as e:
+                        logger.error("排队即梦视频任务失败: %s", e)
 
         # ─── 品牌顾问：质量审核 & 最终综合报告（流式） ─────────
         yield _sse("agent_start", "consultant_review")

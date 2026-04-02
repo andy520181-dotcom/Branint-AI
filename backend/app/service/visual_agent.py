@@ -22,8 +22,8 @@ async def run_visual_agent(
         {"role": "system", "content": load_agent_prompt("visual")},
         {"role": "user", "content": user_content},
     ]
-    # NOTE: 美术指导 Agent 使用 Gemini 3 Flash，擅长创意设计类任务
-    return await call_llm(messages, model=settings.visual_model)
+    # NOTE: 恢复文本推理与流式思考为全局默认模型 (DeepSeek)
+    return await call_llm(messages, model=settings.default_model)
 
 
 async def run_visual_agent_stream(
@@ -43,6 +43,6 @@ async def run_visual_agent_stream(
         {"role": "system", "content": load_agent_prompt("visual")},
         {"role": "user", "content": user_content},
     ]
-    # NOTE: 美术指导 Agent 使用 Gemini 3 Flash
-    async for chunk in call_llm_stream(messages, model=settings.visual_model):
+    # NOTE: 恢复文本推理与流式思考为全局默认模型 (DeepSeek)
+    async for chunk in call_llm_stream(messages, model=settings.default_model):
         yield chunk

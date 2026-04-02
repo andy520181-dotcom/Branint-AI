@@ -15,9 +15,6 @@ class Settings(BaseSettings):
     # NOTE: MVP 阶段固定 DeepSeek，Phase 2 根据用户订阅级别动态切换
     default_model: str = "deepseek/deepseek-chat"
     pro_model: str = "gpt-4o"
-    # NOTE: 美术指导 Agent 使用 Gemini 3 Flash，擅长创意设计类任务
-    visual_model: str = "gemini/gemini-3-flash-preview"
-
     # 应用
     secret_key: str = "dev-secret-key"
     frontend_url: str = "http://localhost:3000"
