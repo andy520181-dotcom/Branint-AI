@@ -20,6 +20,35 @@ function stripHandoff(text: string): string {
 
 type TFn = (key: string) => string;
 
+/** 用户消息气泡（头像 + 文本），历史轮次和当前轮次复用 */
+function UserMsgBubble({ prompt, avatarDataUrl }: { prompt: string; avatarDataUrl: string | null }) {
+  return (
+    <div className={styles.userMsgRow}>
+      <div className={styles.userBubble}>{prompt}</div>
+      <div className={styles.userAvatarWrap}>
+        {avatarDataUrl ? (
+          <img src={avatarDataUrl} alt="avatar" className={styles.userAvatarImg} />
+        ) : (
+          <svg
+            className={styles.userAvatarFallback}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export interface WorkspaceFeedProps {
   feedRef: RefObject<HTMLDivElement | null>;
   previousRounds: RoundSnapshot[];
@@ -69,29 +98,7 @@ export function WorkspaceFeed({
             )}
 
             <div id={`workspace-round-${roundIndex}`} className={styles.userRoundAnchor}>
-              <div className={styles.userMsgRow}>
-                <div className={styles.userBubble}>{round.userPrompt}</div>
-                <div className={styles.userAvatarWrap}>
-                  {avatarDataUrl ? (
-                    <img src={avatarDataUrl} alt="avatar" className={styles.userAvatarImg} />
-                  ) : (
-                    <svg
-                      className={styles.userAvatarFallback}
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  )}
-                </div>
-              </div>
+              <UserMsgBubble prompt={round.userPrompt} avatarDataUrl={avatarDataUrl} />
             </div>
 
             <div className={styles.roundContent}>
@@ -150,29 +157,7 @@ export function WorkspaceFeed({
       <div ref={feedRef}>
         {userPrompt && (
           <div id="workspace-round-active" className={styles.userRoundAnchor}>
-            <div className={styles.userMsgRow}>
-              <div className={styles.userBubble}>{userPrompt}</div>
-              <div className={styles.userAvatarWrap}>
-                {avatarDataUrl ? (
-                  <img src={avatarDataUrl} alt="avatar" className={styles.userAvatarImg} />
-                ) : (
-                  <svg
-                    className={styles.userAvatarFallback}
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                )}
-              </div>
-            </div>
+            <UserMsgBubble prompt={userPrompt} avatarDataUrl={avatarDataUrl} />
           </div>
         )}
 
@@ -198,9 +183,12 @@ export function WorkspaceFeed({
 
           const nextState = nextCfg ? agents[nextCfg.id as AgentId] : null;
           const nextVisible = nextState && nextState.status !== 'waiting';
-
           const hasConnector = hasNext && nextVisible;
-          const lineClass = [styles.feedLeftLine, isTransferring ? styles.connectorActive : '', isDone && !isTransferring ? styles.connectorDone : ''].join(' ');
+          const lineClass = [
+            styles.feedLeftLine,
+            isTransferring ? styles.connectorActive : '',
+            isDone && !isTransferring ? styles.connectorDone : '',
+          ].join(' ');
 
           const connector = hasConnector ? (
             <div className={styles.feedConnector}>
@@ -270,22 +258,22 @@ export function WorkspaceFeed({
                       {output ? (
                         <>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripHandoff(output)}</ReactMarkdown>
-                          {agentImages.filter(img => img.agentId === cfg.id).length > 0 && (
+                          {agentImages.filter((img) => img.agentId === cfg.id).length > 0 && (
                             <div className={styles.agentImagesContainer}>
-                              {agentImages.filter(img => img.agentId === cfg.id).map((img, idx) => (
+                              {agentImages.filter((img) => img.agentId === cfg.id).map((img, idx) => (
                                 <img key={idx} src={img.dataUrl} alt={`Generated by ${cfg.id}`} className={styles.agentImage} />
                               ))}
                             </div>
                           )}
-                          {agentVideos.filter(vid => vid.agentId === cfg.id).length > 0 && (
+                          {agentVideos.filter((vid) => vid.agentId === cfg.id).length > 0 && (
                             <div className={styles.agentVideosContainer}>
-                              {agentVideos.filter(vid => vid.agentId === cfg.id).map((vid, idx) => (
-                                <video 
-                                  key={idx} 
-                                  src={vid.dataUrl} 
-                                  controls 
-                                  className={styles.agentVideo} 
-                                  poster={agentImages.find(img => img.agentId === cfg.id)?.dataUrl}
+                              {agentVideos.filter((vid) => vid.agentId === cfg.id).map((vid, idx) => (
+                                <video
+                                  key={idx}
+                                  src={vid.dataUrl}
+                                  controls
+                                  className={styles.agentVideo}
+                                  poster={agentImages.find((img) => img.agentId === cfg.id)?.dataUrl}
                                 />
                               ))}
                             </div>

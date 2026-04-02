@@ -5,14 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { useWorkspaceStore, loadSession } from '@/store/workspaceStore';
 import { useWorkspaceStream } from '@/hooks/useWorkspaceStream';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
-import type { AgentId, AgentStatus, HistoryItem } from '@/types';
-import { useAuth, useHistory } from '@/hooks/useAuth';
+import type { AgentId, AgentStatus } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
 import { createSession, fetchReport } from '@/lib/api';
 import styles from './page.module.css';
 import type { RoundSnapshot } from './workspaceTypes';
-import { groupByDate } from './workspaceUtils';
+import { useHistorySidebar } from './hooks/useHistorySidebar';
+import { useOutlineDock } from './hooks/useOutlineDock';
 import { WorkspaceHistorySidebar } from './components/WorkspaceHistorySidebar';
 import { WorkspaceTopBar } from './components/WorkspaceTopBar';
 import { WorkspaceHeroEmpty } from './components/WorkspaceHeroEmpty';
@@ -25,11 +26,14 @@ export default function WorkspacePage() {
   const router = useRouter();
   const sessionId = params.sessionId as string;
   const { user } = useAuth();
-  const { getHistory, updateHistoryTitle, removeHistoryItem, pinHistoryToTop } = useHistory();
   const { t, resolvedLocale } = useLocale();
 
-  const { agents, currentAgentId, selectedAgents, agentImages, agentVideos, finalReport, isComplete, isStreaming, error, initSession, userPrompt } =
-    useWorkspaceStore();
+  const {
+    agents, currentAgentId, selectedAgents,
+    agentImages, agentVideos, finalReport,
+    isComplete, isStreaming, error,
+    initSession, userPrompt,
+  } = useWorkspaceStore();
 
   const [restored, setRestored] = useState<boolean | null>(null);
   const [bottomPrompt, setBottomPrompt] = useState('');
@@ -42,145 +46,33 @@ export default function WorkspacePage() {
   const currentRoundRef = useRef<HTMLDivElement>(null);
   const avatarDataUrl = useUserAvatar(user?.id);
 
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyGroups, setHistoryGroups] = useState<{ label: string; items: HistoryItem[] }[]>([]);
-  const [historyMenuOpenId, setHistoryMenuOpenId] = useState<string | null>(null);
-  const [historyToast, setHistoryToast] = useState('');
+  // ── 历史记录侧边栏（状态与操作已封装到 Hook）──────────────────────
+  const {
+    historyOpen, setHistoryOpen,
+    historyGroups,
+    historyMenuOpenId, setHistoryMenuOpenId,
+    historyToast,
+    handleHistoryRename,
+    handleHistoryPin,
+    handleHistoryShare,
+    handleHistoryDelete,
+  } = useHistorySidebar({ sessionId, t });
 
-  const refreshHistory = useCallback(() => {
-    setHistoryGroups(groupByDate(getHistory(), t));
-  }, [getHistory, t]);
-
-  const showHistoryToast = useCallback((msg: string) => {
-    setHistoryToast(msg);
-    setTimeout(() => setHistoryToast(''), 2200);
-  }, []);
-
-  useEffect(() => {
-    if (historyOpen) refreshHistory();
-    else setHistoryMenuOpenId(null);
-  }, [historyOpen, refreshHistory]);
-
-  useEffect(() => {
-    if (!historyMenuOpenId) return;
-    const onDown = (e: MouseEvent) => {
-      const el = e.target as HTMLElement;
-      if (el.closest('[data-history-menu-root]')) return;
-      setHistoryMenuOpenId(null);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [historyMenuOpenId]);
-
-  const handleHistoryRename = useCallback(
-    (item: HistoryItem) => {
-      setHistoryMenuOpenId(null);
-      const next = window.prompt(t('workspace.history.renamePrompt'), item.title);
-      if (next === null) return;
-      const trimmed = next.trim();
-      if (!trimmed) return;
-      updateHistoryTitle(item.sessionId, trimmed);
-      refreshHistory();
-    },
-    [t, updateHistoryTitle, refreshHistory],
+  // ── Outline 大纲 Dock（滚动跟踪与面板开关已封装到 Hook）────────────
+  const previousRoundPrompts = useMemo(
+    () => previousRounds.map((r) => r.userPrompt),
+    [previousRounds],
   );
 
-  const handleHistoryPin = useCallback(
-    (item: HistoryItem) => {
-      setHistoryMenuOpenId(null);
-      pinHistoryToTop(item.sessionId);
-      refreshHistory();
-    },
-    [pinHistoryToTop, refreshHistory],
-  );
+  const {
+    outlineItems,
+    activeOutlineIndex,
+    outlinePanelOpen, setOutlinePanelOpen,
+    outlineDockRef,
+    jumpToRound,
+  } = useOutlineDock({ previousRoundPrompts, userPrompt });
 
-  const handleHistoryShare = useCallback(
-    async (item: HistoryItem) => {
-      setHistoryMenuOpenId(null);
-      const url = `${window.location.origin}/workspace/${item.sessionId}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        showHistoryToast(t('workspace.history.shareCopied'));
-      } catch {
-        showHistoryToast(t('workspace.history.shareFailed'));
-      }
-    },
-    [t, showHistoryToast],
-  );
-
-  const handleHistoryDelete = useCallback(
-    (item: HistoryItem) => {
-      if (!window.confirm(t('workspace.history.deleteConfirm'))) return;
-      setHistoryMenuOpenId(null);
-      removeHistoryItem(item.sessionId);
-      refreshHistory();
-      if (item.sessionId === sessionId) {
-        const rest = getHistory();
-        if (rest[0]) router.replace(`/workspace/${rest[0].sessionId}`);
-        else router.replace('/');
-      }
-    },
-    [t, removeHistoryItem, refreshHistory, getHistory, sessionId, router],
-  );
-
-  const outlineItems = useMemo(() => {
-    const items: { id: string; prompt: string }[] = [];
-    previousRounds.forEach((r, i) => {
-      items.push({ id: `workspace-round-${i}`, prompt: r.userPrompt });
-    });
-    if (userPrompt?.trim()) {
-      items.push({ id: 'workspace-round-active', prompt: userPrompt });
-    }
-    return items;
-  }, [previousRounds, userPrompt]);
-
-  const [activeOutlineIndex, setActiveOutlineIndex] = useState(0);
-
-  const updateOutlineActive = useCallback(() => {
-    if (outlineItems.length === 0) return;
-    const line = Math.min(140, (typeof window !== 'undefined' ? window.innerHeight : 800) * 0.2);
-    let active = 0;
-    for (let i = outlineItems.length - 1; i >= 0; i--) {
-      const el = document.getElementById(outlineItems[i].id);
-      if (!el) continue;
-      if (el.getBoundingClientRect().top <= line) {
-        active = i;
-        break;
-      }
-    }
-    setActiveOutlineIndex((prev) => (prev === active ? prev : active));
-  }, [outlineItems]);
-
-  useEffect(() => {
-    if (outlineItems.length === 0) return;
-    updateOutlineActive();
-    window.addEventListener('scroll', updateOutlineActive, { passive: true });
-    window.addEventListener('resize', updateOutlineActive);
-    return () => {
-      window.removeEventListener('scroll', updateOutlineActive);
-      window.removeEventListener('resize', updateOutlineActive);
-    };
-  }, [outlineItems, updateOutlineActive]);
-
-  const jumpToRound = useCallback((id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
-
-  const outlineDockRef = useRef<HTMLElement | null>(null);
-  const [outlinePanelOpen, setOutlinePanelOpen] = useState(false);
-
-  useEffect(() => {
-    if (!outlinePanelOpen) return;
-    const onDown = (e: MouseEvent) => {
-      const dock = outlineDockRef.current;
-      if (dock && !dock.contains(e.target as Node)) {
-        setOutlinePanelOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [outlinePanelOpen]);
-
+  // ── 输入框自适应高度 ───────────────────────────────────────────────
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -188,8 +80,10 @@ export default function WorkspacePage() {
     el.style.height = `${Math.max(el.scrollHeight, 50)}px`;
   }, [bottomPrompt]);
 
+  // ── SSE 流连接 ─────────────────────────────────────────────────────
   const { cancel } = useWorkspaceStream(restored === false ? activeSessionId : null);
 
+  // ── 多轮对话提交 ───────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!bottomPrompt.trim() || !user || submitting) return;
     const promptText = bottomPrompt.trim();
@@ -199,7 +93,6 @@ export default function WorkspacePage() {
       // 使品牌顾问在后续轮次能理解之前的分析上下文
       const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
 
-      // 1. previousRounds 中的历史轮次
       for (const r of previousRounds) {
         const outputs: Record<string, string> = {};
         for (const a of Object.values(r.agents)) {
@@ -208,7 +101,6 @@ export default function WorkspacePage() {
         history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
       }
 
-      // 2. 当前轮次（如果有内容）
       const currentAgents = useWorkspaceStore.getState().agents;
       const currentOutputs: Record<string, string> = {};
       for (const a of Object.values(currentAgents)) {
@@ -229,25 +121,22 @@ export default function WorkspacePage() {
         setPreviousRounds((prev) => [...prev, snapshot]);
       }
 
-      const new_session_id = await createSession(user.id, promptText, history);
+      const newSessionId = await createSession(user.id, promptText, history);
       setBottomPrompt('');
-
-      initSession(new_session_id, promptText);
-      setActiveSessionId(new_session_id);
+      initSession(newSessionId, promptText);
+      setActiveSessionId(newSessionId);
       setRestored(false);
-
-      window.history.pushState(null, '', `/workspace/${new_session_id}`);
-
+      window.history.pushState(null, '', `/workspace/${newSessionId}`);
       setTimeout(() => {
         currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
-
       setSubmitting(false);
     } catch {
       setSubmitting(false);
     }
   };
 
+  // ── 会话恢复（localStorage / sessionStorage / 后端拉取）────────────
   useEffect(() => {
     setRestored(null);
 
@@ -276,11 +165,7 @@ export default function WorkspacePage() {
       useWorkspaceStore.setState({ sessionId });
       setRestored(true);
       setTimeout(() => {
-        try {
-          sessionStorage.removeItem(blankKey);
-        } catch {
-          /* ignore */
-        }
+        try { sessionStorage.removeItem(blankKey); } catch { /* ignore */ }
       }, 0);
       return;
     }
@@ -320,6 +205,7 @@ export default function WorkspacePage() {
       .finally(() => setRestored(true));
   }, [sessionId, initSession]);
 
+  // ── Agent 切换时的 handoff 气泡动画 ───────────────────────────────
   const prevAgentIdRef = useRef<AgentId | null>(null);
   const [handoffMsg, setHandoffMsg] = useState<{ agentId: AgentId; text: string } | null>(null);
   useEffect(() => {
@@ -339,6 +225,7 @@ export default function WorkspacePage() {
     }
   }, [currentAgentId, t]);
 
+  // ── 新对话 ─────────────────────────────────────────────────────────
   const handleNewConversation = useCallback(() => {
     cancel();
     const newId = crypto.randomUUID();
@@ -346,15 +233,14 @@ export default function WorkspacePage() {
     setPreviousRounds([]);
     setBottomPrompt('');
     setActiveSessionId(newId);
-    setActiveOutlineIndex(0);
-    setHistoryOpen(false);
-    setHistoryMenuOpenId(null);
     setOutlinePanelOpen(false);
+    setHistoryOpen(false);
     setHandoffMsg(null);
     prevAgentIdRef.current = null;
     router.replace(`/workspace/${newId}`);
-  }, [cancel, router]);
+  }, [cancel, router, setHistoryOpen, setOutlinePanelOpen]);
 
+  // ── 渲染逻辑 ───────────────────────────────────────────────────────
   const hasFeedContent = useMemo(() => {
     if (previousRounds.length > 0) return true;
     if (userPrompt?.trim()) return true;
