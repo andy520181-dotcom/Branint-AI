@@ -1,10 +1,14 @@
 import React from 'react';
 import type { AgentId, AgentImage, AgentVideo } from '@/types';
-import { useWorkspaceStore } from '@/store/workspaceStore';
+import { useWorkspaceStore, ResearchProgressStep } from '@/store/workspaceStore';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { VisualRenderer } from './VisualRenderer';
 import { MarketRenderer } from './MarketRenderer';
 import styles from '../WorkspaceFeed.module.css';
+
+// NOTE: 稳定的空数组引用，避免 selector 内 `?? []` 每次返回新对象
+// 若用内联 `?? []`，Zustand 的 Object.is() 比较每次都失败 → 无限重渲染
+const EMPTY_PROGRESS: ResearchProgressStep[] = [];
 
 export interface RendererFactoryProps {
   agentId: AgentId;
@@ -27,10 +31,11 @@ export function RendererFactory({
   agentVideos = [],
 }: RendererFactoryProps) {
   const isRunning = status === 'running';
-  // NOTE: 读取 Wacksman 实时研究进度（只对 market 有效，其他 Agent 为空数组）
+  // NOTE: 读取 Wacksman 实时研究进度（只对 market 有效）
+  // 使用模块级常量 EMPTY_PROGRESS 作为 fallback，保证引用稳定
   const researchProgress = useWorkspaceStore(
-    (s) => s.agents['market']?.researchProgress ?? []
-  );
+    (s) => s.agents['market']?.researchProgress
+  ) ?? EMPTY_PROGRESS;
 
   // 当还未生成内容且在 "thinking" 时统一使用点点点动画
   // NOTE: market 和 visual 有自己的等待态，这里排除

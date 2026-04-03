@@ -12,7 +12,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/ogilvy.png',
     color: 'var(--color-gold)',
     colorDim: 'var(--agent-consultant-dim)',
-    icon: '🧑‍💼',
+    icon: '',
     index: 0,
   },
   {
@@ -25,7 +25,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/wacksman.png',
     color: 'var(--agent-market)',
     colorDim: 'var(--agent-market-dim)',
-    icon: '🔍',
+    icon: '',
     index: 1,
   },
   {
@@ -38,7 +38,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/trout.png',
     color: 'var(--agent-strategy)',
     colorDim: 'var(--agent-strategy-dim)',
-    icon: '🎯',
+    icon: '',
     index: 2,
   },
   {
@@ -51,7 +51,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/lois.png',
     color: 'var(--agent-content)',
     colorDim: 'var(--agent-content-dim)',
-    icon: '✍️',
+    icon: '',
     index: 3,
   },
   {
@@ -64,7 +64,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/scher.png',
     color: 'var(--agent-visual)',
     colorDim: 'var(--agent-visual-dim)',
-    icon: '🎨',
+    icon: '',
     index: 4,
   },
   {
@@ -77,7 +77,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     avatar: '/agents/thumb/ogilvy.png',
     color: 'var(--color-gold)',
     colorDim: 'var(--agent-consultant-dim)',
-    icon: '🧑‍💼',
+    icon: '',
     index: 5,
   },
 ];

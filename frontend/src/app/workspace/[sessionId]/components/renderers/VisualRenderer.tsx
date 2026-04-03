@@ -68,7 +68,7 @@ export function VisualRenderer({
           )}
         </>
       ) : (
-        <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>—</span>
+        <span className="prose-empty">—</span>
       )}
     </div>
   );

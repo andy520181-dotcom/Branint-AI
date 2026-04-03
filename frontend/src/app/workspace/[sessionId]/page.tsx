@@ -9,7 +9,7 @@ import type { AgentId, AgentStatus } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
-import { createSession, fetchReport } from '@/lib/api';
+import { createSession, fetchSnapshot } from '@/lib/api';
 import styles from './page.module.css';
 import type { RoundSnapshot } from './workspaceTypes';
 import { useHistorySidebar } from './hooks/useHistorySidebar';
@@ -33,6 +33,7 @@ export default function WorkspacePage() {
     agentImages, agentVideos, finalReport,
     isComplete, isStreaming, error,
     initSession, userPrompt,
+    previousRounds, setPreviousRounds,
   } = useWorkspaceStore();
 
   const [restored, setRestored] = useState<boolean | null>(null);
@@ -41,7 +42,6 @@ export default function WorkspacePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [heroFocused, setHeroFocused] = useState(false);
 
-  const [previousRounds, setPreviousRounds] = useState<RoundSnapshot[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
   const currentRoundRef = useRef<HTMLDivElement>(null);
   const avatarDataUrl = useUserAvatar(user?.id);
@@ -136,29 +136,11 @@ export default function WorkspacePage() {
     }
   };
 
-  // ── 会话恢复（localStorage / sessionStorage / 后端拉取）────────────
+  // ── 会话恢复（优先拉取后端 snapshot，localStorage 仅作第二保障）────────────
   useEffect(() => {
     setRestored(null);
 
-    const saved = loadSession(sessionId);
-    if (saved) {
-      useWorkspaceStore.setState({
-        sessionId,
-        userPrompt: saved.userPrompt,
-        agents: saved.agents,
-        selectedAgents: saved.selectedAgents,
-        agentImages: saved.agentImages ?? [],
-        agentVideos: saved.agentVideos ?? [],
-        finalReport: saved.finalReport,
-        isComplete: saved.isComplete,
-        isStreaming: false,
-        currentAgentId: null,
-        error: null,
-      });
-      setRestored(true);
-      return;
-    }
-
+    // 第一优先：检查是否是新建空白会话（sessionStorage 标记）
     const blankKey = `workspace_blank_${sessionId}`;
     if (typeof window !== 'undefined' && sessionStorage.getItem(blankKey)) {
       useWorkspaceStore.getState().reset();
@@ -170,39 +152,100 @@ export default function WorkspacePage() {
       return;
     }
 
-    const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? '';
-    if (prompt) {
-      initSession(sessionId, prompt);
-      setRestored(false);
-      return;
-    }
+    // 核心恢复：从后端拉取 snapshot（刷新、换设备、分享链接均有效）
+    // NOTE: 必须先调 snapshot，才能判断这个 sessionId 是否已有后端数据。
+    // 原来的「第二优先：sessionStorage prompt」会在刷新时误触发 initSession 重连 SSE，
+    // 导致数据重跑或丢失，因此降级为 snapshot 失败时的最后兜底。
+    fetchSnapshot(sessionId)
+      .then((snap) => {
+        // NOTE: 如果 snapshot 有 userPrompt 但尚无 agent 数据（pending 状态），说明这是
+        // 刚创建还没开始流的新会话——此时 sessionStorage 里一定有 prompt，改用流式启动
+        const hasAnyOutput = Object.values(snap.agent_outputs ?? {}).some((v) => (v as string)?.trim());
+        if (snap.status === 'pending' && !hasAnyOutput) {
+          // 真正的新会话（刚 POST /sessions 后立刻刷新的极端情况）
+          const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
+          if (prompt) {
+            initSession(sessionId, prompt);
+            setRestored(false);
+            return;
+          }
+        }
 
-    fetchReport(sessionId)
-      .then((data) => {
         const agentsMap = Object.fromEntries(
-          AGENT_CONFIGS.map((cfg) => [cfg.id, { id: cfg.id as AgentId, status: 'waiting' as AgentStatus, output: '', researchProgress: [] }]),
+          AGENT_CONFIGS.map((cfg) => [
+            cfg.id,
+            {
+              id: cfg.id as AgentId,
+              status: (snap.agent_statuses?.[cfg.id] ?? 'waiting') as AgentStatus,
+              output: snap.agent_outputs?.[cfg.id] ?? '',
+              researchProgress: [] as [],
+            },
+          ]),
         ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string; researchProgress: [] }>;
+
         useWorkspaceStore.setState({
           sessionId,
-          userPrompt: '',
+          userPrompt: snap.user_prompt ?? '',
           agents: agentsMap,
           selectedAgents: null,
-          finalReport: data.report ?? '',
-          isComplete: true,
-          isStreaming: false,
+          agentImages: [],
+          agentVideos: [],
+          finalReport: snap.report ?? '',
+          isComplete: snap.status === 'completed',
+          isStreaming: snap.status !== 'completed' && snap.status !== 'error',
           currentAgentId: null,
-          error: null,
+          error: snap.status === 'error' ? 'workspace.error.sessionExpired' : null,
         });
+
+        if (snap.status === 'completed' || snap.status === 'error') {
+          // 已结束：直接展示
+          setRestored(true);
+        } else if (hasAnyOutput) {
+          // NOTE: 生成中途刷新了页面。
+          // 已有内容已恢复到 store 可立即显示；
+          // 设 restored=false 触发 SSE 钩子重连，从头续生成（agent_start 会清空旧内容）
+          setRestored(false);
+        } else {
+          // pending 且无内容：等同于从头开始
+          const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
+          initSession(sessionId, prompt);
+          setRestored(false);
+        }
       })
       .catch(() => {
-        useWorkspaceStore.setState({
-          sessionId,
-          isStreaming: false,
-          isComplete: false,
-          error: 'workspace.error.sessionExpired',
-        });
-      })
-      .finally(() => setRestored(true));
+        // snapshot 接口失败（404 等），回退到 sessionStorage prompt（真正的首次访问）
+        const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? '';
+        if (prompt) {
+          initSession(sessionId, prompt);
+          setRestored(false);
+          return;
+        }
+        const saved = loadSession(sessionId);
+        if (saved) {
+          useWorkspaceStore.setState({
+            sessionId,
+            userPrompt: saved.userPrompt,
+            agents: saved.agents,
+            selectedAgents: saved.selectedAgents,
+            agentImages: saved.agentImages ?? [],
+            agentVideos: saved.agentVideos ?? [],
+            finalReport: saved.finalReport,
+            isComplete: saved.isComplete,
+            isStreaming: false,
+            currentAgentId: null,
+            error: null,
+            previousRounds: saved.previousRounds ?? [],
+          });
+        } else {
+          useWorkspaceStore.setState({
+            sessionId,
+            isStreaming: false,
+            isComplete: false,
+            error: 'workspace.error.sessionExpired',
+          });
+        }
+        setRestored(true);
+      });
   }, [sessionId, initSession]);
 
   // ── Agent 切换时的 handoff 气泡动画 ───────────────────────────────

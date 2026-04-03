@@ -66,3 +66,40 @@ def extract_report_from_sse_chunk(chunk: str) -> str | None:
             except json.JSONDecodeError:
                 return None
     return None
+def update_session_agent_output(
+    session_id: str,
+    agent_id: str,
+    output: str,
+    status: str = "completed",
+) -> None:
+    """
+    将单个 Agent 的最终输出实时写入磁盘，无须等待整个 session 完成。
+    采用读-改-写的原子操作（tmp 文件 replace），避免写入中途崩溃导致 JSON 损坏。
+    """
+    path = _safe_session_path(session_id)
+    if not path:
+        return
+    try:
+        ensure_sessions_dir()
+        # 读取现有数据
+        data: dict = {}
+        if path.is_file():
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+
+        # 初始化 agent_outputs / agent_statuses 字段（首次写入时）
+        if "agent_outputs" not in data:
+            data["agent_outputs"] = {}
+        if "agent_statuses" not in data:
+            data["agent_statuses"] = {}
+
+        data["agent_outputs"][agent_id] = output
+        data["agent_statuses"][agent_id] = status
+
+        # 原子替换写入
+        tmp = path.with_suffix(".json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        tmp.replace(path)
+    except (OSError, json.JSONDecodeError) as e:
+        logger.warning("实时落盘 agent 输出失败 %s/%s: %s", session_id, agent_id, e)

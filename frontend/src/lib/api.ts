@@ -40,3 +40,24 @@ export async function fetchReport(sessionId: string): Promise<{ session_id: stri
   if (!res.ok) throw new Error(`获取报告失败 (${res.status})`);
   return res.json() as Promise<{ session_id: string; report: string }>;
 }
+
+/** 会话快照（任意时刻均可拉取，用于刷新后数据恢复） */
+export interface SessionSnapshot {
+  session_id: string;
+  status: 'pending' | 'running' | 'completed' | 'error';
+  user_prompt: string;
+  /** key = agentId，value = 该 Agent 已完成的输出文本 */
+  agent_outputs: Record<string, string>;
+  agent_statuses: Record<string, string>;
+  report?: string | null;
+}
+
+/**
+ * 拉取会话快照，无论会话是否完成都能返回已落盘的数据。
+ * 前端刷新后优先调用此接口，而不依赖 localStorage。
+ */
+export async function fetchSnapshot(sessionId: string): Promise<SessionSnapshot> {
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/snapshot`);
+  if (!res.ok) throw new Error(`获取快照失败 (${res.status})`);
+  return res.json() as Promise<SessionSnapshot>;
+}

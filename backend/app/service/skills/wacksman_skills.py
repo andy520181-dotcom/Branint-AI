@@ -18,6 +18,8 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
+from app.service.integrations.nlp_service import nlp_client
+
 logger = logging.getLogger(__name__)
 
 # ==========================================
@@ -170,6 +172,107 @@ WACKSMAN_TOOLS = [
                     }
                 },
                 "required": ["query", "platform_focus", "sentiment_focus"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "mine_consumer_persona",
+            "description": (
+                "将搜索到的消费者言论、反馈数据深度汇总，构建清晰的目标消费者画像。\n"
+                "本能力将代替低维的 NLP，通过大模型进行高维交叉验证，输出 Demographic 与决策心理路径的结构化分析总结。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_audience": {
+                        "type": "string",
+                        "description": "目标人群画像概括描述，例如：'一二线城市 25-35 岁高知女性'。"
+                    },
+                    "core_pain_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "痛点与核心动机提取。"
+                    }
+                },
+                "required": ["target_audience", "core_pain_points"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_semantic_sentiment",
+            "description": (
+                "利用大模型强大的理解力替代传统百度/阿里云 NLP 情感分析。\n"
+                "对搜索收集到的全部商品好评/差评、社媒讨论及反馈进行语义聚类，提取正面口碑关键词和负面抱怨词云分布。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sentiment_summary": {
+                        "type": "string",
+                        "description": "一段总结性的文字，描述该类目或该竞品整体的情感倾向分布。"
+                    },
+                    "positive_topics": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "排序前三的正向话题（如：'包装高档'，'吸收快'）。"
+                    },
+                    "negative_topics": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "排序前三的负向抱怨点（如：'容易拔干'，'气味刺鼻'）。"
+                    }
+                },
+                "required": ["sentiment_summary", "positive_topics", "negative_topics"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "identify_opportunities",
+            "description": (
+                "基于对行业、竞品、用户舆情的交叉对比，识别品牌入局的市场机会缺口。\n"
+                "指出哪些需求未被满足、哪些场景能够切入、哪些人群具有未触达价值。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "opportunities_list": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "提炼的具体市场机会点列表。"
+                    }
+                },
+                "required": ["opportunities_list"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_data_visualization",
+            "description": (
+                "通知系统将当前某一组结构化数据转换为图表展现（支持 ECharts)。\n"
+                "注意：调用此工具相当于做标记，你应该在最终撰写 Markdown 报告时，直接使用 ```echarts ... ``` 语法生成图表。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chart_type": {
+                        "type": "string",
+                        "enum": ["radar", "bar", "pie", "line", "scatter"],
+                        "description": "准备生成的图表类型"
+                    },
+                    "intent_description": {
+                        "type": "string",
+                        "description": "图表所要表达的核心分析观点"
+                    }
+                },
+                "required": ["chart_type", "intent_description"]
             }
         }
     }
@@ -433,3 +536,49 @@ def parse_wacksman_tool_calls(tool_calls: List[dict]) -> Optional[Dict[str, Any]
         "action": func_name,
         "args": args,
     }
+
+# ==========================================
+# 5. New Skill Execution Stubs
+# ==========================================
+
+async def execute_mine_consumer_persona(target_audience: str, core_pain_points: List[str]) -> Dict[str, Any]:
+    """挖掘消费者画像：记录大模型的阶段性思考成果，便于在时间轴上展示进度"""
+    return {
+        "success": True,
+        "message": "消费者画像提炼完毕，已为您梳理核心痛点，将在最终报告中呈现详细分析网络。",
+        "target_audience": target_audience,
+        "pain_points": core_pain_points,
+    }
+
+async def execute_analyze_semantic_sentiment(sentiment_summary: str, positive_topics: List[str], negative_topics: List[str]) -> Dict[str, Any]:
+    """语义情感分析：对接 NLP 服务替代或增强分析结果"""
+    # NOTE: 这里集成真实的 NLP SDK
+    text_corpus = "" # 如果有采集池可以传整个语料
+    nlp_res = await nlp_client.analyze_sentiment(
+        text_corpus=text_corpus,
+        fallback_summary=sentiment_summary,
+        fallback_pos=positive_topics,
+        fallback_neg=negative_topics,
+    )
+    
+    return {
+        "success": True,
+        "message": f"已通过 {nlp_res['source']} 云端计算情感倾向，话题聚类结果已生成（包括正负向分布），将在最终报告可视化呈现。",
+        "nlp_results": nlp_res,
+    }
+
+async def execute_identify_opportunities(opportunities_list: List[str]) -> Dict[str, Any]:
+    """机会识别"""
+    return {
+        "success": True,
+        "message": f"机会点缺口识别完成，共发现并锚定了 {len(opportunities_list)} 个切入场景或需求缺口。",
+        "opportunities": opportunities_list,
+    }
+
+async def execute_generate_data_visualization(chart_type: str, intent_description: str) -> Dict[str, Any]:
+    """数据可视化：指导模型准备生成 ECharts"""
+    return {
+        "success": True,
+        "message": f"图表 [{chart_type}] 的渲染指令已就绪。请您在撰写 Markdown 报告时务必内嵌 ```echarts 代码块呈现该 {intent_description}。",
+    }
+

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { stripHandoff } from './MarkdownRenderer';
+import { stripHandoff, sharedMarkdownComponents } from './MarkdownRenderer';
 import { ResearchProgressStep } from '@/store/workspaceStore';
 import styles from '../WorkspaceFeed.module.css';
 import marketStyles from './MarketRenderer.module.css';
@@ -36,17 +36,6 @@ function parseMarketOutput(raw: string): { content: string; citations: SearchCit
   }
   return { content, citations };
 }
-
-/** 步骤图标映射 */
-const STEP_ICONS: Record<string, string> = {
-  start:                    '🚀',
-  clarify_research_scope:   '🔍',
-  web_search_market_data:   '📊',
-  search_competitor_intel:  '🏆',
-  scrape_review_url:        '🕷️',
-  search_social_reviews:    '💬',
-  synthesize_research_report: '📝',
-};
 
 /**
  * 市场研究 Agent（Wacksman）专属渲染器
@@ -116,8 +105,8 @@ export function MarketRenderer({ output, isRunning, researchProgress = [] }: Mar
                     )}
                   </div>
                   <div className={marketStyles.progressStepContent}>
-                    <span className={marketStyles.progressStepIcon}>
-                      {STEP_ICONS[p.step] ?? '⚙️'}
+                    <span className={marketStyles.progressStepIndex} aria-hidden>
+                      {i + 1}
                     </span>
                     <span className={marketStyles.progressStepDetail}>{p.detail}</span>
                   </div>
@@ -133,7 +122,7 @@ export function MarketRenderer({ output, isRunning, researchProgress = [] }: Mar
   return (
     <div className={`${styles.cardOutput} markdown-body`}>
       {content && (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={sharedMarkdownComponents}>
           {stripHandoff(content)}
         </ReactMarkdown>
       )}

@@ -137,7 +137,6 @@
 }
 
 .cardIcon {
-  font-size: var(--font-size-icon-lg);
   flex-shrink: 0;
   width: 42px;
   height: 42px;
@@ -146,6 +145,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-muted);
 }
 
 .cardBody   { flex: 1; min-width: 0; }

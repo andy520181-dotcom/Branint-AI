@@ -90,6 +90,8 @@
   --font-size-sm: var(--font-step-10);
   --font-size-xs: var(--font-step-11);
   --font-size-2xs: var(--font-step-12);
+  /* 生成页 Markdown 文档一级标题（非落地页 Hero / 非 --font-size-title） */
+  --font-size-doc-h1: 1.25rem;
 
   /* 字重（OpenType/CSS 数值刻度，组件用语义别名） */
   --font-weight-light: 300;
@@ -171,6 +173,58 @@
    */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Segoe UI', sans-serif;
+
+  /*
+   * 生成页 Agent 流式 Markdown（.markdown-body）语义令牌 — 字号/色/重/间距均由此派生，禁止在组件中写死 px/#hex
+   * 在「文档档」基准上整体升一档：正文字阶 +1，标题随 --font-step 同步上移
+   */
+  --prose-body-size: var(--font-size-md);
+  --prose-body-line-height: 1.68;
+  --prose-body-color: var(--text-secondary);
+  --prose-heading-color: var(--text-primary);
+  --prose-h1-size: var(--font-size-doc-h1);
+  --prose-h1-weight: var(--font-weight-semibold);
+  --prose-h1-margin: var(--space-4) 0 var(--space-3);
+  --prose-h1-letter-spacing: -0.02em;
+  --prose-h2-size: var(--font-size-prose-h3);
+  --prose-h2-weight: var(--font-weight-semibold);
+  --prose-h2-margin: var(--space-4) 0 var(--space-2);
+  --prose-h2-border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  --prose-h3-size: var(--font-size-body-lg);
+  --prose-h3-weight: var(--font-weight-semibold);
+  --prose-h3-margin: var(--space-3) 0 var(--space-2);
+  --prose-h4-size: var(--font-size-md);
+  --prose-h4-weight: var(--font-weight-semibold);
+  --prose-h4-margin: var(--space-3) 0 var(--space-1);
+  --prose-h5-size: var(--font-size-md);
+  --prose-h5-weight: var(--font-weight-medium);
+  --prose-h5-margin: var(--space-2) 0 var(--space-1);
+  --prose-h6-size: var(--font-size-body);
+  --prose-h6-weight: var(--font-weight-medium);
+  --prose-h6-margin: var(--space-2) 0 var(--space-1);
+  --prose-h6-color: var(--text-muted);
+  --prose-strong-weight: var(--font-weight-semibold);
+  --prose-paragraph-gap: var(--space-3);
+  --prose-list-indent: 1.5rem;
+  --prose-list-margin: var(--space-2) 0;
+  --prose-li-gap: var(--space-1);
+  --prose-blockquote-border: var(--color-gold);
+  --prose-hr-margin: var(--space-5) 0;
+  --prose-table-cell-padding-y: var(--space-2);
+  --prose-table-cell-padding-x: var(--space-3);
+  --prose-code-size: 0.9em;
+  --prose-pre-padding: var(--space-4);
+  --prose-figure-margin: var(--space-3) 0;
+  --prose-media-radius: var(--radius-sm);
+  --prose-media-border: 1px solid var(--color-border);
+  --prose-media-shadow: var(--shadow-card);
+  --prose-figcaption-size: var(--font-size-body);
+  --prose-figcaption-color: var(--text-muted);
+  --prose-chart-min-height: 360px;
+  --prose-chart-padding: var(--space-3);
+  --prose-chart-margin: var(--space-5) 0;
+  --prose-link-color: var(--color-link);
+  --prose-link-hover: var(--color-link-hover);
 }
 
 /* 深色主题（由 ThemeInit / 系统设置 写入 html[data-theme="dark"]） */
@@ -309,22 +363,198 @@ input, textarea { font-family: inherit; outline: none; }
 }
 .btn-ghost:hover { color: var(--text-primary); border-color: var(--color-border-accent); background: var(--color-surface-2); }
 
-/* Markdown 渲染 */
-.markdown-body h1 { font-size: var(--font-size-title); font-weight: 700; margin: 1.5rem 0 1rem; color: var(--text-primary); }
-.markdown-body h2 { font-size: var(--font-size-subheading); font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; }
-.markdown-body h3 { font-size: var(--font-size-prose-h3); font-weight: 600; margin: 1rem 0 0.5rem; color: var(--text-primary); }
-.markdown-body p { margin: 0.75rem 0; color: var(--text-secondary); line-height: 1.8; }
-.markdown-body ul, .markdown-body ol { padding-left: 1.5rem; margin: 0.5rem 0; }
-.markdown-body li { color: var(--text-secondary); margin: 0.3rem 0; line-height: 1.7; }
-.markdown-body strong { color: var(--text-primary); font-weight: 600; }
-.markdown-body blockquote { border-left: 3px solid var(--color-gold); padding-left: 1rem; margin: 1rem 0; color: var(--text-secondary); font-style: italic; }
-.markdown-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: var(--font-size-body); }
-.markdown-body th { background: var(--color-surface-2); color: var(--text-primary); padding: 10px 14px; text-align: left; border: 1px solid var(--color-border); font-weight: 600; }
-.markdown-body td { padding: 9px 14px; border: 1px solid var(--color-border); color: var(--text-secondary); }
+/* Markdown / Agent 流式输出（生成页统一入口：class="markdown-body"） */
+.markdown-body {
+  font-size: var(--prose-body-size);
+  line-height: var(--prose-body-line-height);
+  color: var(--prose-body-color);
+}
+.markdown-body h1 {
+  font-size: var(--prose-h1-size);
+  font-weight: var(--prose-h1-weight);
+  margin: var(--prose-h1-margin);
+  color: var(--prose-heading-color);
+  line-height: 1.35;
+  letter-spacing: var(--prose-h1-letter-spacing);
+}
+.markdown-body h2 {
+  font-size: var(--prose-h2-size);
+  font-weight: var(--prose-h2-weight);
+  margin: var(--prose-h2-margin);
+  color: var(--prose-heading-color);
+  line-height: 1.4;
+  border-bottom: var(--prose-h2-border);
+  padding-bottom: var(--space-1);
+}
+.markdown-body h3 {
+  font-size: var(--prose-h3-size);
+  font-weight: var(--prose-h3-weight);
+  margin: var(--prose-h3-margin);
+  color: var(--prose-heading-color);
+  line-height: 1.4;
+}
+.markdown-body h4 {
+  font-size: var(--prose-h4-size);
+  font-weight: var(--prose-h4-weight);
+  margin: var(--prose-h4-margin);
+  color: var(--prose-heading-color);
+  line-height: 1.45;
+}
+.markdown-body h5 {
+  font-size: var(--prose-h5-size);
+  font-weight: var(--prose-h5-weight);
+  margin: var(--prose-h5-margin);
+  color: var(--prose-heading-color);
+  line-height: 1.5;
+}
+.markdown-body h6 {
+  font-size: var(--prose-h6-size);
+  font-weight: var(--prose-h6-weight);
+  margin: var(--prose-h6-margin);
+  color: var(--prose-h6-color);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.markdown-body p { margin: var(--prose-paragraph-gap) 0; line-height: var(--prose-body-line-height); }
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+/* 一级 / 二级 / 三级… 列表嵌套：形成目录式层级（序号与符号随深度变化） */
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: var(--prose-list-indent);
+  margin: var(--prose-list-margin);
+}
+.markdown-body ul { list-style-type: disc; }
+.markdown-body ol { list-style-type: decimal; }
+.markdown-body ul ul { list-style-type: circle; margin-top: var(--space-1); }
+.markdown-body ul ul ul { list-style-type: square; }
+.markdown-body ol ol { list-style-type: lower-alpha; margin-top: var(--space-1); }
+.markdown-body ol ol ol { list-style-type: lower-roman; }
+.markdown-body li {
+  margin: var(--prose-li-gap) 0;
+  line-height: var(--prose-body-line-height);
+  color: var(--prose-body-color);
+}
+.markdown-body li::marker { color: var(--text-muted); }
+.markdown-body strong { color: var(--prose-heading-color); font-weight: var(--prose-strong-weight); }
+.markdown-body a {
+  color: var(--prose-link-color);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.markdown-body a:hover { color: var(--prose-link-hover); }
+.markdown-body blockquote {
+  border-left: 3px solid var(--prose-blockquote-border);
+  padding-left: var(--space-4);
+  margin: var(--space-4) 0;
+  color: var(--prose-body-color);
+  font-style: italic;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-size: var(--prose-body-size);
+}
+.markdown-body th {
+  background: var(--color-surface-2);
+  color: var(--prose-heading-color);
+  padding: var(--prose-table-cell-padding-y) var(--prose-table-cell-padding-x);
+  text-align: left;
+  border: 1px solid var(--color-border);
+  font-weight: var(--font-weight-semibold);
+}
+.markdown-body td {
+  padding: var(--prose-table-cell-padding-y) var(--prose-table-cell-padding-x);
+  border: 1px solid var(--color-border);
+  color: var(--prose-body-color);
+}
 .markdown-body tr:nth-child(even) td { background: var(--color-surface-2); }
-.markdown-body code { background: var(--color-surface-2); padding: 2px 6px; border-radius: var(--radius-xs); font-size: 0.9em; color: var(--text-primary); }
-.markdown-body pre { background: var(--color-surface-2); padding: 1rem; border-radius: var(--radius-sm); overflow-x: auto; margin: 1rem 0; border: 1px solid var(--color-border); }
-.markdown-body hr { border: none; border-top: 1px solid var(--color-border); margin: 2rem 0; }
+.markdown-body code {
+  background: var(--color-surface-2);
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-xs);
+  font-size: var(--prose-code-size);
+  color: var(--prose-heading-color);
+}
+.markdown-body pre {
+  background: var(--color-surface-2);
+  padding: var(--prose-pre-padding);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-border);
+}
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  font-size: var(--font-size-md);
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--prose-hr-margin);
+}
+/* 图片 / 视频：统一画幅、圆角与说明文字 */
+.markdown-body .markdown-figure {
+  margin: var(--prose-figure-margin);
+  max-width: 100%;
+}
+.markdown-body .markdown-img,
+.markdown-body .markdown-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--prose-media-radius);
+  border: var(--prose-media-border);
+  box-shadow: var(--prose-media-shadow);
+  background: var(--color-surface-2);
+}
+.markdown-body .markdown-video { aspect-ratio: 16 / 9; }
+.markdown-body .markdown-figcaption {
+  margin-top: var(--space-2);
+  font-size: var(--prose-figcaption-size);
+  color: var(--prose-figcaption-color);
+  line-height: 1.45;
+  text-align: center;
+}
+.markdown-body .prose-empty {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+/* ECharts 容器（由 EChartsRenderer 挂载，类名与令牌对齐） */
+.markdown-body .prose-chart-wrap {
+  width: 100%;
+  min-height: var(--prose-chart-min-height);
+  margin: var(--prose-chart-margin);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--prose-chart-padding);
+  background: var(--color-surface);
+  box-sizing: border-box;
+}
+.markdown-body .prose-chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--prose-chart-margin);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  background: var(--color-surface-2);
+}
+.markdown-body .prose-chart-placeholderSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--text-muted);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
 
 /* ── 共用动画 ── */
 @keyframes spin { to { transform: rotate(360deg); } }

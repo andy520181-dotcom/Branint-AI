@@ -70,6 +70,8 @@ export function WorkspaceFeed({
                 const output = state?.output ?? '';
                 const isDone = state?.status === 'completed';
                 const hasNext = i < visibleRoundAgents.length - 1;
+                const plainFirstRoundConsultant =
+                  cfg.id === 'consultant_plan' && roundIndex === 0;
                 return (
                   <AgentLayoutWrapper
                     key={cfg.id}
@@ -77,6 +79,7 @@ export function WorkspaceFeed({
                     status={state?.status ?? 'waiting'}
                     hasNext={hasNext}
                     hasConnector={hasNext}
+                    plainBubble={plainFirstRoundConsultant}
                     t={t}
                   >
                     <RendererFactory
@@ -122,6 +125,8 @@ export function WorkspaceFeed({
           const nextState = nextCfg ? agents[nextCfg.id as AgentId] : null;
           const nextVisible = nextState && nextState.status !== 'waiting';
           const hasConnector = Boolean(hasNext && nextVisible);
+          const plainFirstRoundConsultant =
+            cfg.id === 'consultant_plan' && previousRounds.length === 0;
           return (
             <AgentLayoutWrapper
               key={cfg.id}
@@ -132,6 +137,7 @@ export function WorkspaceFeed({
               hasConnector={hasConnector}
               isTransferring={isTransferring}
               handoffMsg={handoffMsg}
+              plainBubble={plainFirstRoundConsultant}
               t={t}
             >
               <RendererFactory
@@ -147,7 +153,15 @@ export function WorkspaceFeed({
 
         {error && (
           <div className={styles.errorCard}>
-            <p>⚠️ {translateWorkspaceError(error, t)}</p>
+            <p className={styles.errorCardText}>
+              <span className={styles.errorCardIcon} aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4M12 16h.01" />
+                </svg>
+              </span>
+              {translateWorkspaceError(error, t)}
+            </p>
           </div>
         )}
       </div>

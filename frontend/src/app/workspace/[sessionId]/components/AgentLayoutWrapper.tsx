@@ -10,6 +10,8 @@ export interface AgentLayoutWrapperProps {
   hasConnector?: boolean;
   isTransferring?: boolean;
   handoffMsg?: { agentId: AgentId; text: string } | null;
+  /** 首轮 consultant_plan：无边框气泡，与列表内其它 Agent 卡片风格对齐 */
+  plainBubble?: boolean;
   t: (key: string) => string;
   children: React.ReactNode;
 }
@@ -25,6 +27,7 @@ export function AgentLayoutWrapper({
   hasConnector,
   isTransferring,
   handoffMsg,
+  plainBubble,
   t,
   children,
 }: AgentLayoutWrapperProps) {
@@ -102,7 +105,10 @@ export function AgentLayoutWrapper({
               )}
             </div>
           )}
-          <div className={`${styles.feedBubble} ${isRunning ? styles.feedBubbleActive : ''}`} style={{ '--agent-color': cfg.color } as React.CSSProperties}>
+          <div
+            className={`${styles.feedBubble} ${plainBubble ? styles.feedBubblePlain : ''} ${isRunning ? styles.feedBubbleActive : ''}`}
+            style={{ '--agent-color': cfg.color } as React.CSSProperties}
+          >
             {children}
           </div>
         </div>

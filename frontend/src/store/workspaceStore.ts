@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import { AgentId, AgentStatus, AgentImage, AgentVideo } from '@/types';
+import type { RoundSnapshot } from '@/app/workspace/[sessionId]/workspaceTypes';
 
 /** 实时研究进度步骤，由后端 Wacksman 进度事件驱动 */
 export interface ResearchProgressStep {
@@ -46,6 +47,7 @@ interface PersistedState {
   finalReport: string;
   isComplete: boolean;
   userPrompt: string;
+  previousRounds?: RoundSnapshot[];
 }
 
 /** 超出 MAX_CACHED_SESSIONS 时删除最旧的缓存 */
@@ -68,7 +70,23 @@ export const saveSession = (sessionId: string, state: PersistedState) => {
   try {
     localStorage.setItem(storageKey(sessionId), JSON.stringify(state));
     pruneSessionCache();
-  } catch { /* ignore */ }
+  } catch (err: unknown) {
+    // NOTE: localStorage 容量不足时先清理历史，再重试一次
+    const isQuotaError = err instanceof DOMException &&
+      (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+    if (isQuotaError) {
+      try {
+        // 强制清空 50% 的旧缓存，然后重试
+        const keys: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k?.startsWith(CACHE_PREFIX)) keys.push(k);
+        }
+        keys.slice(0, Math.ceil(keys.length / 2)).forEach((k) => localStorage.removeItem(k));
+        localStorage.setItem(storageKey(sessionId), JSON.stringify(state));
+      } catch { /* 重试也失败则静默放弃，不崩溃 */ }
+    }
+  }
 };
 
 export const loadSession = (sessionId: string): PersistedState | null => {
@@ -94,6 +112,7 @@ interface WorkspaceState {
   isComplete: boolean;
   isStreaming: boolean;
   error: string | null;
+  previousRounds: RoundSnapshot[];
 }
 
 interface WorkspaceActions {
@@ -114,6 +133,7 @@ interface WorkspaceActions {
   setComplete: () => void;
   setStreaming: (v: boolean) => void;
   setError: (err: string) => void;
+  setPreviousRounds: (rounds: RoundSnapshot[] | ((prev: RoundSnapshot[]) => RoundSnapshot[])) => void;
   reset: () => void;
 }
 
@@ -129,6 +149,7 @@ const initialState: WorkspaceState = {
   isComplete: false,
   isStreaming: false,
   error: null,
+  previousRounds: [],
 };
 
 /** NOTE: 统一的持久化调用点，避免每个 action 重复手写完整的 PersistedState */
@@ -141,18 +162,54 @@ const persist = (s: WorkspaceState) =>
     finalReport: s.finalReport,
     isComplete: s.isComplete,
     userPrompt: s.userPrompt,
+    previousRounds: s.previousRounds,
   });
+
+/**
+ * NOTE: 节流版 persist —— 用于 appendAgentOutput 的高频写入场景。
+ * 每 2s 最多真正写一次 localStorage，避免每个 SSE chunk 都 JSON.stringify
+ * 大状态对象导致主线程阻塞或 QuotaExceededError 崩溃。
+ */
+let _throttleTimer: ReturnType<typeof setTimeout> | null = null;
+let _pendingState: WorkspaceState | null = null;
+
+const throttledPersist = (s: WorkspaceState) => {
+  _pendingState = s;
+  if (_throttleTimer !== null) return;
+  _throttleTimer = setTimeout(() => {
+    if (_pendingState) persist(_pendingState);
+    _pendingState = null;
+    _throttleTimer = null;
+  }, 2000);
+};
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set) => ({
   ...initialState,
 
-  initSession: (sessionId, userPrompt) =>
-    set({ ...initialState, agents: initialAgents(), agentImages: [], agentVideos: [], sessionId, userPrompt, isStreaming: true }),
+  initSession: (sessionId, userPrompt) => {
+    set((s) => {
+      // 保留 previousRounds！否则多轮对话只要提交就会因 initSession 把历史记录重置为空！
+      const finalState = { 
+        ...initialState, 
+        agents: initialAgents(), 
+        agentImages: [], 
+        agentVideos: [], 
+        sessionId, 
+        userPrompt, 
+        isStreaming: true, 
+        previousRounds: s.previousRounds || [] 
+      };
+      persist(finalState);
+      return finalState;
+    });
+  },
 
   setAgentStatus: (id, status) =>
-    set((s) => ({
-      agents: { ...s.agents, [id]: { ...s.agents[id], status } },
-    })),
+    set((s) => {
+      const agents = { ...s.agents, [id]: { ...s.agents[id], status } };
+      persist({ ...s, agents });
+      return { agents };
+    }),
 
   setAgentOutput: (id, output) =>
     set((s) => {
@@ -165,6 +222,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
     set((s) => {
       const existing = s.agents[id]?.output ?? '';
       const agents = { ...s.agents, [id]: { ...s.agents[id], output: existing + chunk } };
+      // NOTE: 流式追加不做 localStorage 写入，持久化职责已移交给后端实时落盘
       return { agents };
     }),
 
@@ -209,13 +267,26 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
   }),
 
   setComplete: () => set((s) => {
-    persist({ ...s, isComplete: true });
+    // NOTE: 立刻强制冲刷节流器，确保节流期内未落盘的最终内容在 complete 时被完整写入
+    if (_throttleTimer !== null) {
+      clearTimeout(_throttleTimer);
+      _throttleTimer = null;
+      _pendingState = null;
+    }
+    const next = { ...s, isComplete: true, isStreaming: false as const, currentAgentId: null as null };
+    persist(next);
     return { isComplete: true, isStreaming: false, currentAgentId: null };
   }),
 
   setStreaming: (v) => set({ isStreaming: v }),
 
   setError: (err) => set({ error: err, isStreaming: false }),
+
+  setPreviousRounds: (rounds) => set((s) => {
+    const previousRounds = typeof rounds === 'function' ? rounds(s.previousRounds) : rounds;
+    persist({ ...s, previousRounds });
+    return { previousRounds };
+  }),
 
   reset: () => set({ ...initialState, agents: initialAgents() }),
 }));

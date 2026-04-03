@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""  # NOTE: Wacksman 市场研究 Agent 联网检索能力
     volc_accesskey: str = ""
     volc_secretkey: str = ""
+    
+    # NLP API Keys
+    baidu_nlp_app_id: str = ""
+    baidu_nlp_api_key: str = ""
+    baidu_nlp_secret_key: str = ""
+    aliyun_access_key: str = ""
+    aliyun_nlp_secret: str = ""
 
     # NOTE: MVP 阶段固定 DeepSeek，Phase 2 根据用户订阅级别动态切换
     default_model: str = "deepseek/deepseek-chat"
