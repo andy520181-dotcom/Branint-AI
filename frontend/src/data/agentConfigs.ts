@@ -8,7 +8,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
     charName: 'Ogilvy',
     role: 'Brand Consultant · 执行计划',
     description: '拆解品牌需求，制定多智能体协作执行计划',
-    desc: '需求诊断·项目统筹·进度管理',
+    desc: '互动问答·需求诊断·智能统筹·结案报告',
     avatar: '/agents/thumb/ogilvy.png',
     color: 'var(--color-gold)',
     colorDim: 'var(--agent-consultant-dim)',

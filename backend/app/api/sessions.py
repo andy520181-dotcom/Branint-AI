@@ -189,11 +189,22 @@ async def get_snapshot(session_id: str) -> dict:
             raise HTTPException(status_code=404, detail="会话不存在")
         data = _sessions[session_id]
 
+    agent_outputs: dict = data.get("agent_outputs") or {}
+    agent_statuses: dict = data.get("agent_statuses") or {}
+    report: str | None = data.get("report")
+
+    # NOTE: 兼容旧版会话数据格式：
+    # 早期版本只落盘了 report 字段，没有写 agent_outputs / agent_statuses。
+    # 为了让旧会话在 Feed 中能正常渲染，把 report 注入到 consultant_review 的输出位置。
+    if not agent_outputs and report:
+        agent_outputs = {"consultant_review": report}
+        agent_statuses = {"consultant_review": "completed"}
+
     return {
         "session_id": session_id,
         "status": data.get("status", "pending"),
         "user_prompt": data.get("user_prompt", ""),
-        "agent_outputs": data.get("agent_outputs", {}),
-        "agent_statuses": data.get("agent_statuses", {}),
-        "report": data.get("report"),
+        "agent_outputs": agent_outputs,
+        "agent_statuses": agent_statuses,
+        "report": report,
     }
