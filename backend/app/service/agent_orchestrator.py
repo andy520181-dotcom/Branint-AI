@@ -9,6 +9,7 @@ from typing import Literal
 
 from app.service.consultant_agent import (
     AgentKey,
+    run_ogilvy_decision,
     run_planning_phase_stream,
     run_quality_review_stream,
     _parse_routing_response,
@@ -100,23 +101,63 @@ class AgentOrchestrator:
             "full_outputs": {},  # 各 Agent 的完整输出（供 review 引用）
         }
 
-        # ─── 品牌顾问：需求分析 & 路由决策（流式） ──────────────
+        # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
         yield _sse("agent_start", "consultant_plan")
-        logger.info("品牌顾问 — 开始需求分析，制定执行计划")
+        logger.info("品牌顾问 — 开始需求诊断...")
 
-        plan_accumulated = ""
-        async for chunk in run_planning_phase_stream(user_prompt, conversation_history or []):
-            plan_accumulated += chunk
-            yield _sse_raw(
-                "agent_chunk",
-                json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-            )
+        decision = await run_ogilvy_decision(user_prompt, conversation_history)
+        action = decision.get("action", "none")
+        args = decision.get("args", {})
+        
+        if action == "clarify_requirement" or action == "request_human_approval":
+            # 走到此处则说明需要阻断当前流水线，向用户发问
+            question_text = args.get("question", "您好，为了更好地为您提供服务，请问您能提供更多具体的背景信息吗？")
+            logger.info("Ogilvy 中断流水线，发起 %s 动作，发问内容: %s", action, question_text)
+            
+            plan_accumulated = ""
+            async for chunk in run_planning_phase_stream(question_text):
+                plan_accumulated += chunk
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                )
+            
+            yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+            yield _sse("agent_complete", "consultant_plan")
+            # NOTE: 中断执行，等待用户回答
+            yield _sse("session_pause", json.dumps({"reason": action}))
+            logger.info("工作流已挂起，等待用户输入...")
+            return
 
-        # 累积完成后解析路由决策
-        selected_agents, plan_text = _parse_routing_response(plan_accumulated)
+        elif action == "generate_workflow_dag":
+            # 得到了完整的 DAG 路由规划
+            selected_agents = args.get("routing_sequence", [])
+            plan_text = args.get("plan_explanation", "为您制定了以下工作流：")
+            logger.info("Ogilvy 输出 DAG: %s", selected_agents)
+            
+            plan_accumulated = ""
+            async for chunk in run_planning_phase_stream(plan_text):
+                plan_accumulated += chunk
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                )
+        else:
+            # Fallback 降级：走纯旧式的文本输出解析
+            content = decision.get("content", "")
+            logger.info("Ogilvy 回退至文本解析模式。")
+            
+            plan_accumulated = ""
+            async for chunk in run_planning_phase_stream(content):
+                plan_accumulated += chunk
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                )
+            selected_agents, plan_text = _parse_routing_response(plan_accumulated)
 
         yield _sse("routing_decided", json.dumps(selected_agents))
-        yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_text}))
+        yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
         yield _sse("agent_complete", "consultant_plan")
         logger.info("路由决策完成：%s", selected_agents)
 

@@ -15,8 +15,9 @@ import re
 from collections.abc import AsyncGenerator
 from typing import Literal
 
-from app.service.llm_provider import call_llm, call_llm_stream
+from app.service.llm_provider import call_llm, call_llm_stream, call_llm_with_tools
 from app.service.prompt_loader import load_agent_prompt
+from app.service.skills.ogilvy_skills import OGILVY_TOOLS, parse_ogilvy_tool_calls
 
 logger = logging.getLogger(__name__)
 
@@ -152,12 +153,18 @@ async def run_planning_phase(
     return _parse_routing_response(raw)
 
 
-async def run_planning_phase_stream(
+async def run_ogilvy_decision(
     user_prompt: str,
     conversation_history: list[dict] | None = None,
-) -> AsyncGenerator[str, None]:
+) -> dict:
     """
-    品牌顾问 — 需求分析 & 路由决策（流式版）
+    品牌顾问 — 调用 Tool Calling 做出决策
+    返回:
+       {"action": "clarify_requirement", "args": {"question": "..."}}
+     或
+       {"action": "generate_workflow_dag", "args": {"routing_sequence": [...], "plan_explanation": "..."}}
+     或
+       {"action": "none", "content": "..."}
     """
     history_text = _build_history_context(conversation_history or [])
 
@@ -165,17 +172,44 @@ async def run_planning_phase_stream(
         user_content = (
             f"【历史对话上下文】\n{history_text}\n\n"
             f"====== 本轮用户输入 ======\n{user_prompt}\n\n"
-            "请基于以上历史上下文和本轮用户输入，分析需求，选择合适的智能体并制定执行计划。"
+            "请基于以上历史上下文和本轮用户输入，调用合适的工具来推进流程。"
         )
     else:
-        user_content = f"客户品牌需求：{user_prompt}\n\n请分析需求，选择合适的智能体并制定执行计划。"
+        user_content = f"客户品牌需求：{user_prompt}\n\n请调用工具处理此需求。"
 
     messages = [
         {"role": "system", "content": load_agent_prompt("consultant_plan")},
         {"role": "user", "content": user_content},
     ]
-    async for chunk in call_llm_stream(messages):
-        yield chunk
+    
+    # 强制模型在此阶段必须使用工具
+    content, tool_calls = await call_llm_with_tools(
+        messages=messages, 
+        tools=OGILVY_TOOLS,
+    )
+    
+    parsed_tool = parse_ogilvy_tool_calls(tool_calls) if tool_calls else None
+    
+    if parsed_tool:
+        return parsed_tool
+        
+    return {
+        "action": "none",
+        "content": content
+    }
+
+
+async def run_planning_phase_stream(
+    plan_explanation: str,
+) -> AsyncGenerator[str, None]:
+    """
+    不再走一次大模型，直接流式回显已经决定好的解释文本，
+    保持前端打字机效果。
+    """
+    # 模拟流式输出
+    chunk_size = 5
+    for i in range(0, len(plan_explanation), chunk_size):
+        yield plan_explanation[i:i+chunk_size]
 
 
 async def run_quality_review(

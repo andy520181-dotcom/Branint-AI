@@ -142,6 +142,19 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.close();
     });
 
+    // NOTE: 收到中断信号，保留现有状态并关闭长连接，等待用户下一轮对话输入
+    es.addEventListener('session_pause', (e) => {
+      try {
+        const { reason } = JSON.parse(e.data) as { reason: string };
+        // eslint-disable-next-line no-console
+        console.log('Session paused for user interaction:', reason);
+      } catch {
+        // ignore
+      }
+      useWorkspaceStore.setState({ isStreaming: false, currentAgentId: null });
+      es.close();
+    });
+
     es.addEventListener('error', (e) => {
       const raw = (e as MessageEvent).data;
       setError(

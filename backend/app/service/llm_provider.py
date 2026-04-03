@@ -54,7 +54,6 @@ async def call_llm(
     target_model = model or settings.default_model
     logger.info("调用 LLM 模型（非流式）: %s", target_model)
 
-    # NOTE: Gemini 3 系列要求 temperature >= 1.0
     temp = 1.0 if "gemini-3" in target_model else 0.7
 
     response = await litellm.acompletion(
@@ -65,3 +64,51 @@ async def call_llm(
         max_tokens=4096,
     )
     return response.choices[0].message.content or ""
+
+
+async def call_llm_with_tools(
+    messages: list[dict],
+    tools: list[dict],
+    model: str | None = None,
+    tool_choice: str | dict | None = None,
+) -> tuple[str, list[dict] | None]:
+    """
+    非流式调用增强版：支持 Tool Calling
+    返回: (文本内容, tool_calls结果列表)
+    """
+    target_model = model or settings.default_model
+    logger.info("调用 LLM 模型（Tools）: %s, 启用Tools", target_model)
+
+    temp = 1.0 if "gemini-3" in target_model else 0.7
+
+    kwargs = {
+        "model": target_model,
+        "messages": messages,
+        "stream": False,
+        "temperature": temp,
+        "max_tokens": 4096,
+        "tools": tools,
+    }
+    if tool_choice:
+        kwargs["tool_choice"] = tool_choice
+
+    response = await litellm.acompletion(**kwargs)
+    choice = response.choices[0]
+    
+    content = choice.message.content or ""
+    tool_calls = None
+    if hasattr(choice.message, "tool_calls") and choice.message.tool_calls:
+        # 提取出工具调用，转化为字典数组以便于上层处理
+        tool_calls = [
+            {
+                "id": tc.id,
+                "type": tc.type,
+                "function": {
+                    "name": tc.function.name,
+                    "arguments": tc.function.arguments,
+                }
+            }
+            for tc in choice.message.tool_calls
+        ]
+        
+    return content, tool_calls
