@@ -1,5 +1,6 @@
 'use client';
 
+import type { Dispatch, SetStateAction } from 'react';
 import type { HistoryItem } from '@/types';
 import styles from './WorkspaceHistorySidebar.module.css';
 
@@ -12,7 +13,7 @@ export interface WorkspaceHistorySidebarProps {
   sessionId: string;
   resolvedLocale: string;
   historyMenuOpenId: string | null;
-  setHistoryMenuOpenId: (id: string | null | ((prev: string | null) => string | null)) => void;
+  setHistoryMenuOpenId: (id: string | null) => void;
   onNavigateSession: (sessionId: string) => void;
   onRename: (item: HistoryItem) => void;
   onPin: (item: HistoryItem) => void;
@@ -90,7 +91,7 @@ export function WorkspaceHistorySidebar({
                         title={t('workspace.history.more')}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setHistoryMenuOpenId((id) => (id === item.sessionId ? null : item.sessionId));
+                          setHistoryMenuOpenId(historyMenuOpenId === item.sessionId ? null : item.sessionId);
                         }}
                       >
                         <span className={styles.historyItemMoreDots} aria-hidden>

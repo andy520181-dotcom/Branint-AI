@@ -276,7 +276,7 @@ export default function WorkspacePage() {
 
       <WorkspaceTopBar
         historyOpen={historyOpen}
-        onToggleHistory={() => setHistoryOpen((v) => !v)}
+        onToggleHistory={() => setHistoryOpen(!historyOpen)}
         onNewConversation={handleNewConversation}
         isComplete={isComplete}
         error={error}
