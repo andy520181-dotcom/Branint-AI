@@ -171,7 +171,10 @@ export function useWorkspaceStream(sessionId: string | null) {
         const { target_round } = JSON.parse(e.data) as { target_round: number };
         // eslint-disable-next-line no-console
         console.log(`[Revert] Server triggered revert to round ${target_round}. Dropping subsequent UI state...`);
-        useWorkspaceStore.getState().revertToRound(target_round);
+        // 延迟 3 秒执行切断，给用户保留阅读“撤销回复”的时间
+        setTimeout(() => {
+          useWorkspaceStore.getState().revertToRound(target_round);
+        }, 3000);
       } catch {
         // ignore
       }
