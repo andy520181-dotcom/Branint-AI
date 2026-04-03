@@ -9,7 +9,7 @@ import { SiteNavAuth } from '@/components/SiteNavAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { useHistory } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
-import { createSession } from '@/lib/api';
+import { createSession, uploadAsset } from '@/lib/api';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import heroStyles from '@/components/landing/landingHero.module.css';
 import { AppSplash, shouldSkipSplash } from '@/components/landing/AppSplash';
@@ -43,6 +43,9 @@ export default function LandingPage() {
   const [prompt, setPrompt] = useState('');
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // 附件列表状态
+  const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 内容变化时自动调整高度，最小保持初始高度 50px
   useEffect(() => {
@@ -107,7 +110,18 @@ export default function LandingPage() {
     if (!currentPrompt.trim()) return;
     setSubmitting(true);
     try {
-      const session_id = await createSession(currentUser.id, currentPrompt.trim());
+      // 先上传附件
+      const uploadedUrls: string[] = [];
+      for (const item of attachments) {
+        try {
+          const { url } = await uploadAsset(item.file);
+          uploadedUrls.push(url);
+        } catch { /* 单个失败不中断 */ }
+      }
+      attachments.forEach((it) => URL.revokeObjectURL(it.previewUrl));
+      setAttachments([]);
+
+      const session_id = await createSession(currentUser.id, currentPrompt.trim(), [], uploadedUrls);
       addHistory({
         sessionId: session_id,
         title: currentPrompt.trim().slice(0, 40),
@@ -172,6 +186,45 @@ export default function LandingPage() {
 
         {/* 输入框 */}
         <div className={heroStyles.inputWrapper}>
+          {/* 附件预览条 */}
+          {attachments.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+              {attachments.map((item, idx) => (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
+                  borderRadius: '12px', padding: '4px 8px 4px 6px', maxWidth: '200px'
+                }}>
+                  {item.file.type.startsWith('image/') ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.previewUrl} alt={item.file.name}
+                      style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="1" width="9" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                      </svg>
+                    </div>
+                  )}
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110 }}>
+                    {item.file.name}
+                  </span>
+                  <button type="button" onClick={() => {
+                    URL.revokeObjectURL(item.previewUrl);
+                    setAttachments(prev => prev.filter((_, i) => i !== idx));
+                  }} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 18, height: 18, border: 'none', background: 'transparent',
+                    color: 'var(--text-muted)', cursor: 'pointer', borderRadius: '50%', padding: 0
+                  }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className={heroStyles.textareaWrap}>
             {/* LED 示例轮播 — 绝对定位覆盖，不影响 textarea 高度 */}
             {!prompt && !focused && (
@@ -203,12 +256,43 @@ export default function LandingPage() {
           />
           </div>
           <div className={heroStyles.inputFooter}>
+            {/* 回形针上传按鈕 */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="上传图片或文件"
+              disabled={submitting}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 38, height: 38, border: 'none', background: 'transparent',
+                color: 'var(--text-muted)', cursor: 'pointer',
+                borderRadius: '50%', marginRight: 6, flexShrink: 0,
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 17 17" fill="none">
+                <path d="M14.5 8.5L8 15a4.243 4.243 0 01-6-6L9.5 1.5a2.828 2.828 0 014 4L6 13a1.414 1.414 0 01-2-2l6.5-6.5"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                const newItems = files.map((f) => ({ file: f, previewUrl: URL.createObjectURL(f) }));
+                setAttachments((prev) => [...prev, ...newItems]);
+                e.target.value = '';
+              }}
+            />
             <button
               id="start-analysis-btn"
               type="button"
               className={`icon-btn-circle ${heroStyles.submitBtn}`}
               onClick={handleSubmit}
-              disabled={!prompt.trim() || submitting}
+              disabled={(!prompt.trim() && attachments.length === 0) || submitting}
               title={t('input.submitTitle')}
             >
               {submitting ? (
