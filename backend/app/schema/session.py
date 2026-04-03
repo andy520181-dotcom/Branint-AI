@@ -22,6 +22,8 @@ class CreateSessionRequest(BaseModel):
     user_id: str = Field(..., description="Supabase Auth 用户 ID")
     # NOTE: 后续轮次对话时传入，首轮为空；包含之前所有 Agent 的完整输出
     conversation_history: list[HistoryRound] = []
+    # NOTE: 本次对话附带的资产文件 URL列表（图片/PDF/文档），由前端上传并存儲后返回
+    attachments: list[str] = []
 
 
 class CreateSessionResponse(BaseModel):

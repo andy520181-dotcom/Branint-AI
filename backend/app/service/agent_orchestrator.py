@@ -93,6 +93,7 @@ class AgentOrchestrator:
         user_prompt: str,
         conversation_history: list[dict] | None = None,
         checkpoint: dict | None = None,
+        attachments: list[str] | None = None,
     ) -> AsyncGenerator[str, None]:
         """
         执行完整品牌咋询工作流（结构化交接 + 实时流式输出）
@@ -114,9 +115,21 @@ class AgentOrchestrator:
             """判断该 Agent 在 checkpoint 中是否已完成（有落盘内容且状态为 completed）"""
             return ckpt_statuses.get(agent_id) == "completed" and bool(ckpt_outputs.get(agent_id))
 
+        # NOTE: 如果用户上传了附件，将文件名注入到用户输入前缀内容中，
+        # 这样 LLM 返回决策时能感知附件存在，并自然地调用 analyze_uploaded_asset 工具
+        effective_prompt = user_prompt
+        if attachments:
+            filenames = ", ".join(attachments)
+            effective_prompt = (
+                f"[{len(attachments)}个附件随本次消息一起上传：{filenames}]\n"
+                f"请优先调用 analyze_uploaded_asset 工具对这些文件进行分析和信息提取。\n"
+                f"用户原始说明：{user_prompt}"
+            )
+            logger.info("用户上传了 %d 个附件，已注入提示词: %s", len(attachments), filenames)
+
         # NOTE: 共享项目上下文 — 贯穿整个工作流
         project_context: dict = {
-            "user_prompt": user_prompt,
+            "user_prompt": effective_prompt,
             "handoffs": {},      # 各 Agent 的精炼交接摘要
             "full_outputs": {},  # 各 Agent 的完整输出（供 review 引用）
         }
@@ -142,7 +155,7 @@ class AgentOrchestrator:
             yield _sse("agent_start", "consultant_plan")
             logger.info("品牌顾问 — 开始需求诊断...")
 
-            decision = await run_ogilvy_decision(user_prompt, conversation_history)
+            decision = await run_ogilvy_decision(effective_prompt, conversation_history)
             action = decision.get("action", "none")
             args = decision.get("args", {})
 

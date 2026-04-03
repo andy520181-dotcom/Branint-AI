@@ -43,12 +43,14 @@ async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
         "user_id": body.user_id,
         "user_prompt": body.user_prompt,
         "conversation_history": [r.model_dump() for r in body.conversation_history],
+        "attachments": body.attachments,
         "status": "pending",
         "report": None,
     }
     save_session_disk(session_id, _sessions[session_id])
-    logger.info("创建新会话: %s, 用户: %s, 历史轮次: %d", session_id, body.user_id, len(body.conversation_history))
+    logger.info("创建新会话: %s, 用户: %s, 历史轮次: %d, 附件: %d", session_id, body.user_id, len(body.conversation_history), len(body.attachments))
     return CreateSessionResponse(session_id=session_id)
+
 
 
 @router.get("/{session_id}/stream")
@@ -63,6 +65,7 @@ async def stream_session(session_id: str) -> StreamingResponse:
     session = _sessions[session_id]
     user_prompt = session["user_prompt"]
     conversation_history = session.get("conversation_history", [])
+    attachments = session.get("attachments", [])
 
     # NOTE: 加载 checkpoint：已落盘的 agent 输出 + 状态 + 路由顺序
     # Orchestrator 会跳过已完成的 Agent，直接重放存档输出
@@ -77,6 +80,7 @@ async def stream_session(session_id: str) -> StreamingResponse:
 
     orchestrator = AgentOrchestrator()
 
+
     async def event_generator() -> AsyncGenerator[str, None]:
         import time as _time
         import json as _json
@@ -88,7 +92,7 @@ async def stream_session(session_id: str) -> StreamingResponse:
 
         try:
             final_report: str | None = None
-            async for event in orchestrator.run_session(user_prompt, conversation_history, checkpoint=checkpoint):
+            async for event in orchestrator.run_session(user_prompt, conversation_history, checkpoint=checkpoint, attachments=attachments):
 
                 # 拦截 routing_decided：保存本次路由顺序，断点续传时用
                 if "event: routing_decided" in event:

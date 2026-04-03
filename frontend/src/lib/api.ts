@@ -19,6 +19,7 @@ export async function createSession(
   userId: string,
   prompt: string,
   conversationHistory: ConversationRound[] = [],
+  attachments: string[] = [],
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/api/sessions`, {
     method: 'POST',
@@ -27,12 +28,29 @@ export async function createSession(
       user_id: userId,
       user_prompt: prompt,
       conversation_history: conversationHistory,
+      attachments,
     }),
   });
   if (!res.ok) throw new Error(`创建会话失败 (${res.status})`);
   const data = await res.json() as { session_id: string };
   return data.session_id;
 }
+
+/** 上传品牌资产文件（图片/PDF/文档），返回资源访问 URL */
+export async function uploadAsset(file: File): Promise<{ url: string; original_name: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`${API_BASE}/api/assets/upload`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: '上传失败' })) as { detail: string };
+    throw new Error(err.detail ?? `上传失败 (${res.status})`);
+  }
+  return res.json() as Promise<{ url: string; original_name: string }>;
+}
+
 
 /** 获取已完成会话的报告 */
 export async function fetchReport(sessionId: string): Promise<{ session_id: string; report: string }> {

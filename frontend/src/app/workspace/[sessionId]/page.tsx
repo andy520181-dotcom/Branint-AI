@@ -9,7 +9,7 @@ import type { AgentId, AgentStatus } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
-import { createSession, fetchSnapshot } from '@/lib/api';
+import { createSession, fetchSnapshot, uploadAsset } from '@/lib/api';
 import styles from './page.module.css';
 import type { RoundSnapshot } from './workspaceTypes';
 import { useHistorySidebar } from './hooks/useHistorySidebar';
@@ -41,6 +41,8 @@ export default function WorkspacePage() {
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [heroFocused, setHeroFocused] = useState(false);
+  // 附件状态：存储待上传的本地文件列表
+  const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]);
 
   const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
   const currentRoundRef = useRef<HTMLDivElement>(null);
@@ -121,7 +123,24 @@ export default function WorkspacePage() {
         setPreviousRounds((prev) => [...prev, snapshot]);
       }
 
-      const newSessionId = await createSession(user.id, promptText, history);
+      // 先上传附件，拿到服务器上的 URL 列表
+      const uploadedUrls: string[] = [];
+      if (attachments.length > 0) {
+        for (const item of attachments) {
+          try {
+            const { url } = await uploadAsset(item.file);
+            uploadedUrls.push(url);
+          } catch (err) {
+            // NOTE: 单个文件上传失败跳过不中断，可后续加 toast 通知
+            console.error('附件上传失败:', err);
+          }
+        }
+        // 释放预览 URL 内存，并清空列表
+        attachments.forEach((it) => URL.revokeObjectURL(it.previewUrl));
+        setAttachments([]);
+      }
+
+      const newSessionId = await createSession(user.id, promptText, history, uploadedUrls);
       setBottomPrompt('');
       initSession(newSessionId, promptText);
       setActiveSessionId(newSessionId);
@@ -374,6 +393,8 @@ export default function WorkspacePage() {
               isStreaming={isStreaming}
               submitting={submitting}
               onCancel={cancel}
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
               t={t}
             />
           </>

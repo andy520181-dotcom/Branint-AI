@@ -2,9 +2,11 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.config import settings, configure_litellm_keys
-from app.api import sessions, auth
+from app.api import sessions, auth, assets
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +41,12 @@ app.add_middleware(
 
 app.include_router(sessions.router)
 app.include_router(auth.router)
+app.include_router(assets.router)
+
+# NOTE: 暴露本地上传目录为公共静态目录，允许前端通过 /uploads/<filename> Preview 图片
+_upload_dir = Path(__file__).parent.parent / "data" / "uploads"
+_upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(_upload_dir)), name="uploads")
 
 
 @app.get("/health")
