@@ -16,10 +16,10 @@ from app.service.consultant_agent import (
     _parse_routing_response,
     _build_history_context,
 )
-from app.service.market_agent import _run_research_loop
-from app.service.strategy_agent import _run_strategy_loop
-from app.service.content_agent import _run_content_loop
-from app.service.visual_agent import _run_visual_loop
+from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
+from app.service.strategy_agent import run_strategy_agent_stream
+from app.service.content_agent import run_content_agent_stream
+from app.service.visual_agent import run_visual_agent_stream
 from app.service.skills.wacksman_skills import execute_tavily_search
 
 logger = logging.getLogger(__name__)
