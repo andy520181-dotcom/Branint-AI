@@ -177,8 +177,14 @@ async def run_ogilvy_decision(
     else:
         user_content = f"客户品牌需求：{user_prompt}\n\n请调用工具处理此需求。"
 
+    try:
+        from datetime import datetime
+        current_time_str = datetime.now().strftime("%Y年%m月%d日")
+    except Exception:
+        current_time_str = "未知"
+
     messages = [
-        {"role": "system", "content": load_agent_prompt("consultant_plan")},
+        {"role": "system", "content": load_agent_prompt("consultant_plan") + f"\n\n[系统附加信息]\n今天是 {current_time_str}，请基于此计算所有时间状语（如今天、昨天、上个月）。"},
         {"role": "user", "content": user_content},
     ]
     
@@ -238,8 +244,14 @@ async def run_direct_response_stream(
             f"回答指引：{response_prompt}"
         )
 
+    try:
+        from datetime import datetime
+        current_time_str = datetime.now().strftime("%Y年%m月%d日")
+    except Exception:
+        current_time_str = "未知"
+
     messages = [
-        {"role": "system", "content": load_agent_prompt("consultant_plan")},
+        {"role": "system", "content": load_agent_prompt("consultant_plan") + f"\n\n[系统附加信息]\n今天是 {current_time_str}，请基于此计算所有时间状语（如今天、昨天、上个月）。"},
         {"role": "user", "content": user_content},
     ]
     async for chunk in call_llm_stream(messages):

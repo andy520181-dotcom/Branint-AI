@@ -177,7 +177,7 @@ class AgentOrchestrator:
                 )
                 
                 try:
-                    search_result = execute_tavily_search(query)
+                    search_result = await execute_tavily_search(query)
                 except Exception as e:
                     logger.error("Tavily 搜索失败: %s", e)
                     search_result = "抱歉，由于网络检索服务异常，未能获取最新资讯。"
