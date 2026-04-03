@@ -42,7 +42,7 @@ const SAMPLE_MARKDOWN = `# 一级标题：品牌战略摘要
   - 二级要点
     - 三级要点
 
-> 引用块：左侧使用 \`--prose-blockquote-border\`，与正文区分。
+> 引用块：左侧竖线使用 \`--prose-blockquote-border\`，正文为常规体（非斜体）。
 
 | 维度 | 说明 | 权重 |
 |------|------|------|

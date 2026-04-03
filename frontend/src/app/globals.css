@@ -448,7 +448,7 @@ input, textarea { font-family: inherit; outline: none; }
   padding-left: var(--space-4);
   margin: var(--space-4) 0;
   color: var(--prose-body-color);
-  font-style: italic;
+  font-style: normal;
 }
 .markdown-body table {
   width: 100%;
