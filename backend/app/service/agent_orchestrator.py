@@ -112,12 +112,25 @@ class AgentOrchestrator:
             """判断该 Agent 在 checkpoint 中是否已完成（有落盘内容且状态为 completed）"""
             return ckpt_statuses.get(agent_id) == "completed" and bool(ckpt_outputs.get(agent_id))
 
+        # NOTE: 共享项目上下文 — 贯穿整个工作流
+        project_context: dict = {
+            "user_prompt": user_prompt,
+            "handoffs": {},      # 各 Agent 的精炼交接摘要
+            "full_outputs": {},  # 各 Agent 的完整输出（供 review 引用）
+        }
+
+        # NOTE: 先将已落盘的完成输出填充到 project_context，
+        # 这样即使不重跑它们，下游 Agent 也能拿到正确的 handoff 数据
+        for aid, output in ckpt_outputs.items():
+            if output:
+                project_context["full_outputs"][aid] = output
+                project_context["handoffs"][aid] = _extract_handoff(output)
+
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
         if _is_completed("consultant_plan"):
             # 断点续传：consultant_plan 已落盘，直接重放存档输出（不调用 LLM）
             plan_accumulated = ckpt_outputs["consultant_plan"]
-            # 使用上次落盘的路由顺序，避免重新评估
-            selected_agents = ckpt_selected or []
+            selected_agents = ckpt_selected  # 复用上次的路由顺序
             logger.info("[RESUME] consultant_plan 已完成，重放存档，路由: %s", selected_agents)
             yield _sse("agent_start", "consultant_plan")
             yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
