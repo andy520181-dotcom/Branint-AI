@@ -165,6 +165,18 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.close();
     });
 
+    // NOTE: 监听状态回滚指令，触发 Zustand 物理切断
+    es.addEventListener('session_revert', (e) => {
+      try {
+        const { target_round } = JSON.parse(e.data) as { target_round: number };
+        // eslint-disable-next-line no-console
+        console.log(`[Revert] Server triggered revert to round ${target_round}. Dropping subsequent UI state...`);
+        useWorkspaceStore.getState().revertToRound(target_round);
+      } catch {
+        // ignore
+      }
+    });
+
     // NOTE: 收到中断信号，保留现有状态并关闭长连接，等待用户下一轮对话输入
     es.addEventListener('session_pause', (e) => {
       try {

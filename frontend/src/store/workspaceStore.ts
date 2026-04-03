@@ -134,6 +134,8 @@ interface WorkspaceActions {
   setStreaming: (v: boolean) => void;
   setError: (err: string) => void;
   setPreviousRounds: (rounds: RoundSnapshot[] | ((prev: RoundSnapshot[]) => RoundSnapshot[])) => void;
+  /** 执行时光倒流特效，物理抹除 targetRound 之后的所有轮次以及正在生成的当前轮次 */
+  revertToRound: (targetRound: number) => void;
   reset: () => void;
 }
 
@@ -286,6 +288,50 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
     const previousRounds = typeof rounds === 'function' ? rounds(s.previousRounds) : rounds;
     persist({ ...s, previousRounds });
     return { previousRounds };
+  }),
+
+  revertToRound: (targetRound) => set((s) => {
+    // targetRound 是一般人类认知（如第一轮），对应数组中的 slice(0, targetRound)
+    // 这会保留 [0, targetRound - 1] 的历史快照
+    const newPrevious = s.previousRounds.slice(0, targetRound);
+    
+    // 把当前会话直接重置清理，配合 Tailwind AnimatePresence 实现视觉上的突然折叠/消失特效
+    const nextState = {
+      ...s,
+      previousRounds: newPrevious,
+      userPrompt: '',
+      agents: initialAgents(),
+      selectedAgents: null,
+      agentImages: [],
+      agentVideos: [],
+      finalReport: '',
+      isComplete: true, // 设为 complete 以停止所有的 isLoading 动画，等待下一次对话
+      isStreaming: false as const,
+      currentAgentId: null as null,
+      error: null
+    };
+    
+    // 强制冲刷写入底层 LocalStorage，确保刷新页面也是回到这个干净状态
+    if (_throttleTimer !== null) {
+      clearTimeout(_throttleTimer);
+      _throttleTimer = null;
+      _pendingState = null;
+    }
+    persist(nextState);
+    
+    return {
+      previousRounds: newPrevious,
+      userPrompt: '',
+      agents: nextState.agents,
+      selectedAgents: null,
+      agentImages: [],
+      agentVideos: [],
+      finalReport: '',
+      isComplete: true,
+      isStreaming: false,
+      currentAgentId: null,
+      error: null
+    };
   }),
 
   reset: () => set({ ...initialState, agents: initialAgents() }),
