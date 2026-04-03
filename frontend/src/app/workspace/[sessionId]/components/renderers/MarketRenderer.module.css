@@ -84,6 +84,18 @@
   background: rgba(168, 85, 247, 0.1);
 }
 
+/* 用户声音（社交平台）— 绿色 */
+.citationGroupLabelSocial {
+  color: rgb(34, 197, 94);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* 电商评价爬取 — 琥珀色 */
+.citationGroupLabelReview {
+  color: rgb(245, 158, 11);
+  background: rgba(245, 158, 11, 0.1);
+}
+
 /* ── 引用卡片横向滚动容器 ─────────────────────────── */
 .citationCards {
   display: flex;

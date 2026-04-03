@@ -6,9 +6,11 @@ import styles from '../WorkspaceFeed.module.css';
 import marketStyles from './MarketRenderer.module.css';
 
 interface SearchCitation {
-  type: 'market_data' | 'competitor';
+  type: 'market_data' | 'competitor' | 'user_review' | 'social_review';
   angle?: string;
   brand?: string;
+  platform?: string;
+  sentiment?: string;
   title: string;
   url: string;
   snippet: string;
@@ -49,6 +51,8 @@ export function MarketRenderer({ output, isRunning }: MarketRendererProps) {
 
   const marketCitations = citations.filter((c) => c.type === 'market_data');
   const competitorCitations = citations.filter((c) => c.type === 'competitor');
+  const reviewCitations = citations.filter((c) => c.type === 'user_review');
+  const socialCitations = citations.filter((c) => c.type === 'social_review');
 
   // 将竞品引用按品牌分组
   const citationsByBrand = useMemo(() => {
@@ -60,6 +64,16 @@ export function MarketRenderer({ output, isRunning }: MarketRendererProps) {
     });
     return map;
   }, [competitorCitations]);
+
+  const socialByPlatform = useMemo(() => {
+    const map: Record<string, SearchCitation[]> = {};
+    socialCitations.forEach((c) => {
+      const key = (c as any).platform ?? 'cross_platform';
+      if (!map[key]) map[key] = [];
+      map[key].push(c);
+    });
+    return map;
+  }, [socialCitations]);
 
   if (!output && isRunning) {
     return (
@@ -146,6 +160,60 @@ export function MarketRenderer({ output, isRunning }: MarketRendererProps) {
               </div>
             </div>
           ))}
+
+          {/* 电商/社区用户声音（按平台分组） */}
+          {Object.entries(socialByPlatform).map(([platform, items]) => (
+            <div key={platform} className={marketStyles.citationGroup}>
+              <span className={`${marketStyles.citationGroupLabel} ${marketStyles.citationGroupLabelSocial}`}>
+                用户声音：{platform}
+              </span>
+              <div className={marketStyles.citationCards}>
+                {items.slice(0, 4).map((c, i) => (
+                  <a
+                    key={i}
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={marketStyles.citationCard}
+                  >
+                    <span className={marketStyles.citationCardTitle}>{c.title || c.url}</span>
+                    {c.snippet && (
+                      <span className={marketStyles.citationCardSnippet}>
+                        {c.snippet.slice(0, 80)}…
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Jina 爬虫获取的用户评价页 */}
+          {reviewCitations.length > 0 && (
+            <div className={marketStyles.citationGroup}>
+              <span className={`${marketStyles.citationGroupLabel} ${marketStyles.citationGroupLabelReview}`}>
+                电商评价页爬取
+              </span>
+              <div className={marketStyles.citationCards}>
+                {reviewCitations.slice(0, 4).map((c, i) => (
+                  <a
+                    key={i}
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={marketStyles.citationCard}
+                  >
+                    <span className={marketStyles.citationCardTitle}>{c.platform?.toUpperCase()} 用户评价</span>
+                    {c.snippet && (
+                      <span className={marketStyles.citationCardSnippet}>
+                        {c.snippet.slice(0, 80)}…
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

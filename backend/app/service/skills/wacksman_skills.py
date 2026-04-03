@@ -1,12 +1,14 @@
 """
 Wacksman Agent（市场研究专家）的核心功能库
-定义供大模型调用的工具 JSON Schema，以及 Tavily 联网检索的执行逻辑。
+定义供大模型调用的工具 JSON Schema，以及 Tavily 联网检索和 Jina 爬虫的执行逻辑。
 
 工作流：
   1. clarify_research_scope  — 确认研究范围（行业/地域/竞品）
   2. web_search_market_data  — 检索市场宏观数据（规模/趋势/政策）
   3. search_competitor_intel — 检索竞品具体情报（定位/价格/融资/声量）
-  4. synthesize_research_report — 汇总所有数据，生成最终研究报告 + handoff
+  4. scrape_review_url       — 统娱分析第三方平台特定页面的用户评论内容
+  5. search_social_reviews   — 针对电商/短视频/社区平台的已公开用户声音检索
+  6. synthesize_research_report — 汇总所有数据，生成最终研究报告 + handoff
 """
 
 from __future__ import annotations
@@ -111,6 +113,65 @@ WACKSMAN_TOOLS = [
                 "required": ["research_summary"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "scrape_review_url",
+            "description": (
+                "爬取电商平台（Amazon、京东、Lazada）或内容平台（Reddit、知乎、小红书公开箔记）某一具体 URL "
+                "的页面内容，提取用户评论、主观感受和打分数据。仅支持公开可访问的页面，不支持需登录的内容。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "要爬取的具体页面 URL，例如 Amazon 商品评价页、Reddit 帖子、知乎问题等。"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": ["amazon", "jd", "reddit", "zhihu", "xiaohongshu", "other"],
+                        "description": "来源平台类型，主要用于标注数据类型和展示。"
+                    },
+                    "focus": {
+                        "type": "string",
+                        "description": "爬取重点，例如：'用户评价和打分分布'、'主要吘怨点'、'多次购买用户的口碑'。"
+                    }
+                },
+                "required": ["url", "platform", "focus"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_social_reviews",
+            "description": (
+                "在电商平台、短视频平台、社区论坛等平台上搜索用户评论和真实用户声音。"
+                "能检索大众点评、倣测返回、小红书笔记、Reddit 论坛帖子、知乎回答等已公开被索引的内容。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "检索词，建议包含平台限定词，例如：'site:xiaohongshu.com 护肤品各大评测'、'Amazon reviews lululemon leggings complaints'。"
+                    },
+                    "platform_focus": {
+                        "type": "string",
+                        "enum": ["xiaohongshu", "douyin", "weibo", "amazon", "reddit", "zhihu", "taobao_review", "cross_platform"],
+                        "description": "目标平台类型，用于自动优化检索词并标注数据来源。"
+                    },
+                    "sentiment_focus": {
+                        "type": "string",
+                        "enum": ["positive", "negative", "neutral", "all"],
+                        "description": "情感倾向过滤，例如 negative 专门搜集吙怨和痛点。"
+                    }
+                },
+                "required": ["query", "platform_focus", "sentiment_focus"]
+            }
+        }
     }
 ]
 
@@ -197,6 +258,155 @@ def format_search_result_for_llm(search_result: Dict[str, Any]) -> str:
         lines.append("")
     
     return "\n".join(lines)
+
+
+# ==========================================
+# 3b. Jina AI Reader Scraper
+# ==========================================
+
+async def execute_jina_scrape(url: str, platform: str, focus: str) -> Dict[str, Any]:
+    """
+    通过 Jina AI Reader（r.jina.ai）抓取目标页面并转换为干净 Markdown 文本。
+    
+    NOTE: Jina Reader 是免费的开放服务，将任意公网页面转为 LLM 友好的 Markdown，
+    特别适合抓取 Amazon 商品评价页、Reddit 帖子、知乎问答、公开小红书笔记。
+    不支持需要登录或强反爬（Taobao/Douyin 实时评论接口）的内容。
+    """
+    import httpx
+    
+    jina_url = f"https://r.jina.ai/{url}"
+    
+    headers = {
+        "Accept": "text/plain",
+        # NOTE: 设置 X-Return-Format 让 Jina 返回纯文本而非 HTML
+        "X-Return-Format": "markdown",
+        # NOTE: 可选：设置 X-With-Links-Summary 获取页内链接汇总
+    }
+    
+    logger.info("Jina Reader 开始抓取: %s [平台: %s]", url, platform)
+    
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.get(jina_url, headers=headers, follow_redirects=True)
+            
+            if resp.status_code != 200:
+                logger.warning("Jina Reader 返回非 200: %d, URL: %s", resp.status_code, url)
+                return {
+                    "url": url,
+                    "platform": platform,
+                    "content": "",
+                    "success": False,
+                    "message": f"HTTP {resp.status_code}，页面可能需要登录或已被保护",
+                }
+            
+            raw_text = resp.text
+            
+            # NOTE: Jina 返回的文本可能很长，截取重点内容供 LLM 分析
+            # 超过 4000 字则只取前 2000 + 后 2000（通常评论在末尾）
+            if len(raw_text) > 4000:
+                content = raw_text[:2000] + "\n...[中间内容省略]...\n" + raw_text[-2000:]
+            else:
+                content = raw_text
+            
+            logger.info("Jina 抓取成功: %s，内容长度 %d 字", url, len(raw_text))
+            
+            return {
+                "url": url,
+                "platform": platform,
+                "focus": focus,
+                "content": content,
+                "raw_length": len(raw_text),
+                "success": True,
+            }
+    
+    except httpx.TimeoutException:
+        logger.error("Jina Reader 超时: %s", url)
+        return {"url": url, "platform": platform, "content": "", "success": False, "message": "请求超时（20s）"}
+    except Exception as e:
+        logger.error("Jina Reader 失败: %s — %s", url, e)
+        return {"url": url, "platform": platform, "content": "", "success": False, "message": str(e)}
+
+
+def format_jina_result_for_llm(jina_result: Dict[str, Any]) -> str:
+    """
+    将 Jina 抓取结果格式化为 LLM 可读文本，标注平台来源。
+    """
+    if not jina_result.get("success"):
+        msg = jina_result.get("message", "页面抓取失败")
+        return f"[爬取状态：{msg}，URL: {jina_result.get('url', '')}]\n"
+    
+    platform_label = {
+        "amazon": "Amazon 商品评价",
+        "jd": "京东商品评价",
+        "reddit": "Reddit 论坛",
+        "zhihu": "知乎问答",
+        "xiaohongshu": "小红书笔记",
+        "other": "第三方页面",
+    }.get(jina_result.get("platform", "other"), "第三方页面")
+    
+    return (
+        f"## 【{platform_label}】页面内容（来源: {jina_result['url']}）\n"
+        f"**抓取重点**: {jina_result.get('focus', '')}\n\n"
+        f"{jina_result.get('content', '')}\n"
+    )
+
+
+# ==========================================
+# 3c. Social Review Targeted Search
+# ==========================================
+
+# NOTE: 各平台的 Tavily 优化检索词模板
+# 通过在查询词中加入 site: 限定词，提升目标平台结果的精准度
+PLATFORM_QUERY_TEMPLATES: Dict[str, str] = {
+    "xiaohongshu": "{query} site:xiaohongshu.com OR 小红书 {query} 评测 真实",
+    "douyin": "{query} 抖音 评论 用户反馈 site:douyin.com OR 抖音 {query}",
+    "weibo": "{query} 微博 用户讨论 site:weibo.com",  
+    "amazon": "{query} amazon reviews site:amazon.com OR site:amazon.co.uk",
+    "reddit": "{query} reddit reviews users experience site:reddit.com",
+    "zhihu": "{query} 知乎 用户评价 真实使用感受 site:zhihu.com",
+    "taobao_review": "{query} 淘宝评论 购买心得 用户真实反馈",
+    "cross_platform": "{query} 用户评价 使用心得 真实口碑 评测",
+}
+
+SENTIMENT_KEYWORDS: Dict[str, str] = {
+    "positive": " 好用 推荐 满意 五星 回购",
+    "negative": " 踩雷 不好用 失望 差评 退货",
+    "neutral": "",
+    "all": "",
+}
+
+
+async def execute_social_review_search(
+    query: str,
+    platform_focus: str,
+    sentiment_focus: str,
+    max_results: int = 5,
+) -> Dict[str, Any]:
+    """
+    使用 Tavily Search 定向检索社交媒体和电商平台的用户评论与真实声音。
+    
+    通过平台限定词模板 + 情感关键词自动优化原始 query，提升相关性。
+    """
+    # NOTE: 根据平台和情感倾向自动优化检索词
+    template = PLATFORM_QUERY_TEMPLATES.get(platform_focus, "{query}")
+    optimized_query = template.format(query=query)
+    sentiment_kw = SENTIMENT_KEYWORDS.get(sentiment_focus, "")
+    final_query = f"{optimized_query}{sentiment_kw}".strip()
+    
+    logger.info(
+        "社交评论检索: 原始=%s → 优化后=%s [平台=%s, 情感=%s]",
+        query, final_query, platform_focus, sentiment_focus,
+    )
+    
+    search_result = await execute_tavily_search(final_query, max_results=max_results)
+    
+    # 在返回结果中携带平台和情感元数据
+    search_result["platform_focus"] = platform_focus
+    search_result["sentiment_focus"] = sentiment_focus
+    search_result["original_query"] = query
+    search_result["optimized_query"] = final_query
+    
+    return search_result
 
 
 # ==========================================

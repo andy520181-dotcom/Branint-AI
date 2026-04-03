@@ -18,7 +18,10 @@ from app.service.prompt_loader import load_agent_prompt
 from app.service.skills.wacksman_skills import (
     WACKSMAN_TOOLS,
     execute_tavily_search,
+    execute_jina_scrape,
+    execute_social_review_search,
     format_search_result_for_llm,
+    format_jina_result_for_llm,
     parse_wacksman_tool_calls,
 )
 
@@ -144,6 +147,47 @@ async def _run_research_loop(user_prompt: str, handoff_context: str) -> tuple[li
                     "snippet": r.get("content", "")[:200],
                 })
         
+        elif action == "scrape_review_url":
+            url = args.get("url", "")
+            platform = args.get("platform", "other")
+            focus = args.get("focus", "")
+            logger.info("Wacksman Jina 爬虫执行: %s [%s]", url, platform)
+            
+            jina_result = await execute_jina_scrape(url, platform, focus)
+            tool_result = format_jina_result_for_llm(jina_result)
+            
+            # 记录爬虫来源供前端 MarketRenderer 展示
+            if jina_result.get("success"):
+                search_citations.append({
+                    "type": "user_review",
+                    "platform": platform,
+                    "title": f"{platform.upper()} 用户评价页面",
+                    "url": url,
+                    "snippet": jina_result.get("content", "")[:200],
+                })
+        
+        elif action == "search_social_reviews":
+            query = args.get("query", "")
+            platform_focus = args.get("platform_focus", "cross_platform")
+            sentiment_focus = args.get("sentiment_focus", "all")
+            logger.info("Wacksman 社交评论检索: %s [平台=%s, 情感=%s]", query, platform_focus, sentiment_focus)
+            
+            search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=5)
+            tool_result = (
+                f"## 用户声音检索结果（平台: {platform_focus}，情感倾向: {sentiment_focus}）\n"
+                + format_search_result_for_llm(search_result)
+            )
+            
+            for r in search_result.get("results", []):
+                search_citations.append({
+                    "type": "social_review",
+                    "platform": platform_focus,
+                    "sentiment": sentiment_focus,
+                    "title": r.get("title", ""),
+                    "url": r.get("url", ""),
+                    "snippet": r.get("content", "")[:200],
+                })
+
         elif action == "synthesize_research_report":
             # NOTE: synthesize 是终止信号——模型准备好汇总所有数据生成最终报告
             research_summary = args.get("research_summary", "")

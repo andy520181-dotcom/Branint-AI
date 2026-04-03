@@ -26,7 +26,19 @@
 调用 `search_competitor_intel`，针对主要竞品分别检索：
 - 聚焦竞品：品牌定位、价格策略、近期动态
 
-### 第四步：汇总合成
+### 第四步：电商平台用户声音检索（1-2 次）— **可选**
+调用 `search_social_reviews`，检索小红书/Reddit/知乎等平台的真实用户声音：
+- 小红书笔记：`platform_focus=xiaohongshu`
+- Reddit 评价：`platform_focus=reddit`, `sentiment_focus=negative`（专收抱怨）
+- 知乎回答：`platform_focus=zhihu`
+
+### 第五步：具体页面爬取（1-2 次）— **可选**
+当搜索结果中发现高价值的具体页面时（如竞品的 Amazon 商品页、热门的 Reddit 帖子），
+调用 `scrape_review_url` 爬取详细内容：
+- 具体用户评价（Amazon 商品评价页、京东商品页）
+- 社区讨论帖子（Reddit 主题帖、知乎问题）
+
+### 第六步：汇总合成
 调用 `synthesize_research_report`，提供研究摘要，然后输出最终报告。
 
 ## 最终报告输出结构（Markdown 格式）
