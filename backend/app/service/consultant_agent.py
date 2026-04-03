@@ -212,6 +212,40 @@ async def run_planning_phase_stream(
         yield plan_explanation[i:i+chunk_size]
 
 
+async def run_direct_response_stream(
+    user_prompt: str,
+    response_prompt: str,
+    conversation_history: list[dict] | None = None,
+) -> AsyncGenerator[str, None]:
+    """
+    品牌顾问 — 直接回复（Direct Response）模式。
+    适用于命名建议、概念探讨、递交语言优化等轻量咋询。
+    不启动任何下游专业 Agent，直接调用 DeepSeek 流式作答。
+    """
+    history_text = _build_history_context(conversation_history or [])
+
+    # NOTE: 将 response_prompt（模型对自己回答规划的描述）与用户原始问题合并，
+    # 让模型以一首品牌顾问的角色流式生成回复
+    if history_text:
+        user_content = (
+            f"【历史对话上下文】\n{history_text}\n\n"
+            f"====== 本轮用户输入 ======\n{user_prompt}\n\n"
+            f"回答指引：{response_prompt}"
+        )
+    else:
+        user_content = (
+            f"用户咋询：{user_prompt}\n\n"
+            f"回答指引：{response_prompt}"
+        )
+
+    messages = [
+        {"role": "system", "content": load_agent_prompt("consultant_plan")},
+        {"role": "user", "content": user_content},
+    ]
+    async for chunk in call_llm_stream(messages):
+        yield chunk
+
+
 async def run_quality_review(
     user_prompt: str,
     selected_agents: list[AgentKey],

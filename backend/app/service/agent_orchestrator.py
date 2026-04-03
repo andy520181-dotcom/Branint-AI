@@ -11,6 +11,7 @@ from app.service.consultant_agent import (
     AgentKey,
     run_ogilvy_decision,
     run_planning_phase_stream,
+    run_direct_response_stream,
     run_quality_review_stream,
     _parse_routing_response,
     _build_history_context,
@@ -143,8 +144,29 @@ class AgentOrchestrator:
             decision = await run_ogilvy_decision(user_prompt, conversation_history)
             action = decision.get("action", "none")
             args = decision.get("args", {})
-            
-            if action == "clarify_requirement" or action == "request_human_approval":
+
+            if action == "direct_response":
+                # NOTE: 轻量咋询直接回复模式：品牌顾问做主语直接流式作答，跳过全部专业 Agent
+                response_prompt = args.get("response_prompt", "以首席品牌顾问身份回答用户咋询。")
+                logger.info("品牌顾问 — Direct Response 模式，跳过专业 Agent 流水线")
+
+                direct_accumulated = ""
+                async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
+                    direct_accumulated += chunk
+                    yield _sse_raw(
+                        "agent_chunk",
+                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                    )
+
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_complete", "consultant_plan")
+                # NOTE: 直接回复完成后直接结束会话，无需 review 历程
+                yield _sse("routing_decided", json.dumps([]))
+                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
+                logger.info("品牌顾问 Direct Response 完成，输出: %d 字", len(direct_accumulated))
+                return
+
+            elif action == "clarify_requirement" or action == "request_human_approval":
                 # 走到此处则说明需要阻断当前流水线，向用户发问
                 question_text = args.get("question", "您好，为了更好地为您提供服务，请问您能提供更多具体的背景信息吗？")
                 logger.info("Ogilvy 中断流水线，发起 %s 动作，发问内容: %s", action, question_text)

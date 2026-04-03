@@ -68,6 +68,36 @@ OGILVY_TOOLS = [
                 "required": ["routing_sequence", "plan_explanation"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "direct_response",
+            "description": (
+                "当用户输入的是轻量咋询、概念探讨、命名建议、思路趋应、递交与说明等 —— "
+                "而非需要完整品牌研究工作流时，调用此工具。"
+                "典型场景示例："
+                "① 命名/拼写建议（如‘这个名字如何？’）。"
+                "② 品牌概念解释。"
+                "③ 递交语言建议或优化。"
+                "④ 轻量的动手前咒语或思路趋应。"
+                "⑤ 单一问题的咨询解答。"
+                "瞫勿调用此工具处理需要市场研究、品牌战略、内容制作或视觉设计的完整项目。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "response_prompt": {
+                        "type": "string",
+                        "description": (
+                            "一段精准描述你将要回答的角度和要点的提示语（即你准备具体说什么）。"
+                            "示例：'分析 Brandin 作为品牌咨询智能体名字的适合性，主要从语言学和品牌脉络分析。'"
+                        )
+                    }
+                },
+                "required": ["response_prompt"]
+            }
+        }
     }
 ]
 
