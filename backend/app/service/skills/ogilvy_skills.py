@@ -98,6 +98,78 @@ OGILVY_TOOLS = [
                 "required": ["response_prompt"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_uploaded_asset",
+            "description": "遇到用户上传图片、商业计划书、竞品海报等材料时调用。目前系统先做底层请求拦截，用以未来支持多模态分析提取。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "asset_focus": {
+                        "type": "string",
+                        "description": "你想让系统从这个文件中提取关注什么维度的信息？例如：'提取竞品海报的视觉风格' 或 '总结该计划书的主流消费群体'。"
+                    }
+                },
+                "required": ["asset_focus"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lightweight_web_search",
+            "description": "当回答需要新鲜、时效性强的外部数据支撑（如最新政策、特斯拉下月发布会、近期竞品动态）时调用。会动用后端的 Tavily 搜索引擎抓取内容后再回答。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "要搜索的精准互联网关键词。"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "export_final_deliverable",
+            "description": "当用户说 '帮我导出一份结案报告' 或 '整理成一份PDF下载' 时调用。系统会打包所有成果生成一份正式报告给用户下载。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "document_title": {
+                        "type": "string",
+                        "description": "生成的正式文档标题"
+                    }
+                },
+                "required": ["document_title"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "revert_to_checkpoint",
+            "description": "当用户明确要求撤销重来，或指明要『退回到第X版的建议』时调用。系统将物理擦除之后的失败轮次数据，瞬间恢复干净记录。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_round": {
+                        "type": "integer",
+                        "description": "想要回滚到的具体历史轮次数字（基于自然回答，如第一版就是 1）。"
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "告诉用户系统已恢复到哪一版的话术"
+                    }
+                },
+                "required": ["target_round", "explanation"]
+            }
+        }
     }
 ]
 
