@@ -1,0 +1,91 @@
+/* SharedHeroInput — 附件预览条 + 回形针按钮样式 */
+
+/* ── 附件预览条 ────────────────────────────────── */
+.attachmentsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.attachmentChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px 8px 4px 6px;
+  max-width: 200px;
+}
+.attachmentThumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.attachmentFileIcon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.attachmentName {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+.attachmentRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+}
+.attachmentRemove:hover {
+  background: var(--color-border);
+  color: var(--text-primary);
+}
+
+/* ── 上传按钮（回形针）────────────────────────── */
+.attachBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+.attachBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--text-primary);
+}
+.attachBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.hiddenFileInput {
+  display: none;
+}

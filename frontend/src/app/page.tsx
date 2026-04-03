@@ -12,6 +12,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { createSession, uploadAsset } from '@/lib/api';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import heroStyles from '@/components/landing/landingHero.module.css';
+import { SharedHeroInput } from '@/components/landing/SharedHeroInput';
 import { AppSplash, shouldSkipSplash } from '@/components/landing/AppSplash';
 import styles from './page.module.css';
 
@@ -44,8 +45,7 @@ export default function LandingPage() {
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // 附件列表状态
-  const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]); 
 
   // 内容变化时自动调整高度，最小保持初始高度 50px
   useEffect(() => {
@@ -184,127 +184,30 @@ export default function LandingPage() {
         </h1>
 
 
-        {/* 输入框 */}
-        <div className={heroStyles.inputWrapper}>
-          {/* 附件预览条 */}
-          {attachments.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-              {attachments.map((item, idx) => (
-                <div key={idx} style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
-                  borderRadius: '12px', padding: '4px 8px 4px 6px', maxWidth: '200px'
-                }}>
-                  {item.file.type.startsWith('image/') ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.previewUrl} alt={item.file.name}
-                      style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
-                  ) : (
-                    <div style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <rect x="2" y="1" width="9" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
-                      </svg>
-                    </div>
-                  )}
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110 }}>
-                    {item.file.name}
-                  </span>
-                  <button type="button" onClick={() => {
-                    URL.revokeObjectURL(item.previewUrl);
-                    setAttachments(prev => prev.filter((_, i) => i !== idx));
-                  }} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: 18, height: 18, border: 'none', background: 'transparent',
-                    color: 'var(--text-muted)', cursor: 'pointer', borderRadius: '50%', padding: 0
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className={heroStyles.textareaWrap}>
-            {/* LED 示例轮播 — 绝对定位覆盖，不影响 textarea 高度 */}
-            {!prompt && !focused && (
-              <div
-                className={heroStyles.ledOverlay}
-                onClick={() => { setPrompt(examplePrompts[ledIndex]); }}
-              >
-                <span
-                  key={ledIndex}
-                  className={`${heroStyles.ledText} ${ledVisible ? heroStyles.ledIn : heroStyles.ledOut}`}
-                >
-                  {examplePrompts[ledIndex]}
-                </span>
-              </div>
-            )}
-          <textarea
-            ref={textareaRef}
-            id="brand-prompt-input"
-            className={heroStyles.textarea}
-            placeholder={focused ? t('input.placeholder') : ''}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
-            }}
-          />
-          </div>
-          <div className={heroStyles.inputFooter}>
-            {/* 回形针上传按鈕 */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              title="上传图片或文件"
-              disabled={submitting}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 38, height: 38, border: 'none', background: 'transparent',
-                color: 'var(--text-muted)', cursor: 'pointer',
-                borderRadius: '50%', marginRight: 6, flexShrink: 0,
-              }}
+        {/* 输入框 — 使用共享组件，LED轮播通过 ledNode 传入 */}
+        <SharedHeroInput
+          textareaRef={textareaRef}
+          value={prompt}
+          onChange={setPrompt}
+          focused={focused}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+          attachments={attachments}
+          onAttachmentsChange={setAttachments}
+          placeholder={t('input.placeholder')}
+          ledNode={
+            <span
+              key={ledIndex}
+              className={`${heroStyles.ledText} ${ledVisible ? heroStyles.ledIn : heroStyles.ledOut}`}
+              onClick={() => setPrompt(examplePrompts[ledIndex])}
             >
-              <svg width="18" height="18" viewBox="0 0 17 17" fill="none">
-                <path d="M14.5 8.5L8 15a4.243 4.243 0 01-6-6L9.5 1.5a2.828 2.828 0 014 4L6 13a1.414 1.414 0 01-2-2l6.5-6.5"
-                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,.pdf,.doc,.docx,.txt"
-              multiple
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                const newItems = files.map((f) => ({ file: f, previewUrl: URL.createObjectURL(f) }));
-                setAttachments((prev) => [...prev, ...newItems]);
-                e.target.value = '';
-              }}
-            />
-            <button
-              id="start-analysis-btn"
-              type="button"
-              className={`icon-btn-circle ${heroStyles.submitBtn}`}
-              onClick={handleSubmit}
-              disabled={(!prompt.trim() && attachments.length === 0) || submitting}
-              title={t('input.submitTitle')}
-            >
-              {submitting ? (
-                <span className={heroStyles.spinner} />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
+              {examplePrompts[ledIndex]}
+            </span>
+          }
+          t={t}
+        />
 
         {/* Agent 展示 */}
         <section id="features" className={styles.agentsSection} aria-label={t('nav.features')}>
