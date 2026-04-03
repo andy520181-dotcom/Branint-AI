@@ -366,6 +366,8 @@ export default function WorkspacePage() {
             onSubmit={handleSubmit}
             submitting={submitting}
             user={user}
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
             t={t}
           />
         ) : (
