@@ -45,6 +45,12 @@ export default function WorkspacePage() {
   const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]);
 
   const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
+  // NOTE: sessionId 来自 URL params，当侧边栏导航到不同会话时会变化，
+  // 必须同步更新 activeSessionId，否则 SSE 仍指向旧会话。
+  useEffect(() => {
+    setActiveSessionId(sessionId);
+  }, [sessionId]);
+
   const currentRoundRef = useRef<HTMLDivElement>(null);
   const avatarDataUrl = useUserAvatar(user?.id);
 
@@ -159,11 +165,15 @@ export default function WorkspacePage() {
   useEffect(() => {
     setRestored(null);
 
+    // NOTE: 立即将 Store 重置为干净初始状态，防止上一个 session 的旧数据
+    // 污染新 session 的 hasFeedContent 计算，导致历史会话点击后内容留白。
+    // reset() 后立即设置新 sessionId，保证后续 setState patch 能找到正确归属。
+    useWorkspaceStore.getState().reset();
+    useWorkspaceStore.setState({ sessionId });
+
     // 第一优先：检查是否是新建空白会话（sessionStorage 标记）
     const blankKey = `workspace_blank_${sessionId}`;
     if (typeof window !== 'undefined' && sessionStorage.getItem(blankKey)) {
-      useWorkspaceStore.getState().reset();
-      useWorkspaceStore.setState({ sessionId });
       setRestored(true);
       setTimeout(() => {
         try { sessionStorage.removeItem(blankKey); } catch { /* ignore */ }
