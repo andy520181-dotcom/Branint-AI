@@ -2,10 +2,24 @@ import { create } from 'zustand';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import { AgentId, AgentStatus, AgentImage, AgentVideo } from '@/types';
 
+/** 实时研究进度步骤，由后端 Wacksman 进度事件驱动 */
+export interface ResearchProgressStep {
+  /** 工具名称，如 web_search_market_data */
+  step: string;
+  /** 人类可读第一行＋详情 */
+  detail: string;
+  /** 时间戳 */
+  ts: number;
+  /** 是否已完成（下一步到来时标记当前步已完成） */
+  done: boolean;
+}
+
 interface AgentState {
   id: AgentId;
   status: AgentStatus;
   output: string;
+  /** Wacksman 研究循环实时进度，仅对 market Agent 有效 */
+  researchProgress: ResearchProgressStep[];
 }
 
 type AgentsMap = Record<AgentId, AgentState>;
@@ -13,7 +27,7 @@ type AgentsMap = Record<AgentId, AgentState>;
 const initialAgents = (): AgentsMap => {
   const map = {} as AgentsMap;
   for (const cfg of AGENT_CONFIGS) {
-    map[cfg.id] = { id: cfg.id, status: 'waiting', output: '' };
+    map[cfg.id] = { id: cfg.id, status: 'waiting', output: '', researchProgress: [] };
   }
   return map;
 };
@@ -88,6 +102,8 @@ interface WorkspaceActions {
   setAgentOutput: (id: AgentId, output: string) => void;
   /** NOTE: 流式推送时逐 chunk 追加，不覆盖已有内容 */
   appendAgentOutput: (id: AgentId, chunk: string) => void;
+  /** 追加 Wacksman 研究进度步骤 */
+  appendResearchProgress: (id: AgentId, step: ResearchProgressStep) => void;
   /** 添加 Agent 生成的图片 */
   addAgentImage: (agentId: AgentId, type: string, dataUrl: string) => void;
   /** 添加 Agent 生成的视频 */
@@ -152,6 +168,19 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
       return { agents };
     }),
 
+  appendResearchProgress: (id, step) =>
+    set((s) => {
+      const prev = s.agents[id]?.researchProgress ?? [];
+      // NOTE: 将前一个步骤标记为 done（新步骤到来时)
+      const updated = prev.map((p, i) =>
+        i === prev.length - 1 ? { ...p, done: true } : p
+      );
+      const agents = {
+        ...s.agents,
+        [id]: { ...s.agents[id], researchProgress: [...updated, step] },
+      };
+      return { agents };
+    }),
   addAgentImage: (agentId, type, dataUrl) =>
     set((s) => {
       const agentImages = [...s.agentImages, { agentId, type, dataUrl }];

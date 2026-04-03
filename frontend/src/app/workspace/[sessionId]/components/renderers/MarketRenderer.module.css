@@ -1,6 +1,122 @@
-/* MarketRenderer 专属样式 */
+/* ── 研究进度时间轴容器 ───────────────────────────── */
+.progressTimeline {
+  padding: 14px 16px 10px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.04);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+}
 
-/* ── 联网检索等待态 ──────────────────────────────── */
+.progressHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progressTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(59, 130, 246);
+  flex: 1;
+}
+
+.progressHint {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.progressInitializing {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── 进度步骤列表 ────────────────────────────────── */
+.progressSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progressStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+/* 已完成步骤 */
+.progressStepDone {
+  opacity: 0.65;
+}
+
+.progressStepDone .progressStepDot {
+  color: rgb(34, 197, 94);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+/* 当前活跃步骤 */
+.progressStepActive {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.progressStepActive .progressStepDot {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.progressStepDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* 活跃步骤的脉冲动画点 */
+.progressStepPulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(59, 130, 246);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.progressStepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.progressStepIcon {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.progressStepDetail {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── 联网检索等待态（旧，保留作 fallback） ────────────── */
 .searchingState {
   display: flex;
   align-items: center;

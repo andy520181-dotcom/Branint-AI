@@ -14,7 +14,7 @@ from app.service.consultant_agent import (
     run_quality_review_stream,
     _parse_routing_response,
 )
-from app.service.market_agent import run_market_agent_stream
+from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
 from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
 from app.service.visual_agent import run_visual_agent_stream
@@ -192,11 +192,20 @@ class AgentOrchestrator:
                 continue
 
             async for chunk in stream:
-                accumulated += chunk
-                yield _sse_raw(
-                    "agent_chunk",
-                    json.dumps({"id": agent_key, "chunk": chunk}, ensure_ascii=False),
-                )
+                # NOTE: Wacksman 研究循环会 yield 进度 token（以 PROGRESS_MARKER 为前缀）
+                # 这类 token 不是报告内容，不要累积到 accumulated，而是转发为独立 SSE 事件
+                if chunk.startswith(PROGRESS_MARKER):
+                    progress_data = chunk[len(PROGRESS_MARKER):]
+                    yield _sse_raw(
+                        "agent_research_progress",
+                        json.dumps({"id": agent_key, "progress": progress_data}, ensure_ascii=False),
+                    )
+                else:
+                    accumulated += chunk
+                    yield _sse_raw(
+                        "agent_chunk",
+                        json.dumps({"id": agent_key, "chunk": chunk}, ensure_ascii=False),
+                    )
 
             # NOTE: 提取 handoff 交接摘要，存入共享上下文
             handoff = _extract_handoff(accumulated)

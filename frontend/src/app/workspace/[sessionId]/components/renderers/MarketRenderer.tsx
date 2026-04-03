@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { stripHandoff } from './MarkdownRenderer';
+import { ResearchProgressStep } from '@/store/workspaceStore';
 import styles from '../WorkspaceFeed.module.css';
 import marketStyles from './MarketRenderer.module.css';
 
@@ -19,34 +20,40 @@ interface SearchCitation {
 export interface MarketRendererProps {
   output: string;
   isRunning: boolean;
+  /** Wacksman 研究循环实时进度步骤 */
+  researchProgress?: ResearchProgressStep[];
 }
 
 /**
  * 解析市场研究报告末尾的 <market_citations> 数据块
- * 返回干净的 Markdown 内容 + 结构化来源列表
  */
 function parseMarketOutput(raw: string): { content: string; citations: SearchCitation[] } {
   const citationsMatch = raw.match(/<market_citations>([\s\S]*?)<\/market_citations>/);
   const content = raw.replace(/<market_citations>[\s\S]*?<\/market_citations>/, '').trim();
-  
   let citations: SearchCitation[] = [];
   if (citationsMatch) {
-    try {
-      citations = JSON.parse(citationsMatch[1]);
-    } catch {
-      // 解析失败则不展示引用
-    }
+    try { citations = JSON.parse(citationsMatch[1]); } catch { /* ignore */ }
   }
   return { content, citations };
 }
 
+/** 步骤图标映射 */
+const STEP_ICONS: Record<string, string> = {
+  start:                    '🚀',
+  clarify_research_scope:   '🔍',
+  web_search_market_data:   '📊',
+  search_competitor_intel:  '🏆',
+  scrape_review_url:        '🕷️',
+  search_social_reviews:    '💬',
+  synthesize_research_report: '📝',
+};
+
 /**
  * 市场研究 Agent（Wacksman）专属渲染器
- * 在标准 Markdown 基础上增加：
- * - 搜索来源引用卡片（按市场数据 / 竞品情报分类）
- * - 联网检索运行态（等待期展示"正在联网检索..."）
+ * 静默期：显示实时进度时间轴
+ * 生成后：显示 Markdown 报告 + 来源引用卡片
  */
-export function MarketRenderer({ output, isRunning }: MarketRendererProps) {
+export function MarketRenderer({ output, isRunning, researchProgress = [] }: MarketRendererProps) {
   const { content, citations } = useMemo(() => parseMarketOutput(output), [output]);
 
   const marketCitations = citations.filter((c) => c.type === 'market_data');
@@ -78,12 +85,46 @@ export function MarketRenderer({ output, isRunning }: MarketRendererProps) {
   if (!output && isRunning) {
     return (
       <div className={`${styles.cardOutput} markdown-body`}>
-        <div className={marketStyles.searchingState}>
-          <div className={marketStyles.searchSpinner} />
-          <span className={marketStyles.searchingText}>Wacksman 正在联网检索市场数据…</span>
-        </div>
-        <div className={marketStyles.searchingHint}>
-          中型检索模式：市场宏观数据 + 竞品情报，约需 20-40 秒
+        {/* 实时研究进度时间轴 */}
+        <div className={marketStyles.progressTimeline}>
+          <div className={marketStyles.progressHeader}>
+            <div className={marketStyles.searchSpinner} />
+            <span className={marketStyles.progressTitle}>
+              Wacksman 研究引擎运行中
+            </span>
+            <span className={marketStyles.progressHint}>中型检索模式 · 约 20-40 秒</span>
+          </div>
+
+          {researchProgress.length === 0 ? (
+            <div className={marketStyles.progressInitializing}>
+              正在启动联网工具…
+            </div>
+          ) : (
+            <div className={marketStyles.progressSteps}>
+              {researchProgress.map((p, i) => (
+                <div
+                  key={i}
+                  className={`${marketStyles.progressStep} ${p.done ? marketStyles.progressStepDone : marketStyles.progressStepActive}`}
+                >
+                  <div className={marketStyles.progressStepDot}>
+                    {p.done ? (
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <div className={marketStyles.progressStepPulse} />
+                    )}
+                  </div>
+                  <div className={marketStyles.progressStepContent}>
+                    <span className={marketStyles.progressStepIcon}>
+                      {STEP_ICONS[p.step] ?? '⚙️'}
+                    </span>
+                    <span className={marketStyles.progressStepDetail}>{p.detail}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

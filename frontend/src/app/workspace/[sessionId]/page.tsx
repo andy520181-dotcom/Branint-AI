@@ -180,8 +180,8 @@ export default function WorkspacePage() {
     fetchReport(sessionId)
       .then((data) => {
         const agentsMap = Object.fromEntries(
-          AGENT_CONFIGS.map((cfg) => [cfg.id, { id: cfg.id as AgentId, status: 'waiting' as AgentStatus, output: '' }]),
-        ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string }>;
+          AGENT_CONFIGS.map((cfg) => [cfg.id, { id: cfg.id as AgentId, status: 'waiting' as AgentStatus, output: '', researchProgress: [] }]),
+        ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string; researchProgress: [] }>;
         useWorkspaceStore.setState({
           sessionId,
           userPrompt: '',

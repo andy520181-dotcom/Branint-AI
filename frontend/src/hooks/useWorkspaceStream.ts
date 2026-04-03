@@ -2,19 +2,21 @@
 
 import { useEffect, useRef } from 'react';
 import { AgentId } from '@/types';
-import { useWorkspaceStore } from '@/store/workspaceStore';
+import { useWorkspaceStore, ResearchProgressStep } from '@/store/workspaceStore';
 import { API_BASE as API_URL } from '@/lib/api';
 
 /**
  * SSE 流连接 Hook
  * 连接后端 /api/sessions/{id}/stream，监听各 Agent 事件并更新 Zustand 状态
  * 支持品牌顾问动态路由：routing_decided / consultant_plan / consultant_review
+ * 支持 Wacksman 实时研究进度：agent_research_progress
  */
 export function useWorkspaceStream(sessionId: string | null) {
   const {
     setAgentStatus,
     setAgentOutput,
     appendAgentOutput,
+    appendResearchProgress,
     addAgentImage,
     setCurrentAgent,
     setSelectedAgents,
@@ -23,7 +25,7 @@ export function useWorkspaceStream(sessionId: string | null) {
     setError,
     setStreaming,
   } = useWorkspaceStore();
-  void setStreaming; // setStreaming 仅在 cancel 内部通过 setComplete 间接调用
+  void setStreaming;
 
   const esRef = useRef<EventSource | null>(null);
 
@@ -96,6 +98,24 @@ export function useWorkspaceStream(sessionId: string | null) {
         useWorkspaceStore.getState().addAgentVideo(id, type, data_url);
       } catch {
         // 忽略解析错误
+      }
+    });
+
+    // NOTE: Wacksman 研究循环进度事件——静默期实时反馈
+    // step: 工具名称; detail: 人类可读描述; 前端用于渲染进度时间轴
+    es.addEventListener('agent_research_progress', (e) => {
+      try {
+        const { id, progress } = JSON.parse(e.data) as { id: AgentId; progress: string };
+        const parsed = JSON.parse(progress) as { step: string; detail: string };
+        const progressStep: ResearchProgressStep = {
+          step: parsed.step,
+          detail: parsed.detail,
+          ts: Date.now(),
+          done: false,
+        };
+        appendResearchProgress(id, progressStep);
+      } catch {
+        // 忽略解析失败
       }
     });
 
@@ -175,7 +195,7 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.close();
       esRef.current = null;
     };
-  }, [sessionId, setAgentStatus, setAgentOutput, appendAgentOutput, setCurrentAgent, setFinalReport, setComplete, setError, setStreaming]);
+  }, [sessionId, setAgentStatus, setAgentOutput, appendAgentOutput, appendResearchProgress, setCurrentAgent, setFinalReport, setComplete, setError, setStreaming]);
 
   return { cancel };
 }
