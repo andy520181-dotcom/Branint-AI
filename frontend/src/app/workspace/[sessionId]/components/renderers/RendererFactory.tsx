@@ -2,6 +2,7 @@ import React from 'react';
 import type { AgentId, AgentImage, AgentVideo } from '@/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { VisualRenderer } from './VisualRenderer';
+import { MarketRenderer } from './MarketRenderer';
 import styles from '../WorkspaceFeed.module.css';
 
 export interface RendererFactoryProps {
@@ -27,7 +28,8 @@ export function RendererFactory({
   const isRunning = status === 'running';
 
   // 当还未生成内容且在 "thinking" 时统一使用点点点动画
-  if (!output && isRunning && agentId !== 'visual') {
+  // NOTE: market 和 visual 有自己的等待态，这里排除
+  if (!output && isRunning && agentId !== 'visual' && agentId !== 'market') {
     return (
       <div className={`${styles.cardOutput} markdown-body`}>
         <div className={styles.thinking}>
@@ -39,7 +41,12 @@ export function RendererFactory({
     );
   }
 
-  // 1. 拦截美术指导 Agent，交由专有的多媒体视图负责
+  // 1. 市场研究 Agent：带来源引用卡片的专属渲染器
+  if (agentId === 'market') {
+    return <MarketRenderer output={output} isRunning={isRunning} />;
+  }
+
+  // 2. 拦截美术指导 Agent，交由专有的多媒体视图负责
   if (agentId === 'visual') {
     return (
       <VisualRenderer
@@ -52,6 +59,6 @@ export function RendererFactory({
     );
   }
 
-  // 2. 默认兜底：常规的 Markdown
+  // 3. 默认兜底：常规的 Markdown
   return <MarkdownRenderer output={output} />;
 }

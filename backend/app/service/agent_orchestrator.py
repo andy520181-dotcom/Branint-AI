@@ -175,8 +175,9 @@ class AgentOrchestrator:
             # 每个 Agent 只接收它需要的前序 handoff，而非全文
             handoff_context = ""
             if agent_key == "market":
-                # 市场研究是第一个专业 Agent，不需要前序交接
-                stream = run_market_agent_stream(user_prompt)
+                # NOTE: 市场研究是第一个专业 Agent，接收品牌顾问的初步分析作为背景
+                handoff_context = _build_handoff_context(project_context, ["consultant_plan"])
+                stream = run_market_agent_stream(user_prompt, handoff_context)
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
                 stream = run_strategy_agent_stream(user_prompt, handoff_context)

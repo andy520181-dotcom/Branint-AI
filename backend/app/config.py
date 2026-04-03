@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     google_api_key: str = ""
     dashscope_api_key: str = ""
+    tavily_api_key: str = ""  # NOTE: Wacksman 市场研究 Agent 联网检索能力
     volc_accesskey: str = ""
     volc_secretkey: str = ""
 
@@ -61,3 +62,5 @@ def configure_litellm_keys() -> None:
         os.environ["VOLC_ACCESSKEY"] = settings.volc_accesskey
     if settings.volc_secretkey:
         os.environ["VOLC_SECRETKEY"] = settings.volc_secretkey
+    if settings.tavily_api_key:
+        os.environ["TAVILY_API_KEY"] = settings.tavily_api_key
