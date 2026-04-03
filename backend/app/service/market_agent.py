@@ -40,16 +40,16 @@ PROGRESS_MARKER = "\x00WACKSMAN_PROGRESS\x00"
 
 # 各 Tool action 对应的人类可读进度描述
 _ACTION_LABELS: dict[str, str] = {
-    "clarify_research_scope": "🔍 分析研究范围与边界定义…",
-    "web_search_market_data": "📊 联网检索市场规模与消费趋势数据…",
-    "search_competitor_intel": "🏆 搜集竞品情报与对标核心维度…",
-    "scrape_review_url": "🕷️ 抓取目标商品或帖子评论数据…",
-    "search_social_reviews": "💬 抽取全网社媒与口碑真实数据…",
-    "mine_consumer_persona": "🧑‍🤝‍🧑 挖掘并结构化目标群体画像…",
-    "analyze_semantic_sentiment": "🧠 融合计算语义情感倾向分布…",
-    "identify_opportunities": "🎯 识别空白痛点并锚定市场机会…",
-    "generate_data_visualization": "📈 综合计算并生成多维数据图表字典…",
-    "synthesize_research_report": "✅ 数据大盘收集完毕，正在渲染报告…",
+    "clarify_research_scope": "分析研究范围与边界定义…",
+    "web_search_market_data": "联网检索市场规模与消费趋势数据…",
+    "search_competitor_intel": "搜集竞品情报与对标核心维度…",
+    "scrape_review_url": "抓取目标商品或帖子评论数据…",
+    "search_social_reviews": "抽取全网社媒与口碑真实数据…",
+    "mine_consumer_persona": "挖掘并结构化目标群体画像…",
+    "analyze_semantic_sentiment": "融合计算语义情感倾向分布…",
+    "identify_opportunities": "识别空白痛点并锚定市场机会…",
+    "generate_data_visualization": "综合计算并生成多维数据图表字典…",
+    "synthesize_research_report": "数据大盘收集完毕，正在渲染报告…",
 }
 
 

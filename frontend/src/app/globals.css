@@ -91,7 +91,7 @@
   --font-size-xs: var(--font-step-11);
   --font-size-2xs: var(--font-step-12);
   /* 生成页 Markdown 文档一级标题（非落地页 Hero / 非 --font-size-title） */
-  --font-size-doc-h1: 1.25rem;
+  --font-size-doc-h1: var(--font-size-subheading);
 
   /* 字重（OpenType/CSS 数值刻度，组件用语义别名） */
   --font-weight-light: 300;
@@ -176,35 +176,35 @@
 
   /*
    * 生成页 Agent 流式 Markdown（.markdown-body）语义令牌 — 字号/色/重/间距均由此派生，禁止在组件中写死 px/#hex
-   * 在「文档档」基准上整体升一档：正文字阶 +1，标题随 --font-step 同步上移
+   * 相对再升一档：正文接近 16px 档，h1 对齐 --font-size-subheading，其余标题顺延
    */
-  --prose-body-size: var(--font-size-md);
-  --prose-body-line-height: 1.68;
+  --prose-body-size: var(--font-size-body-lg);
+  --prose-body-line-height: 1.7;
   --prose-body-color: var(--text-secondary);
   --prose-heading-color: var(--text-primary);
   --prose-h1-size: var(--font-size-doc-h1);
   --prose-h1-weight: var(--font-weight-semibold);
   --prose-h1-margin: var(--space-4) 0 var(--space-3);
   --prose-h1-letter-spacing: -0.02em;
-  --prose-h2-size: var(--font-size-prose-h3);
+  --prose-h2-size: var(--font-size-brand);
   --prose-h2-weight: var(--font-weight-semibold);
   --prose-h2-margin: var(--space-4) 0 var(--space-2);
   --prose-h2-border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
-  --prose-h3-size: var(--font-size-body-lg);
+  --prose-h3-size: var(--font-size-prose-h3);
   --prose-h3-weight: var(--font-weight-semibold);
   --prose-h3-margin: var(--space-3) 0 var(--space-2);
-  --prose-h4-size: var(--font-size-md);
+  --prose-h4-size: var(--font-size-body-lg);
   --prose-h4-weight: var(--font-weight-semibold);
   --prose-h4-margin: var(--space-3) 0 var(--space-1);
-  --prose-h5-size: var(--font-size-md);
+  --prose-h5-size: var(--font-size-body-lg);
   --prose-h5-weight: var(--font-weight-medium);
   --prose-h5-margin: var(--space-2) 0 var(--space-1);
-  --prose-h6-size: var(--font-size-body);
+  --prose-h6-size: var(--font-size-md);
   --prose-h6-weight: var(--font-weight-medium);
   --prose-h6-margin: var(--space-2) 0 var(--space-1);
   --prose-h6-color: var(--text-muted);
   --prose-strong-weight: var(--font-weight-semibold);
-  --prose-paragraph-gap: var(--space-3);
+  --prose-paragraph-gap: var(--space-4);
   --prose-list-indent: 1.5rem;
   --prose-list-margin: var(--space-2) 0;
   --prose-li-gap: var(--space-1);
@@ -218,9 +218,9 @@
   --prose-media-radius: var(--radius-sm);
   --prose-media-border: 1px solid var(--color-border);
   --prose-media-shadow: var(--shadow-card);
-  --prose-figcaption-size: var(--font-size-body);
+  --prose-figcaption-size: var(--font-size-md);
   --prose-figcaption-color: var(--text-muted);
-  --prose-chart-min-height: 360px;
+  --prose-chart-min-height: 400px;
   --prose-chart-padding: var(--space-3);
   --prose-chart-margin: var(--space-5) 0;
   --prose-link-color: var(--color-link);
@@ -488,7 +488,7 @@ input, textarea { font-family: inherit; outline: none; }
 .markdown-body pre code {
   background: transparent;
   padding: 0;
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-body-lg);
 }
 .markdown-body hr {
   border: none;

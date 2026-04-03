@@ -192,24 +192,33 @@ export default function WorkspacePage() {
           agentVideos: [],
           finalReport: snap.report ?? '',
           isComplete: snap.status === 'completed',
-          isStreaming: snap.status !== 'completed' && snap.status !== 'error',
+          // NOTE: isStreaming 仅对真正运行中的 session 为 true，
+          // error/completed 状态下屚不显示流式动画
+          isStreaming: false,
           currentAgentId: null,
-          error: snap.status === 'error' ? 'workspace.error.sessionExpired' : null,
+          error: null,
         });
 
-        if (snap.status === 'completed' || snap.status === 'error') {
-          // 已结束：直接展示
+        if (snap.status === 'completed') {
+          // 已正常完成：直接展示
           setRestored(true);
         } else if (hasAnyOutput) {
-          // NOTE: 生成中途刷新了页面。
-          // 已有内容已恢复到 store 可立即显示；
-          // 设 restored=false 触发 SSE 钩子重连，从头续生成（agent_start 会清空旧内容）
+          // NOTE: 有已落盘内容（情况包括：生成中途刷新、之前生成中断等）。
+          // 无论是 pending/error/running 状态，只要有内容就先展示，再连 SSE 续传。
+          // status=error 的情况：可能是上次执行失败，但有部分落盘内容，尝试续传而非报错
           setRestored(false);
         } else {
-          // pending 且无内容：等同于从头开始
-          const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
-          initSession(sessionId, prompt);
-          setRestored(false);
+          // 完全没有内容：
+          if (snap.status === 'error') {
+            // 真正的错误（无内容可恢复），展示错误提示
+            useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired' });
+            setRestored(true);
+          } else {
+            // pending 且无内容：为全新会话，重新开始生成
+            const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
+            initSession(sessionId, prompt);
+            setRestored(false);
+          }
         }
       })
       .catch(() => {
