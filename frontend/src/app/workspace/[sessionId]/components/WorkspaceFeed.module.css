@@ -158,7 +158,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-feed-bubble);
   transition: border-color 0.3s, box-shadow 0.3s;
   animation: cardIn 350ms ease;
 }
@@ -439,7 +439,7 @@
   animation: cardIn 300ms ease;
 }
 
-/* 气泡主体：极浅蓝纯色 + Hero 输入区同款阴影（见 globals --color-user-message-bubble） */
+/* 气泡主体：与 Agent .feedBubble 同为白底 + 描边；阴影用短扩散，避免大柔光与页底「糊」在一起 */
 .userBubble {
   position: relative;
   max-width: 65%;
@@ -449,18 +449,19 @@
   line-height: 1.65;
   padding: 12px 18px;
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: var(--shadow-hero-input);
+  box-shadow: var(--shadow-feed-bubble);
 }
-/* 气泡右侧尖角（与 Agent 气泡左侧尖角对称） */
+/* 气泡右侧尖角：外轮廓 + 内填色，与 Agent 左侧尾巴一致 */
 .userBubble::before {
   content: '';
   position: absolute;
   right: -8px;
   top: 14px;
   border: 8px solid transparent;
-  border-left-color: var(--color-user-message-bubble);
+  border-left-color: var(--color-border);
   border-right: none;
 }
 .userBubble::after {

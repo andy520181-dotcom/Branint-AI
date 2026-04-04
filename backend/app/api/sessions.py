@@ -46,6 +46,7 @@ async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
         "attachments": body.attachments,
         "status": "pending",
         "report": None,
+        "selected_agents": [],
     }
     save_session_disk(session_id, _sessions[session_id])
     logger.info("创建新会话: %s, 用户: %s, 历史轮次: %d, 附件: %d", session_id, body.user_id, len(body.conversation_history), len(body.attachments))
@@ -91,6 +92,10 @@ async def stream_session(session_id: str) -> StreamingResponse:
         THROTTLE_SECS = 3.0  # 每个 agent 最多每 3 秒写一次磁盘
 
         try:
+            # NOTE: 标记为 running，刷新时 snapshot 可与「尚无落盘输出」区分，避免前端误判为全新会话并二次 initSession
+            _sessions[session_id]["status"] = "running"
+            save_session_disk(session_id, _sessions[session_id])
+
             final_report: str | None = None
             async for event in orchestrator.run_session(user_prompt, conversation_history, checkpoint=checkpoint, attachments=attachments):
 
@@ -207,4 +212,5 @@ async def get_snapshot(session_id: str) -> dict:
         "agent_outputs": agent_outputs,
         "agent_statuses": agent_statuses,
         "report": report,
+        "selected_agents": data.get("selected_agents") or [],
     }

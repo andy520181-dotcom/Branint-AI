@@ -1,4 +1,17 @@
-import type { HistoryItem } from '@/types';
+import type { AgentId, HistoryItem } from '@/types';
+
+const ROUTE_MIDDLE_KEYS = new Set(['market', 'strategy', 'content', 'visual']);
+
+/**
+ * 将 snapshot 中的 selected_agents（中间段）拼成 Feed 用的完整路由，
+ * 与 SSE routing_decided 后前端构造的列表一致。
+ */
+export function buildFeedRouteFromMiddleKeys(middle: string[] | null | undefined): AgentId[] | null {
+  if (!middle?.length) return null;
+  const valid = middle.filter((k): k is AgentId => ROUTE_MIDDLE_KEYS.has(k));
+  if (!valid.length) return null;
+  return ['consultant_plan', ...valid, 'consultant_review'];
+}
 
 /** 将历史列表按日期分组 */
 export function groupByDate(

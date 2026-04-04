@@ -68,6 +68,8 @@ export interface SessionSnapshot {
   agent_outputs: Record<string, string>;
   agent_statuses: Record<string, string>;
   report?: string | null;
+  /** 路由中间段（market/strategy/...），不含 consultant_plan / consultant_review */
+  selected_agents?: string[];
 }
 
 /**

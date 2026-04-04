@@ -56,6 +56,8 @@
   --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.1);
   --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.14);
+  /* 生成页：用户气泡与 Agent 气泡共用轻阴影 */
+  --shadow-feed-bubble: 0 1px 6px rgba(0, 0, 0, 0.04);
 
   /*
    * 字号刻度（唯一真源）：step0 最大 → step12 最小，约 1～2px 递减。
@@ -132,8 +134,8 @@
     #fafbff 78%,
     #ffffff 100%
   );
-  /* 生成页用户消息气泡：极浅蓝纯色（与落地页渐变中段同系，无渐变） */
-  --color-user-message-bubble: #f2f4fc;
+  /* 生成页用户消息气泡：与页底对比用 surface；层次靠描边 + 紧阴影，避免与背景糊成一片 */
+  --color-user-message-bubble: var(--color-surface);
 
   /* Hero 装饰光晕（大输入区与首页共用） */
   --hero-glow-neutral: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
@@ -250,6 +252,7 @@
   --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.45);
   --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
   --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-feed-bubble: 0 1px 8px rgba(0, 0, 0, 0.55);
 
   --color-error: #f87171;
   --color-error-bg-subtle: rgba(248, 113, 113, 0.1);
@@ -272,7 +275,7 @@
     #1d1e24 40%,
     #1a1a1c 100%
   );
-  --color-user-message-bubble: #1e2229;
+  --color-user-message-bubble: var(--color-surface);
 
   --hero-glow-neutral: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
   --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);

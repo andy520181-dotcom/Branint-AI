@@ -54,14 +54,16 @@ export function useWorkspaceStream(sessionId: string | null) {
     const es = new EventSource(`${API_URL}/api/sessions/${sessionId}/stream`);
     esRef.current = es;
 
-    // Agent 开始执行（含顾问节点）；重连时清空旧内容，防止续接追加导致重复
+    es.onopen = () => {
+      useWorkspaceStore.getState().setStreaming(true);
+    };
+
+    // Agent 开始执行（含顾问节点）。不在此处清空 output：刷新后 snapshot 已恢复内容，
+    // 后端会重放 agent_output；若清空会与 agent_start 竞态导致闪白或整段消失。
     es.addEventListener('agent_start', (e) => {
       const agentId = e.data as AgentId;
       setAgentStatus(agentId, 'running');
       setCurrentAgent(agentId);
-      // NOTE: 每次 agent_start 标志着该 Agent 从头开始生成，
-      // 必须清空可能存在的快照恢复内容，避免旧内容与新 chunk 拼接
-      setAgentOutput(agentId, '');
     });
 
     // NOTE: 流式 token 逐 chunk 追加，实现实时思考过程显示

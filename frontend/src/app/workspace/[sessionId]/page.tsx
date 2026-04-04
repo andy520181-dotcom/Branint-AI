@@ -12,6 +12,7 @@ import { useUserAvatar } from '@/hooks/useUserAvatar';
 import { createSession, fetchSnapshot, uploadAsset } from '@/lib/api';
 import styles from './page.module.css';
 import type { RoundSnapshot } from './workspaceTypes';
+import { buildFeedRouteFromMiddleKeys } from './workspaceUtils';
 import { useHistorySidebar } from './hooks/useHistorySidebar';
 import { useOutlineDock } from './hooks/useOutlineDock';
 import { WorkspaceHistorySidebar } from './components/WorkspaceHistorySidebar';
@@ -187,18 +188,30 @@ export default function WorkspacePage() {
     // 导致数据重跑或丢失，因此降级为 snapshot 失败时的最后兜底。
     fetchSnapshot(sessionId)
       .then((snap) => {
-        // NOTE: 如果 snapshot 有 userPrompt 但尚无 agent 数据（pending 状态），说明这是
-        // 刚创建还没开始流的新会话——此时 sessionStorage 里一定有 prompt，改用流式启动
+        const cached = loadSession(sessionId);
         const hasAnyOutput = Object.values(snap.agent_outputs ?? {}).some((v) => (v as string)?.trim());
-        if (snap.status === 'pending' && !hasAnyOutput) {
-          // 真正的新会话（刚 POST /sessions 后立刻刷新的极端情况）
-          const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
-          if (prompt) {
-            initSession(sessionId, prompt);
-            setRestored(false);
-            return;
+        const promptFromLanding = typeof window !== 'undefined'
+          ? sessionStorage.getItem(`prompt_${sessionId}`)
+          : null;
+
+        /*
+         * 仅当落地页刚写入的 sessionStorage.prompt 存在时才 initSession。
+         * 绝不能用 snap.user_prompt 兜底触发 initSession，否则刷新时会在「尚未落盘」阶段
+         * 误判为全新会话并清空 Store、重复跑一遍生成。
+         */
+        if (snap.status === 'pending' && !hasAnyOutput && promptFromLanding) {
+          initSession(sessionId, promptFromLanding);
+          try {
+            sessionStorage.removeItem(`prompt_${sessionId}`);
+          } catch {
+            /* ignore */
           }
+          setRestored(false);
+          return;
         }
+
+        const routeFromSnap = buildFeedRouteFromMiddleKeys(snap.selected_agents);
+        const selectedAgentsResolved = routeFromSnap ?? cached?.selectedAgents ?? null;
 
         const agentsMap = Object.fromEntries(
           AGENT_CONFIGS.map((cfg) => [
@@ -212,42 +225,39 @@ export default function WorkspacePage() {
           ]),
         ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string; researchProgress: [] }>;
 
+        const liveSession =
+          snap.status !== 'completed' &&
+          !(snap.status === 'error' && !hasAnyOutput);
+
         useWorkspaceStore.setState({
           sessionId,
           userPrompt: snap.user_prompt ?? '',
           agents: agentsMap,
-          selectedAgents: null,
-          agentImages: [],
-          agentVideos: [],
+          selectedAgents: selectedAgentsResolved,
+          agentImages: cached?.agentImages ?? [],
+          agentVideos: cached?.agentVideos ?? [],
           finalReport: snap.report ?? '',
           isComplete: snap.status === 'completed',
-          // NOTE: isStreaming 仅对真正运行中的 session 为 true，
-          // error/completed 状态下屚不显示流式动画
-          isStreaming: false,
+          isStreaming: liveSession,
           currentAgentId: null,
           error: null,
         });
 
+        setPreviousRounds(cached?.previousRounds ?? []);
+
         if (snap.status === 'completed') {
-          // 已正常完成：直接展示
           setRestored(true);
         } else if (hasAnyOutput) {
-          // NOTE: 有已落盘内容（情况包括：生成中途刷新、之前生成中断等）。
-          // 无论是 pending/error/running 状态，只要有内容就先展示，再连 SSE 续传。
-          // status=error 的情况：可能是上次执行失败，但有部分落盘内容，尝试续传而非报错
           setRestored(false);
+        } else if (snap.status === 'error') {
+          useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
+          setRestored(true);
         } else {
-          // 完全没有内容：
-          if (snap.status === 'error') {
-            // 真正的错误（无内容可恢复），展示错误提示
-            useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired' });
-            setRestored(true);
-          } else {
-            // pending 且无内容：为全新会话，重新开始生成
-            const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? snap.user_prompt ?? '';
-            initSession(sessionId, prompt);
-            setRestored(false);
-          }
+          /*
+           * running / pending：尚无 agent 落盘（例如刚开始或节流间隔内刷新）。
+           * 后端已把 status 置为 running 或仍 pending，但会话已在首次访问时启动——只连 SSE 续跑，禁止 initSession。
+           */
+          setRestored(false);
         }
       })
       .catch(() => {
@@ -284,7 +294,7 @@ export default function WorkspacePage() {
         }
         setRestored(true);
       });
-  }, [sessionId, initSession]);
+  }, [sessionId, initSession, setPreviousRounds]);
 
   // ── Agent 切换时的 handoff 气泡动画 ───────────────────────────────
   const prevAgentIdRef = useRef<AgentId | null>(null);
