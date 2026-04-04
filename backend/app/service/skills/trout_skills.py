@@ -25,21 +25,31 @@ logger = logging.getLogger(__name__)
 # ==========================================
 
 TROUT_TOOLS = [
-    # ── 工具 0：智能框架预选（元路由） ──────────────────────────────────────
+    
     {
         "type": "function",
         "function": {
             "name": "select_applicable_frameworks",
             "description": (
                 "【必须第一个调用】分析用户的品牌需求和市场研究结论，"
-                "智能判断本次战略项目需要哪些框架、按什么顺序执行、哪些框架可以跳过。"
-                "不同场景匹配不同框架组合："
-                "① 零基础新品牌：全套框架（定位+品牌屋+架构+原型+命名）；"
-                "② 成熟品牌再定位：定位+品牌屋+原型（跳过命名和架构）；"
-                "③ 多品牌/集团架构整合：定位+品牌架构（重点）+原型；"
-                "④ 品牌调性/个性升级：原型（重点）+品牌屋调性模块；"
-                "⑤ 单纯命名任务：定位+命名（重点）；"
-                "⑥ 轻量战略诊断：仅定位语 + handoff，其余跳过。"
+                "智能判断本次战略项目需要哪些框架、按什么顺序执行。"
+                ""
+                "【重要约束】无论哪种场景，以下三个核心框架是最低必选，不得跳过："
+                "apply_positioning_framework（定位是一切战略的基础）、"
+                "build_brand_house（品牌屋定义品牌存在的意义和对外承诺）、"
+                "apply_brand_archetypes（原型系统为内容和视觉提供个性方向）。"
+                "唯一的可选框架是 design_brand_architecture 和 generate_naming_candidates。"
+                ""
+                "不同场景对应的完整框架组合："
+                "① 零基础新品牌（无品牌名/无定位）：全套——定位+品牌屋+架构+原型+命名（5个）；"
+                "② 成熟品牌再定位/诊断/升级：核心三件套——定位+品牌屋+原型（命名/架构按需）；"
+                "③ 多品牌/集团架构整合：定位+品牌屋+品牌架构（重点）+原型；"
+                "④ 品牌调性/个性升级：定位+原型（重点）+品牌屋（调性模块）；"
+                "⑤ 有新品牌命名需求：定位+品牌屋+原型+命名（重点）；"
+                "⑥ 综合品牌战略分析：全套框架或按需组合，但核心三件套必须包含。"
+                ""
+                "注意：design_brand_architecture 仅在用户有多产品线/子品牌/集团架构需求时选用；"
+                "generate_naming_candidates 仅在用户明确需要品牌命名建议时选用。"
             ),
             "parameters": {
                 "type": "object",
@@ -47,14 +57,14 @@ TROUT_TOOLS = [
                     "brand_scenario": {
                         "type": "string",
                         "enum": [
-                            "new_brand_startup",       # 零基础新品牌创业，品牌名/定位/屋/原型/命名都需要
-                            "brand_repositioning",     # 已有成熟品牌，重新定位（无需命名）
+                            "new_brand_startup",          # 零基础新品牌，品牌名/定位/屋/原型/命名都需要
+                            "brand_repositioning",        # 已有品牌，聚焦重新定位和策略升级
                             "brand_architecture_design",  # 多品牌/集团需要整合架构
-                            "brand_identity_refresh",  # 调性/个性升级（保留定位，重塑个性）
-                            "naming_focused",          # 用户主要需求是命名方案
-                            "lightweight_strategy",    # 轻量咨询，快速给出定位语即可
+                            "brand_identity_refresh",     # 调性/个性升级（保留现有定位，重塑个性）
+                            "naming_focused",             # 用户主要需求是命名方案（含基础定位）
+                            "comprehensive_strategy",     # 完整品牌战略分析，全套框架
                         ],
-                        "description": "识别到的用户品牌场景类型",
+                        "description": "识别到的用户品牌场景类型。当用户需求涵盖多个方面或场景不明确时，选 comprehensive_strategy。",
                     },
                     "scenario_diagnosis": {
                         "type": "string",
@@ -74,7 +84,9 @@ TROUT_TOOLS = [
                         },
                         "description": (
                             "本次项目需要调用的框架工具列表（按执行顺序排列）。"
-                            "注意：synthesize_strategy_report 始终在最后执行，无需列入此处。"
+                            "必须包含核心三件套：apply_positioning_framework、build_brand_house、apply_brand_archetypes。"
+                            "design_brand_architecture 和 generate_naming_candidates 为可选增补项。"
+                            "synthesize_strategy_report 始终在最后自动执行，无需列入此处。"
                         ),
                     },
                     "skipped_frameworks": {
@@ -83,15 +95,15 @@ TROUT_TOOLS = [
                             "type": "object",
                             "properties": {
                                 "name": {"type": "string"},
-                                "reason": {"type": "string", "description": "跳过理由（一句话）"},
+                                "reason": {"type": "string", "description": "跳过理由（一句话，必须是业务层面的合理原因）"},
                             },
                             "required": ["name", "reason"],
                         },
-                        "description": "本次不需要执行的框架及跳过理由",
+                        "description": "只有 design_brand_architecture 和 generate_naming_candidates 可以被跳过，核心三件套不可跳过。",
                     },
                     "priority_emphasis": {
                         "type": "string",
-                        "description": "本次战略项目的最高优先级重点（一句话），例如：'用户核心诉求是命名，定位要简洁精准，原型要具象化以指导后续设计'",
+                        "description": "本次战略项目的最高优先级重点（一句话，指导后续框架分析的侧重点）",
                     },
                 },
                 "required": ["brand_scenario", "scenario_diagnosis", "selected_frameworks", "skipped_frameworks", "priority_emphasis"],
@@ -616,7 +628,8 @@ def execute_select_frameworks(args: dict) -> str:
     """
     元路由工具的执行器。
     在 Python 层将 LLM 的决策格式化为清晰的「框架执行计划」文档，
-    供 strategy_agent.py 的循环读取，并在日志中记录跳过的框架及原因。
+    并强制执行最低框架保证：定位 + 品牌屋 + 原型 是任何场景下的必选三件套。
+    即使 LLM 漏选了核心框架，也会在这里自动补充。
     """
     scenario = args.get("brand_scenario", "")
     selected = args.get("selected_frameworks", [])
@@ -630,8 +643,44 @@ def execute_select_frameworks(args: dict) -> str:
         "brand_architecture_design": "多品牌架构整合",
         "brand_identity_refresh": "品牌调性/个性升级",
         "naming_focused": "命名专项",
-        "lightweight_strategy": "轻量战略诊断",
+        "comprehensive_strategy": "综合品牌战略分析",
+        # 兜底兼容旧键（防止迁移期间 LLM 仍然输出旧场景名）
+        "lightweight_strategy": "品牌战略分析",
     }.get(scenario, scenario)
+
+    # NOTE: 核心最低保证 —— 无论 LLM 选了什么，以下三个框架必须存在
+    # Ogilvy 已过滤掉真正的轻量请求（direct_response），进入 Trout 的必须完整
+    MANDATORY_FRAMEWORKS = [
+        "apply_positioning_framework",
+        "build_brand_house",
+        "apply_brand_archetypes",
+    ]
+
+    # 检查是否有核心框架被遗漏，自动补充到 selected 中（保持顺序）
+    auto_added: list[str] = []
+    for mandatory in MANDATORY_FRAMEWORKS:
+        if mandatory not in selected:
+            selected.append(mandatory)
+            auto_added.append(mandatory)
+            logger.warning(
+                "Trout 框架保证机制触发：%s 被自动补充到框架序列（LLM 遗漏了该核心框架）",
+                mandatory,
+            )
+
+    # 同步移除「被自动补充框架」在 skipped 列表中的错误记录
+    skipped = [s for s in skipped if s.get("name") not in MANDATORY_FRAMEWORKS]
+
+    # 确保执行顺序合理（定位→品牌屋→架构→原型→命名）
+    ORDER = [
+        "apply_positioning_framework",
+        "build_brand_house",
+        "design_brand_architecture",
+        "apply_brand_archetypes",
+        "generate_naming_candidates",
+    ]
+    ordered_selected = [f for f in ORDER if f in selected]
+    # 补充任何不在标准顺序中的框架（理论上不会发生，保险起见）
+    ordered_selected += [f for f in selected if f not in ORDER]
 
     skip_summary = [
         f"{s.get('name')} (原因: {s.get('reason')})"
@@ -639,26 +688,27 @@ def execute_select_frameworks(args: dict) -> str:
     ]
 
     logger.info(
-        "Trout 框架预选完成 | 场景: %s | 选用: %s | 跳过: %s",
+        "Trout 框架预选完成 | 场景: %s | 执行: %s | 跳过: %s%s",
         scenario_label,
-        selected,
+        ordered_selected,
         skip_summary or "无",
+        f" | ⚠️ 自动补充: {auto_added}" if auto_added else "",
     )
 
-    # NOTE: framework_sequence 是供 strategy_agent.py 读取的执行顺序
-    # synthesize_strategy_report 由 agent 自动追加到末尾，无需 LLM 额外声明
-    framework_sequence = selected + ["synthesize_strategy_report"]
+    framework_sequence = ordered_selected + ["synthesize_strategy_report"]
 
     result = {
-        "status": f"✅ 框架预选完成 | 场景：{scenario_label}",
+        "status": f"✅ 框架计划确定 | 场景：{scenario_label}",
         "scenario": scenario_label,
         "diagnosis": diagnosis,
         "framework_sequence": framework_sequence,
+        "auto_added_mandatory": auto_added,
         "skipped": skip_summary,
         "priority_emphasis": emphasis,
         "instruction": (
-            f"请按以下顺序依次调用框架工具：{' → '.join(framework_sequence)}。"
-            f"跳过的框架：{', '.join(s.get('name','') for s in skipped) or '无'}。"
+            f"请严格按以下顺序依次调用框架工具（共 {len(framework_sequence)} 步）："
+            f"{' → '.join(framework_sequence)}。"
+            f"{'跳过的框架：' + ', '.join(s.get('name','') for s in skipped) + '。' if skipped else ''}"
             f"重点关注：{emphasis}"
         ),
     }
