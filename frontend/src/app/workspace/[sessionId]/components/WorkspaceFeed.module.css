@@ -439,19 +439,19 @@
   animation: cardIn 300ms ease;
 }
 
-/* 气泡主体 */
+/* 气泡主体：极浅蓝纯色 + Hero 输入区同款阴影（见 globals --color-user-message-bubble） */
 .userBubble {
   position: relative;
   max-width: 65%;
-  background: var(--color-surface);
+  background: var(--color-user-message-bubble);
   color: var(--text-primary);
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-body-lg);
   line-height: 1.65;
   padding: 12px 18px;
   border-radius: var(--radius-md);
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-hero-input);
 }
 /* 气泡右侧尖角（与 Agent 气泡左侧尖角对称） */
 .userBubble::before {
@@ -460,7 +460,7 @@
   right: -8px;
   top: 14px;
   border: 8px solid transparent;
-  border-left-color: var(--color-surface);
+  border-left-color: var(--color-user-message-bubble);
   border-right: none;
 }
 .userBubble::after {
@@ -469,7 +469,7 @@
   right: -6px;
   top: 15px;
   border: 7px solid transparent;
-  border-left-color: var(--color-surface);
+  border-left-color: var(--color-user-message-bubble);
   border-right: none;
 }
 

@@ -301,9 +301,22 @@ class AgentOrchestrator:
             elif action == "generate_workflow_dag":
                 # 得到了完整的 DAG 路由规划
                 selected_agents = args.get("routing_sequence", [])
-                plan_text = args.get("plan_explanation", "为您制定了以下工作流：")
+                plan_text = args.get("plan_explanation", "").strip()
+                # NOTE: LLM 有时不返回 plan_explanation，此时提供一段兜底开场白
+                # 保证用户始终能看到品牌顾问的打字机输出，感知到流程已启动
+                if not plan_text:
+                    agent_names = "、".join(
+                        {"market": "市场研究", "strategy": "品牌战略",
+                         "content": "内容策划", "visual": "视觉设计"}.get(a, a)
+                        for a in selected_agents if a in ["market", "strategy", "content", "visual"]
+                    )
+                    plan_text = (
+                        f"收到您的需求，已完成品牌策略诊断。\n\n"
+                        f"本次将启动完整品牌咨询流程，调度专业智能体团队（{agent_names}）"
+                        f"为您进行深度分析，预计需要 2-3 分钟，请稍候…"
+                    )
                 logger.info("Ogilvy 输出 DAG: %s", selected_agents)
-                
+
                 plan_accumulated = ""
                 async for chunk in run_planning_phase_stream(plan_text):
                     plan_accumulated += chunk

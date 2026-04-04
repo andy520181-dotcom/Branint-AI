@@ -132,6 +132,8 @@
     #fafbff 78%,
     #ffffff 100%
   );
+  /* 生成页用户消息气泡：极浅蓝纯色（与落地页渐变中段同系，无渐变） */
+  --color-user-message-bubble: #f2f4fc;
 
   /* Hero 装饰光晕（大输入区与首页共用） */
   --hero-glow-neutral: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
@@ -270,6 +272,7 @@
     #1d1e24 40%,
     #1a1a1c 100%
   );
+  --color-user-message-bubble: #1e2229;
 
   --hero-glow-neutral: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
   --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);

@@ -209,13 +209,16 @@ async def run_planning_phase_stream(
     plan_explanation: str,
 ) -> AsyncGenerator[str, None]:
     """
-    不再走一次大模型，直接流式回显已经决定好的解释文本，
-    保持前端打字机效果。
+    将已生成的规划文本以打字机效果流式推送给前端。
+    NOTE: 必须加 asyncio.sleep，否则所有 chunk 在同一事件循环内瞬间全部 yield，
+    SSE 一次性推出，浏览器感觉不到流式效果，用户以为"没有内容"。
     """
-    # 模拟流式输出
-    chunk_size = 5
+    import asyncio
+    # 每 4 个字符为一块，15ms 延迟 → 约 60-70 字/秒的打字速度，可见但不慢
+    chunk_size = 4
     for i in range(0, len(plan_explanation), chunk_size):
-        yield plan_explanation[i:i+chunk_size]
+        yield plan_explanation[i : i + chunk_size]
+        await asyncio.sleep(0.015)
 
 
 async def run_direct_response_stream(
