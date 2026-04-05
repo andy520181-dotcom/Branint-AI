@@ -289,7 +289,9 @@ async def execute_tavily_search(query: str, max_results: int = 5) -> Dict[str, A
     返回结构化的检索结果，包括每条来源的 URL、标题、摘要。
     
     NOTE: Tavily 专为 AI Agent 设计，直接返回结构化摘要，无需解析 HTML。
+          内部对网络抉动实施指数退避重试（2 次）。
     """
+    import asyncio
     tavily_api_key = os.environ.get("TAVILY_API_KEY", "")
     
     if not tavily_api_key or tavily_api_key.startswith("tvly-请填入"):
@@ -301,40 +303,52 @@ async def execute_tavily_search(query: str, max_results: int = 5) -> Dict[str, A
             "message": "联网检索不可用，基于训练数据进行分析"
         }
 
-    try:
-        from tavily import AsyncTavilyClient
-        client = AsyncTavilyClient(api_key=tavily_api_key)
-        
-        response = await client.search(
-            query=query,
-            search_depth="advanced",   # NOTE: advanced 模式获取更完整摘要
-            max_results=max_results,
-            include_answer=True,       # 让 Tavily 自动合成一段答案摘要
-            include_raw_content=False, # 不需要原始 HTML
-        )
-        
-        results = []
-        for r in response.get("results", []):
-            results.append({
-                "title": r.get("title", ""),
-                "url": r.get("url", ""),
-                "content": r.get("content", ""),
-                "score": r.get("score", 0.0),
-            })
-        
-        return {
-            "query": query,
-            "answer": response.get("answer", ""),   # Tavily 的合成摘要
-            "results": results,
-            "fallback_mode": False,
-        }
+    for attempt in range(3):  # 最多重试 3 次
+        try:
+            from tavily import AsyncTavilyClient
+            client = AsyncTavilyClient(api_key=tavily_api_key)
+            
+            response = await client.search(
+                query=query,
+                search_depth="advanced",   # NOTE: advanced 模式获取更完整摘要
+                max_results=max_results,
+                include_answer=True,       # 让 Tavily 自动合成一段答案摘要
+                include_raw_content=False, # 不需要原始 HTML
+            )
+            
+            results = []
+            for r in response.get("results", []):
+                results.append({
+                    "title": r.get("title", ""),
+                    "url": r.get("url", ""),
+                    "content": r.get("content", ""),
+                    "score": r.get("score", 0.0),
+                })
+            
+            return {
+                "query": query,
+                "answer": response.get("answer", ""),
+                "results": results,
+                "fallback_mode": False,
+            }
 
-    except ImportError:
-        logger.error("tavily-python 未安装，请执行 pip install tavily-python")
-        return {"query": query, "results": [], "fallback_mode": True, "message": "tavily 库未安装"}
-    except Exception as e:
-        logger.error("Tavily 检索失败: %s", e)
-        return {"query": query, "results": [], "fallback_mode": True, "message": str(e)}
+        except ImportError:
+            logger.error("tavily-python 未安装，请执行 pip install tavily-python")
+            return {"query": query, "results": [], "fallback_mode": True, "message": "tavily 库未安装"}
+        except Exception as e:
+            if attempt < 2:
+                wait = 2 ** attempt * 2  # 2s, 4s
+                logger.warning(
+                    "Tavily 检索失败（第 %d 次），%ds 后重试: %s",
+                    attempt + 1, wait, e,
+                )
+                await asyncio.sleep(wait)
+            else:
+                logger.error("Tavily 检索重试 3 次后仍失败，降级: %s", e)
+                return {"query": query, "results": [], "fallback_mode": True, "message": str(e)}
+
+    # 逃生保证（正常不会到达这里）
+    return {"query": query, "results": [], "fallback_mode": True, "message": "未知错误"}
 
 
 # ==========================================
@@ -388,46 +402,54 @@ async def execute_jina_scrape(url: str, platform: str, focus: str) -> Dict[str, 
     
     logger.info("Jina Reader 开始抓取: %s [平台: %s]", url, platform)
     
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(jina_url, headers=headers, follow_redirects=True)
-            
-            if resp.status_code != 200:
-                logger.warning("Jina Reader 返回非 200: %d, URL: %s", resp.status_code, url)
+    for attempt in range(2):  # 最多重试 2 次（Jina 为辅助功能，重试不宜过多）
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                resp = await client.get(jina_url, headers=headers, follow_redirects=True)
+                
+                if resp.status_code != 200:
+                    logger.warning("Jina Reader 返回非 200: %d, URL: %s", resp.status_code, url)
+                    return {
+                        "url": url,
+                        "platform": platform,
+                        "content": "",
+                        "success": False,
+                        "message": f"HTTP {resp.status_code}，页面可能需要登录或已被保护",
+                    }
+                
+                raw_text = resp.text
+                
+                # NOTE: Jina 返回的文本可能很长，截取重点内容供 LLM 分析
+                # 超过 4000 字则只取前 2000 + 后 2000（通常评论在末尾）
+                if len(raw_text) > 4000:
+                    content = raw_text[:2000] + "\n...[中间内容省略]...\n" + raw_text[-2000:]
+                else:
+                    content = raw_text
+                
+                logger.info("Jina 抓取成功: %s，内容长度 %d 字", url, len(raw_text))
+                
                 return {
                     "url": url,
                     "platform": platform,
-                    "content": "",
-                    "success": False,
-                    "message": f"HTTP {resp.status_code}，页面可能需要登录或已被保护",
+                    "focus": focus,
+                    "content": content,
+                    "raw_length": len(raw_text),
+                    "success": True,
                 }
-            
-            raw_text = resp.text
-            
-            # NOTE: Jina 返回的文本可能很长，截取重点内容供 LLM 分析
-            # 超过 4000 字则只取前 2000 + 后 2000（通常评论在末尾）
-            if len(raw_text) > 4000:
-                content = raw_text[:2000] + "\n...[中间内容省略]...\n" + raw_text[-2000:]
+        
+        except httpx.TimeoutException:
+            if attempt < 1:
+                logger.warning("Jina Reader 超时，2s 后重试: %s", url)
+                import asyncio
+                await asyncio.sleep(2)
             else:
-                content = raw_text
-            
-            logger.info("Jina 抓取成功: %s，内容长度 %d 字", url, len(raw_text))
-            
-            return {
-                "url": url,
-                "platform": platform,
-                "focus": focus,
-                "content": content,
-                "raw_length": len(raw_text),
-                "success": True,
-            }
-    
-    except httpx.TimeoutException:
-        logger.error("Jina Reader 超时: %s", url)
-        return {"url": url, "platform": platform, "content": "", "success": False, "message": "请求超时（20s）"}
-    except Exception as e:
-        logger.error("Jina Reader 失败: %s — %s", url, e)
-        return {"url": url, "platform": platform, "content": "", "success": False, "message": str(e)}
+                logger.error("Jina Reader 超时重试后仍失败: %s", url)
+                return {"url": url, "platform": platform, "content": "", "success": False, "message": "请求超时（20s）"}
+        except Exception as e:
+            logger.error("Jina Reader 失败: %s — %s", url, e)
+            return {"url": url, "platform": platform, "content": "", "success": False, "message": str(e)}
+
+    return {"url": url, "platform": platform, "content": "", "success": False, "message": "未知错误"}
 
 
 def format_jina_result_for_llm(jina_result: Dict[str, Any]) -> str:

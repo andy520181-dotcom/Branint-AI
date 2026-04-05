@@ -80,31 +80,37 @@ async def generate_brand_images(
         "Minimal, modern, clean flat design. White background."
     )
 
-    try:
-        logger.info("开始调用内置 Nano/Fast 图片生成模型 (Banner 款)...")
-        # 使用专用的 generate_images 接口，支持指定长宽比 (Banner 常规比例 16:9)
-        response = client.models.generate_images(
-            model=IMAGE_MODEL,
-            prompt=logo_prompt,
-            config=dict(
-                number_of_images=1,
-                aspect_ratio="16:9",  # Banner 比例
-                output_mime_type="image/jpeg",
+    for attempt in range(2):
+        try:
+            logger.info("开始调用内置 Nano/Fast 图片生成模型 (Banner 款)...")
+            # 使用专用的 generate_images 接口，支持指定长宽比 (Banner 常规比例 16:9)
+            response = client.models.generate_images(
+                model=IMAGE_MODEL,
+                prompt=logo_prompt,
+                config=dict(
+                    number_of_images=1,
+                    aspect_ratio="16:9",  # Banner 比例
+                    output_mime_type="image/jpeg",
+                )
             )
-        )
 
-        for img in response.generated_images:
-            if img.image and img.image.image_bytes:
-                img_b64 = base64.b64encode(img.image.image_bytes).decode("utf-8")
-                mime = "image/jpeg"
-                results.append({
-                    "type": "banner",
-                    "mime": mime,
-                    "data_url": f"data:{mime};base64,{img_b64}",
-                })
-                logger.info("Nano Banner 图片生成成功，大小: %d bytes", len(img.image.image_bytes))
-
-    except Exception as e:
-        logger.error("图片生成失败: %s", e)
+            for img in response.generated_images:
+                if img.image and img.image.image_bytes:
+                    img_b64 = base64.b64encode(img.image.image_bytes).decode("utf-8")
+                    mime = "image/jpeg"
+                    results.append({
+                        "type": "banner",
+                        "mime": mime,
+                        "data_url": f"data:{mime};base64,{img_b64}",
+                    })
+                    logger.info("Nano Banner 图片生成成功，大小: %d bytes", len(img.image.image_bytes))
+            break  # 成功则跳出重试循环
+        except Exception as e:
+            import asyncio
+            if attempt < 1:
+                logger.warning("图片生成失败（第 %d 次），2s 后重试: %s", attempt + 1, e)
+                await asyncio.sleep(2)
+            else:
+                logger.error("图片生成重试后仍失败: %s", e)
 
     return results

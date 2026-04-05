@@ -57,6 +57,19 @@ def _do_upload(object_key: str, content: bytes, content_type: str) -> str:
     return public_url
 
 
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    before_sleep_log,
+)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=5),
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+    reraise=True,
+)
 async def upload_file(
     content: bytes,
     original_name: str,
@@ -64,6 +77,7 @@ async def upload_file(
 ) -> str:
     """
     异步上传文件到阿里云 OSS，返回公开访问 URL。
+    带指数退避重试（最多3次），应对临时网络抖动。
 
     NOTE: oss2 是同步阻塞 SDK，使用 run_in_executor 在线程池运行，
           保持 FastAPI 事件循环不被阻塞。
