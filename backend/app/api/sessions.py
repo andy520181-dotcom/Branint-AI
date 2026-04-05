@@ -140,7 +140,7 @@ async def stream_session(
 
         _chunk_buffers: dict[str, str] = {}
         _last_persist_ts: dict[str, float] = {}
-        THROTTLE_SECS = 3.0  # 每个 agent 最多每 3 秒写一次数据库
+        THROTTLE_SECS = 1.0  # 每个 agent 最多每 1 秒写一次数据库，降低中断丢失的 chunk 量
 
         try:
             async with AsyncSessionFactory() as gen_db:
@@ -230,6 +230,16 @@ async def stream_session(
             logger.error("会话执行失败: %s, 错误: %s", session_id, e)
             yield f"event: error\ndata: {str(e)}\n\n"
             async with AsyncSessionFactory() as err_db:
+                # NOTE: 连接中断时把已缓存的 chunk 强制落盘，
+                #       确保刷新后前端能恢复已生成的内容
+                for aid, buf in _chunk_buffers.items():
+                    if buf:
+                        try:
+                            await session_repo.update_agent_output(
+                                err_db, session_id, aid, buf, status="error"
+                            )
+                        except Exception:
+                            pass
                 await session_repo.update_session_status(err_db, session_id, "error")
             _session_cache[session_id]["status"] = "error"
 
