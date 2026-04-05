@@ -130,7 +130,6 @@ export function MarketRenderer({ output, isRunning, researchProgress = [] }: Mar
       {/* 来源引用卡片区 */}
       {citations.length > 0 && (
         <div className={marketStyles.citationsSection}>
-          <div className={marketStyles.citationsDivider} />
           <p className={marketStyles.citationsTitle}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
