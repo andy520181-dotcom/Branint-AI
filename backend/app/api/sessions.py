@@ -1,45 +1,59 @@
-import uuid
+"""
+Sessions API：提供会话的创建、SSE 流式执行、报告查询与快照恢复接口。
+
+NOTE: 本层只负责请求解析和响应封装；所有持久化操作通过 session_repo 进行，
+      不在此层直接操作数据库或 JSON 文件。
+"""
+
+from __future__ import annotations
+
+import json as _json
 import logging
+import time as _time
+import uuid
 from collections.abc import AsyncGenerator
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.database import get_db
+from app.repository import session_repo
 from app.schema.session import CreateSessionRequest, CreateSessionResponse
 from app.service.agent_orchestrator import AgentOrchestrator
-from app.storage.session_persist import (
-    extract_report_from_sse_chunk,
-    load_session_disk,
-    save_session_disk,
-    update_session_agent_output,
-)
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
 
-# NOTE: 内存索引；会话正文同时落盘到 data/sessions，便于分享链接在重启后仍可拉取
-# FIXME: Phase 2 可替换为 Supabase 数据库持久化
-_sessions: dict[str, dict] = {}
-
-
-def _ensure_session_loaded(session_id: str) -> bool:
-    if session_id in _sessions:
-        return True
-    data = load_session_disk(session_id)
-    if not data:
-        return False
-    _sessions[session_id] = data
-    return True
+# NOTE: 内存缓存层：减少 SSE 流式执行期间的数据库读取次数。
+#       仅在 stream_session 执行期间持有，进程内共享。
+#       进程重启后从数据库重新加载 —— 这正是 PostgreSQL 迁移的核心收益。
+_session_cache: dict[str, dict] = {}
 
 
 @router.post("", response_model=CreateSessionResponse)
-async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
+async def create_session(
+    body: CreateSessionRequest,
+    db: AsyncSession = Depends(get_db),
+) -> CreateSessionResponse:
     """
-    创建新的品牌咨询会话
-    返回 session_id 供前端连接 SSE 流
+    创建新的品牌咨询会话，持久化到 PostgreSQL。
+    返回 session_id 供前端连接 SSE 流。
     """
     session_id = str(uuid.uuid4())
-    _sessions[session_id] = {
+
+    await session_repo.create_session(
+        db,
+        session_id=session_id,
+        user_id=body.user_id,
+        user_prompt=body.user_prompt,
+        conversation_history=[r.model_dump() for r in body.conversation_history],
+        attachments=body.attachments,
+    )
+
+    # NOTE: 同步写入内存缓存，避免 stream_session 立即查库
+    _session_cache[session_id] = {
         "user_id": body.user_id,
         "user_prompt": body.user_prompt,
         "conversation_history": [r.model_dump() for r in body.conversation_history],
@@ -47,115 +61,177 @@ async def create_session(body: CreateSessionRequest) -> CreateSessionResponse:
         "status": "pending",
         "report": None,
         "selected_agents": [],
+        "agent_outputs": {},
+        "agent_statuses": {},
     }
-    save_session_disk(session_id, _sessions[session_id])
-    logger.info("创建新会话: %s, 用户: %s, 历史轮次: %d, 附件: %d", session_id, body.user_id, len(body.conversation_history), len(body.attachments))
+
+    logger.info(
+        "创建新会话: %s, 用户: %s, 历史轮次: %d, 附件: %d",
+        session_id, body.user_id, len(body.conversation_history), len(body.attachments),
+    )
     return CreateSessionResponse(session_id=session_id)
 
 
+async def _load_session_from_db(
+    session_id: str, db: AsyncSession
+) -> dict | None:
+    """
+    从数据库加载会话到内存缓存。
+    进程重启后 stream / snapshot 接口调用此方法恢复状态。
+    """
+    if session_id in _session_cache:
+        return _session_cache[session_id]
+
+    record = await session_repo.get_session(db, session_id)
+    if not record:
+        return None
+
+    data = {
+        "user_id": record.user_id,
+        "user_prompt": record.user_prompt,
+        "conversation_history": record.conversation_history or [],
+        "attachments": record.attachments or [],
+        "status": record.status,
+        "report": record.report,
+        "selected_agents": record.selected_agents or [],
+        "agent_outputs": record.agent_outputs or {},
+        "agent_statuses": record.agent_statuses or {},
+    }
+    _session_cache[session_id] = data
+    return data
+
 
 @router.get("/{session_id}/stream")
-async def stream_session(session_id: str) -> StreamingResponse:
+async def stream_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
     """
-    SSE 流式接口：连接后自动开始执行 4 个 Agent
-    前端使用 EventSource 连接此接口接收实时输出
+    SSE 流式接口：连接后自动开始执行多个 Agent。
+    前端使用 EventSource 连接此接口接收实时输出。
+
+    NOTE: db 依赖注入在 StreamingResponse 生成器中无法直接复用（生命周期不同），
+          在 generator 内部通过 AsyncSessionFactory 新建独立 Session 进行写操作。
     """
-    if not _ensure_session_loaded(session_id):
+    session_data = await _load_session_from_db(session_id, db)
+    if not session_data:
         raise HTTPException(status_code=404, detail="会话不存在")
 
-    session = _sessions[session_id]
-    user_prompt = session["user_prompt"]
-    conversation_history = session.get("conversation_history", [])
-    attachments = session.get("attachments", [])
+    user_prompt = session_data["user_prompt"]
+    conversation_history = session_data.get("conversation_history", [])
+    attachments = session_data.get("attachments", [])
 
-    # NOTE: 加载 checkpoint：已落盘的 agent 输出 + 状态 + 路由顺序
-    # Orchestrator 会跳过已完成的 Agent，直接重放存档输出
+    # NOTE: 加载 checkpoint：已落库的 agent 输出 + 状态 + 路由顺序
+    #       Orchestrator 会跳过已完成的 Agent，直接重放存档输出
     checkpoint = {
-        "agent_outputs": session.get("agent_outputs", {}),
-        "agent_statuses": session.get("agent_statuses", {}),
-        "selected_agents": session.get("selected_agents", []),
+        "agent_outputs": session_data.get("agent_outputs", {}),
+        "agent_statuses": session_data.get("agent_statuses", {}),
+        "selected_agents": session_data.get("selected_agents", []),
     }
-    # 如果没有任何落盘数据（全新会话），不传 checkpoint
     if not any(checkpoint.values()):
         checkpoint = None
 
     orchestrator = AgentOrchestrator()
 
-
     async def event_generator() -> AsyncGenerator[str, None]:
-        import time as _time
-        import json as _json
-        # NOTE: 在内存中追踪每个 agent 的流式输出缓冲，
-        # 这样可以在 agent 完成前就知道已经生成了多少内容
+        # NOTE: StreamingResponse 的生成器在独立协程中运行，
+        #       需要自己管理数据库 Session（不能复用 Depends 注入的 session）
+        from app.db.database import AsyncSessionFactory
+
         _chunk_buffers: dict[str, str] = {}
         _last_persist_ts: dict[str, float] = {}
-        THROTTLE_SECS = 3.0  # 每个 agent 最多每 3 秒写一次磁盘
+        THROTTLE_SECS = 3.0  # 每个 agent 最多每 3 秒写一次数据库
 
         try:
-            # NOTE: 标记为 running，刷新时 snapshot 可与「尚无落盘输出」区分，避免前端误判为全新会话并二次 initSession
-            _sessions[session_id]["status"] = "running"
-            save_session_disk(session_id, _sessions[session_id])
+            async with AsyncSessionFactory() as gen_db:
+                # 标记为 running
+                await session_repo.update_session_status(gen_db, session_id, "running")
+                _session_cache[session_id]["status"] = "running"
 
-            final_report: str | None = None
-            async for event in orchestrator.run_session(user_prompt, conversation_history, checkpoint=checkpoint, attachments=attachments):
+                final_report: str | None = None
 
-                # 拦截 routing_decided：保存本次路由顺序，断点续传时用
-                if "event: routing_decided" in event:
-                    for line in event.split("\n"):
-                        if line.startswith("data: "):
-                            try:
-                                agents_list = _json.loads(line[6:])
-                                if isinstance(agents_list, list):
-                                    _sessions[session_id]["selected_agents"] = agents_list
-                                    save_session_disk(session_id, _sessions[session_id])
-                            except Exception:
-                                pass
+                async for event in orchestrator.run_session(
+                    user_prompt, conversation_history, checkpoint=checkpoint, attachments=attachments
+                ):
+                    # 拦截 routing_decided：保存本次路由顺序
+                    if "event: routing_decided" in event:
+                        for line in event.split("\n"):
+                            if line.startswith("data: "):
+                                try:
+                                    agents_list = _json.loads(line[6:])
+                                    if isinstance(agents_list, list):
+                                        _session_cache[session_id]["selected_agents"] = agents_list
+                                        await session_repo.update_selected_agents(
+                                            gen_db, session_id, agents_list
+                                        )
+                                except Exception:
+                                    pass
 
-                # 拦截 agent_chunk：追加到内存缓冲，并节流落盘（防止磁盘 I/O 过频）
-                if "event: agent_chunk" in event:
-                    for line in event.split("\n"):
-                        if line.startswith("data: "):
-                            try:
-                                payload = _json.loads(line[6:])
-                                aid = payload.get("id", "")
-                                chunk = payload.get("chunk", "")
-                                if aid and chunk:
-                                    _chunk_buffers[aid] = _chunk_buffers.get(aid, "") + chunk
-                                    now = _time.monotonic()
-                                    if now - _last_persist_ts.get(aid, 0) >= THROTTLE_SECS:
-                                        update_session_agent_output(session_id, aid, _chunk_buffers[aid], status="running")
-                                        _last_persist_ts[aid] = now
-                            except Exception:
-                                pass
+                    # 拦截 agent_chunk：节流写库（防止 I/O 过频）
+                    if "event: agent_chunk" in event:
+                        for line in event.split("\n"):
+                            if line.startswith("data: "):
+                                try:
+                                    payload = _json.loads(line[6:])
+                                    aid = payload.get("id", "")
+                                    chunk = payload.get("chunk", "")
+                                    if aid and chunk:
+                                        _chunk_buffers[aid] = _chunk_buffers.get(aid, "") + chunk
+                                        now = _time.monotonic()
+                                        if now - _last_persist_ts.get(aid, 0) >= THROTTLE_SECS:
+                                            await session_repo.update_agent_output(
+                                                gen_db, session_id, aid,
+                                                _chunk_buffers[aid], status="running",
+                                            )
+                                            _last_persist_ts[aid] = now
+                                except Exception:
+                                    pass
 
-                # 拦截 agent_output：agent 完整输出到达，立即最终落盘
-                if "event: agent_output" in event:
-                    for line in event.split("\n"):
-                        if line.startswith("data: "):
-                            try:
-                                payload = _json.loads(line[6:])
-                                aid = payload.get("id", "")
-                                content = payload.get("content", "")
-                                if aid and content:
-                                    # 用 agent_output 覆盖流式缓冲，确保内容最准确
-                                    _chunk_buffers[aid] = content
-                                    update_session_agent_output(session_id, aid, content, status="completed")
-                            except Exception:
-                                pass
+                    # 拦截 agent_output：Agent 完整输出，立即最终落库
+                    if "event: agent_output" in event:
+                        for line in event.split("\n"):
+                            if line.startswith("data: "):
+                                try:
+                                    payload = _json.loads(line[6:])
+                                    aid = payload.get("id", "")
+                                    content = payload.get("content", "")
+                                    if aid and content:
+                                        _chunk_buffers[aid] = content
+                                        await session_repo.update_agent_output(
+                                            gen_db, session_id, aid, content, status="completed"
+                                        )
+                                except Exception:
+                                    pass
 
-                r = extract_report_from_sse_chunk(event)
-                if r is not None:
-                    final_report = r
-                yield event
-            _sessions[session_id]["status"] = "completed"
-            if final_report is not None:
-                _sessions[session_id]["report"] = final_report
-            save_session_disk(session_id, _sessions[session_id])
+                    # 拦截 session_complete：提取最终报告
+                    if "event: session_complete" in event:
+                        for line in event.split("\n"):
+                            if line.startswith("data: "):
+                                try:
+                                    payload = _json.loads(line[6:])
+                                    r = payload.get("report")
+                                    if isinstance(r, str):
+                                        final_report = r
+                                except Exception:
+                                    pass
+
+                    yield event
+
+                # 流结束：写入最终报告并标记完成
+                if final_report is not None:
+                    await session_repo.set_session_report(gen_db, session_id, final_report)
+                    _session_cache[session_id]["report"] = final_report
+                else:
+                    await session_repo.update_session_status(gen_db, session_id, "completed")
+
+                _session_cache[session_id]["status"] = "completed"
+
         except Exception as e:
             logger.error("会话执行失败: %s, 错误: %s", session_id, e)
             yield f"event: error\ndata: {str(e)}\n\n"
-            _sessions[session_id]["status"] = "error"
-            save_session_disk(session_id, _sessions[session_id])
+            async with AsyncSessionFactory() as err_db:
+                await session_repo.update_session_status(err_db, session_id, "error")
+            _session_cache[session_id]["status"] = "error"
 
     return StreamingResponse(
         event_generator(),
@@ -169,38 +245,52 @@ async def stream_session(session_id: str) -> StreamingResponse:
 
 
 @router.get("/{session_id}/report")
-async def get_report(session_id: str) -> dict:
+async def get_report(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """获取已完成会话的报告（用于分享链接只读访问）"""
-    if not _ensure_session_loaded(session_id):
+    session_data = await _load_session_from_db(session_id, db)
+    if not session_data:
         raise HTTPException(status_code=404, detail="会话不存在")
-    session = _sessions[session_id]
-    if session["status"] != "completed":
+    if session_data["status"] != "completed":
         raise HTTPException(status_code=202, detail="报告尚未生成完成")
-    return {"session_id": session_id, "report": session.get("report")}
+    return {"session_id": session_id, "report": session_data.get("report")}
 
 
 @router.get("/{session_id}/snapshot")
-async def get_snapshot(session_id: str) -> dict:
+async def get_snapshot(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """
     获取会话的实时快照（无论是否完成）。
-    前端刷新后优先调用此接口恢复 UI 状态，而不依赖 localStorage。
-    返回：已完成的 agent 输出、各 Agent 状态、用户原始 prompt、session 整体状态。
+    前端刷新后优先调用此接口恢复 UI 状态。
+    进程重启后从数据库重新加载，不依赖内存缓存。
     """
-    # 先从磁盘加载，保证进程重启后依然能读到
-    data = load_session_disk(session_id)
-    if not data:
-        # 再检查内存（万一磁盘还没来得及初始化）
-        if session_id not in _sessions:
+    # NOTE: 不走缓存，直接查库，保证进程重启后仍能返回最新数据
+    record = await session_repo.get_session(db, session_id)
+    if not record:
+        # 降级到内存缓存（极端情况：db 查无记录但缓存仍在）
+        if session_id in _session_cache:
+            data = _session_cache[session_id]
+        else:
             raise HTTPException(status_code=404, detail="会话不存在")
-        data = _sessions[session_id]
+    else:
+        data = {
+            "status": record.status,
+            "user_prompt": record.user_prompt,
+            "agent_outputs": record.agent_outputs or {},
+            "agent_statuses": record.agent_statuses or {},
+            "report": record.report,
+            "selected_agents": record.selected_agents or [],
+        }
 
-    agent_outputs: dict = data.get("agent_outputs") or {}
-    agent_statuses: dict = data.get("agent_statuses") or {}
-    report: str | None = data.get("report")
+    agent_outputs = data.get("agent_outputs") or {}
+    agent_statuses = data.get("agent_statuses") or {}
+    report = data.get("report")
 
-    # NOTE: 兼容旧版会话数据格式：
-    # 早期版本只落盘了 report 字段，没有写 agent_outputs / agent_statuses。
-    # 为了让旧会话在 Feed 中能正常渲染，把 report 注入到 consultant_review 的输出位置。
+    # NOTE: 兼容旧版会话格式：早期只落盘了 report，没有 agent_outputs
     if not agent_outputs and report:
         agent_outputs = {"consultant_review": report}
         agent_statuses = {"consultant_review": "completed"}

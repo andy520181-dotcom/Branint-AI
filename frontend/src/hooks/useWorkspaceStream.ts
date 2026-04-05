@@ -182,6 +182,24 @@ export function useWorkspaceStream(sessionId: string | null) {
       }
     });
 
+    // NOTE: Trout 战略追问信号——展示追问气泡并挂起会话，等待用户回答
+    es.addEventListener('strategy_clarify', (e) => {
+      try {
+        const { questions } = JSON.parse(e.data) as { id: string; questions: string };
+        const { sessionId: sid, strategyClarify } = useWorkspaceStore.getState();
+        useWorkspaceStore.getState().setStrategyClarify({
+          isPaused: true,
+          questions,
+          answer: '',
+          // 累计追问轮次（每次追问 +1）
+          clarifyRound: (strategyClarify?.clarifyRound ?? 0) + 1,
+          originalSessionId: sid,
+        });
+      } catch {
+        // 忽略解析错误
+      }
+    });
+
     // NOTE: 收到中断信号，保留现有状态并关闭长连接，等待用户下一轮对话输入
     es.addEventListener('session_pause', (e) => {
       try {

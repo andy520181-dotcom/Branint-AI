@@ -515,3 +515,18 @@
     padding: 24px 0 16px;
   }
 }
+
+/* ── Trout 追问面板槽位 ── */
+/* 对齐 feedLeft(80px) + gap(16px)，使追问面板与气泡内容右侧对齐 */
+.clarifySlot {
+  padding-left: 96px; /* 80px feedLeft + 16px gap */
+  padding-right: 0;
+  margin: 4px 0 16px;
+  animation: cardIn 350ms ease;
+}
+
+@media (max-width: 600px) {
+  .clarifySlot {
+    padding-left: 0;
+  }
+}

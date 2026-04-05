@@ -14,12 +14,16 @@ export interface ConversationRound {
 /**
  * 创建品牌咨询会话，返回 session_id
  * @param conversationHistory 之前轮次的对话记录，首轮为空
+ * @param strategyClarifyAnswers Trout 战略追问的用户回答（非首次追问时传入）
+ * @param strategyClarifyRound 本次是第几轮追问回答，用于后端控制追问上限
  */
 export async function createSession(
   userId: string,
   prompt: string,
   conversationHistory: ConversationRound[] = [],
   attachments: string[] = [],
+  strategyClarifyAnswers?: string,
+  strategyClarifyRound?: number,
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/api/sessions`, {
     method: 'POST',
@@ -29,6 +33,11 @@ export async function createSession(
       user_prompt: prompt,
       conversation_history: conversationHistory,
       attachments,
+      // NOTE: 仅在 Trout 追问后继续提交时才传入，普通对话为 undefined（后端忽略）
+      ...(strategyClarifyAnswers !== undefined && {
+        strategy_clarification_answers: strategyClarifyAnswers,
+        strategy_clarify_round: strategyClarifyRound ?? 1,
+      }),
     }),
   });
   if (!res.ok) throw new Error(`创建会话失败 (${res.status})`);

@@ -8,13 +8,13 @@ export function SiteNavLogo() {
     <Link href="/" className="site-nav-logo">
       <Image
         src="/logo.png"
-        alt="Brandclaw AI"
+        alt="Branin AI"
         width={80}
         height={80}
         className="site-nav-logo-img"
         priority
       />
-      <span>Brandclaw AI</span>
+      <span>Branin AI</span>
     </Link>
   );
 }

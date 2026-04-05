@@ -1,5 +1,5 @@
 export const auth: Record<string, string> = {
-  'auth.welcome': 'Welcome to Brandclaw AI',
+  'auth.welcome': 'Welcome to Branin AI',
   'auth.close': 'Close',
   'auth.email': 'Email',
   'auth.otp': 'Verification code',

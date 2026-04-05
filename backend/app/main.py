@@ -1,12 +1,21 @@
+"""
+FastAPI 应用入口。
+
+NOTE: 使用 lifespan 替代 @app.on_event('startup')（FastAPI 0.93+ 推荐方式）。
+      应用启动时自动执行 init_db()，确保数据库表就绪后再接受请求。
+"""
+
 import logging
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 
 from app.config import settings, configure_litellm_keys
 from app.api import sessions, auth, assets
+from app.db.init_db import init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,17 +26,33 @@ logger = logging.getLogger(__name__)
 # 应用启动时注入 LiteLLM 所需的 API Keys
 configure_litellm_keys()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    应用生命周期管理：
+    - 启动：自动建表（CREATE TABLE IF NOT EXISTS），幂等安全
+    - 关闭：（预留）清理资源
+    """
+    logger.info("应用启动，正在初始化数据库...")
+    await init_db()
+    logger.info("数据库初始化完成，开始接受请求")
+    yield
+    logger.info("应用关闭")
+
+
 app = FastAPI(
-    title="Brandclaw AI 品牌咨询平台 API",
+    title="Branin AI 品牌咨询平台 API",
     description="多 Agent 协作的品牌战略生成平台",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # NOTE: MVP 阶段允许所有来源，生产环境需限制为前端域名
 _allowed_origins = list({
     settings.frontend_url,
     "http://localhost:3000",
-    "http://127.0.0.1:3000",   # 通过 127.0.0.1 访问时的 CORS origin
+    "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
 })

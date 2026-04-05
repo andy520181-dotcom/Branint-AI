@@ -22,6 +22,7 @@ import { WorkspaceFeed } from './components/WorkspaceFeed';
 import { WorkspaceBottomBar } from './components/WorkspaceBottomBar';
 import { WorkspaceOutlineDock } from './components/WorkspaceOutlineDock';
 
+
 export default function WorkspacePage() {
   const params = useParams();
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function WorkspacePage() {
     isComplete, isStreaming, error,
     initSession, userPrompt,
     previousRounds, setPreviousRounds,
+    strategyClarify, setStrategyClarify,
   } = useWorkspaceStore();
 
   const [restored, setRestored] = useState<boolean | null>(null);
@@ -92,12 +94,59 @@ export default function WorkspacePage() {
   // ── SSE 流连接 ─────────────────────────────────────────────────────
   const { cancel } = useWorkspaceStream(restored === false ? activeSessionId : null);
 
-  // ── 多轮对话提交 ───────────────────────────────────────────────────
+  // ── 统一提交入口 ────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!bottomPrompt.trim() || !user || submitting) return;
-    const promptText = bottomPrompt.trim();
+    const inputText = bottomPrompt.trim();
+    setSubmitting(true);
+
+    // NOTE: 如果 Trout 正在等待追问回答，把用户输入作为答案而非新 prompt
+    if (strategyClarify?.isPaused) {
+      try {
+        const clarifyRound = strategyClarify.clarifyRound;
+        // 收集对话历史
+        const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
+        for (const r of previousRounds) {
+          const outputs: Record<string, string> = {};
+          for (const a of Object.values(r.agents)) {
+            if (a.output) outputs[a.id] = a.output;
+          }
+          history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
+        }
+        const currentAgents = useWorkspaceStore.getState().agents;
+        const currentOutputs: Record<string, string> = {};
+        for (const a of Object.values(currentAgents)) {
+          if (a.output) currentOutputs[a.id] = a.output;
+        }
+        if (userPrompt && Object.keys(currentOutputs).length > 0) {
+          history.push({ user_prompt: userPrompt, agent_outputs: currentOutputs });
+        }
+        setStrategyClarify(null);
+        setBottomPrompt('');
+        const newSessionId = await createSession(
+          user.id,
+          userPrompt,   // 保持原始品牌需求不变
+          history,
+          [],
+          inputText,    // 用户对 Trout 追问的回答
+          clarifyRound,
+        );
+        initSession(newSessionId, userPrompt);
+        setActiveSessionId(newSessionId);
+        setRestored(false);
+        window.history.pushState(null, '', `/workspace/${newSessionId}`);
+        setSubmitting(false);
+      } catch {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // ── 普通多轮对话提交 ────
+    const promptText = inputText;
     setSubmitting(true);
     try {
+
       // NOTE: 收集之前所有轮次的对话历史（用户输入 + Agent 输出），传给后端
       // 使品牌顾问在后续轮次能理解之前的分析上下文
       const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
@@ -417,6 +466,7 @@ export default function WorkspacePage() {
               onCancel={cancel}
               attachments={attachments}
               onAttachmentsChange={setAttachments}
+              isClarifying={!!strategyClarify?.isPaused}
               t={t}
             />
           </>

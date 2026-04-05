@@ -1,6 +1,6 @@
 /** 登录注册弹窗 */
 export const auth: Record<string, string> = {
-  'auth.welcome': '欢迎使用 Brandclaw AI',
+  'auth.welcome': '欢迎使用 Branin AI',
   'auth.close': '关闭',
   'auth.email': '邮箱',
   'auth.otp': '验证码',

@@ -17,7 +17,7 @@ from app.service.consultant_agent import (
     _build_history_context,
 )
 from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
-from app.service.strategy_agent import run_strategy_agent_stream
+from app.service.strategy_agent import run_strategy_agent_stream, TROUT_CLARIFY_MARKER
 from app.service.content_agent import run_content_agent_stream
 from app.service.visual_agent import run_visual_agent_stream
 from app.service.skills.wacksman_skills import execute_tavily_search
@@ -53,6 +53,17 @@ def _extract_handoff(output: str) -> str:
     # HACK: 降级 — Agent 忘记生成 handoff 时，截取末尾作为上下文保底
     logger.warning("Agent 未生成 <handoff> 标签，使用降级方案（末尾截取）")
     return output[-500:] if len(output) > 500 else output
+
+
+async def _stream_text_as_chunks(text: str, chunk_size: int = 4):
+    """
+    将文本以打字机效果逐块 yield，用于 Trout 追问文本的流式推送。
+    NOTE: 与 run_planning_phase_stream 的推送机制保持一致。
+    """
+    import asyncio
+    for i in range(0, len(text), chunk_size):
+        yield text[i: i + chunk_size]
+        await asyncio.sleep(0.015)
 
 
 def _build_handoff_context(project_context: dict, agent_keys: list[str]) -> str:
@@ -94,6 +105,8 @@ class AgentOrchestrator:
         conversation_history: list[dict] | None = None,
         checkpoint: dict | None = None,
         attachments: list[str] | None = None,
+        strategy_clarification_answers: str | None = None,
+        strategy_clarify_round: int = 0,
     ) -> AsyncGenerator[str, None]:
         """
         执行完整品牌咋询工作流（结构化交接 + 实时流式输出）
@@ -301,24 +314,23 @@ class AgentOrchestrator:
             elif action == "generate_workflow_dag":
                 # 得到了完整的 DAG 路由规划
                 selected_agents = args.get("routing_sequence", [])
-                plan_text = args.get("plan_explanation", "").strip()
-                # NOTE: LLM 有时不返回 plan_explanation，此时提供一段兜底开场白
-                # 保证用户始终能看到品牌顾问的打字机输出，感知到流程已启动
-                if not plan_text:
-                    agent_names = "、".join(
-                        {"market": "市场研究", "strategy": "品牌战略",
-                         "content": "内容策划", "visual": "视觉设计"}.get(a, a)
-                        for a in selected_agents if a in ["market", "strategy", "content", "visual"]
-                    )
-                    plan_text = (
-                        f"收到您的需求，已完成品牌策略诊断。\n\n"
-                        f"本次将启动完整品牌咨询流程，调度专业智能体团队（{agent_names}）"
-                        f"为您进行深度分析，预计需要 2-3 分钟，请稍候…"
-                    )
                 logger.info("Ogilvy 输出 DAG: %s", selected_agents)
 
+                # 将选中的 agent 转换成中文名称给大模型参考
+                agent_names = "、".join(
+                    {"market": "市场研究", "strategy": "品牌战略",
+                     "content": "内容策划", "visual": "视觉设计"}.get(a, a)
+                    for a in selected_agents if a in ["market", "strategy", "content", "visual"]
+                )
+
+                prompt_explain = (
+                    f"你决定启动以下智能体团队处理该需求：{agent_names}。\n"
+                    f"请用首席品牌顾问的口吻写一段话向用户流式播报（约2-3句即可，不要生硬罗列名字，要说出逻辑）：你已经完成了初步的需求诊断，为什么我们要采用这样的流程链路，表达你正在亲自调集团队进行各模块的深入分析。自然、专业即可。"
+                )
+
+                # 使用真实的流式生成，让大模型一边思考一边吐出解释
                 plan_accumulated = ""
-                async for chunk in run_planning_phase_stream(plan_text):
+                async for chunk in run_direct_response_stream(user_prompt, prompt_explain, conversation_history):
                     plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
@@ -385,7 +397,12 @@ class AgentOrchestrator:
                 stream = run_market_agent_stream(enriched_user_prompt, handoff_context)
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
-                stream = run_strategy_agent_stream(enriched_user_prompt, handoff_context)
+                stream = run_strategy_agent_stream(
+                    enriched_user_prompt,
+                    handoff_context,
+                    clarification_answers=strategy_clarification_answers,
+                    clarify_round=strategy_clarify_round,
+                )
             elif agent_key == "content":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy"])
                 stream = run_content_agent_stream(enriched_user_prompt, handoff_context)
@@ -398,13 +415,30 @@ class AgentOrchestrator:
 
             async for chunk in stream:
                 # NOTE: Wacksman 研究循环会 yield 进度 token（以 PROGRESS_MARKER 为前缀）
-                # 这类 token 不是报告内容，不要累积到 accumulated，而是转发为独立 SSE 事件
                 if chunk.startswith(PROGRESS_MARKER):
                     progress_data = chunk[len(PROGRESS_MARKER):]
                     yield _sse_raw(
                         "agent_research_progress",
                         json.dumps({"id": agent_key, "progress": progress_data}, ensure_ascii=False),
                     )
+                # NOTE: Trout 自适应反问信号 — 发出追问 SSE + 挂起会话
+                elif chunk.startswith(TROUT_CLARIFY_MARKER) and agent_key == "strategy":
+                    questions_text = chunk[len(TROUT_CLARIFY_MARKER):]
+                    logger.info("Trout 发起战略追问，会话挂起...")
+                    # 以打字机效果推送追问文本
+                    async for q_chunk in _stream_text_as_chunks(questions_text):
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "strategy", "chunk": q_chunk}, ensure_ascii=False),
+                        )
+                    yield _sse(
+                        "strategy_clarify",
+                        json.dumps({"id": "strategy", "questions": questions_text}, ensure_ascii=False),
+                    )
+                    yield _sse("agent_complete", agent_key)
+                    yield _sse("session_pause", json.dumps({"reason": "strategy_clarification"}))
+                    logger.info("Trout 战略追问已推送，等待用户回答...")
+                    return
                 else:
                     accumulated += chunk
                     yield _sse_raw(

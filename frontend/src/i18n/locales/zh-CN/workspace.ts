@@ -23,7 +23,7 @@ export const workspace: Record<string, string> = {
   'workspace.connecting': '正在连接 AI 智能体...',
   'workspace.analyzing': '分析中',
   'workspace.done': '完成',
-  'workspace.bottom.placeholder': '给 Brandclaw 发送消息',
+  'workspace.bottom.placeholder': '给 Branin 发送消息',
   'workspace.cancel.title': '停止生成',
   'workspace.cancel': '停止',
   'workspace.send.title': '开始新分析',

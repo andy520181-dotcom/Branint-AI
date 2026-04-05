@@ -1,15 +1,19 @@
 """
-品牌战略 Agent — Trout（智能框架自适应版）
+品牌战略 Agent — Trout v4.0
 
-工作流：
-  Round 0: select_applicable_frameworks → 分析场景，输出 framework_sequence（元路由）
-  Round 1-N: 按 framework_sequence 依次调用品牌框架工具（动态选用，非全量固定）
-  Phase 2: 流式生成完整 Markdown 品牌战略报告
-
-关键设计：
-  - 第一轮必须调用 select_applicable_frameworks，确定本次需要哪些框架
-  - 后续循环只执行 framework_sequence 中的工具，跳过不需要的框架
-  - synthesize_strategy_report 触发后结束循环，进入流式报告生成
+工作流（四层理论体系）：
+  Phase -1: 自适应反问 — 评估5个关键信息维度的完整度，针对缺口追问，最多3轮
+  Phase  0: 输入组装 — 注入 System Prompt + 用户回答 + Wacksman handoff
+  Phase  1: 工具调用循环（max 10轮）
+    ① select_applicable_frameworks → 全局规划 theory_combo
+    ② analyze_competitive_landscape → Layer 0 竞争分析
+    ③ apply_positioning_theory → Layer 1 定位理论
+    ④ apply_brand_driver（0-2次）→ Layer 2 驱动力
+    ⑤ build_brand_house → 品牌屋（强制）
+    ⑥ design_brand_architecture → 可选
+    ⑦ generate_naming_candidates → 可选
+    ⑧ synthesize_strategy_report → 触发报告，循环结束
+  Phase  2: 流式生成 Markdown 品牌战略报告
 """
 from __future__ import annotations
 
@@ -17,51 +21,145 @@ import json
 import logging
 from collections.abc import AsyncGenerator
 
-from app.service.llm_provider import call_llm_stream, call_llm_with_tools
+from app.service.llm_provider import call_llm, call_llm_stream, call_llm_with_tools
 from app.service.prompt_loader import load_agent_prompt
-from app.service.skills.trout_skills import (
-    TROUT_TOOLS,
-    execute_trout_tool,
-    parse_trout_tool_calls,
-)
+from app.service.skills.trout_skills import TROUT_TOOLS, parse_trout_tool_calls
 
 logger = logging.getLogger(__name__)
 
-# 安全上限：防止 LLM 无限循环调用工具（最多10轮，覆盖所有6个框架+预选+合成）
+# ── 常量 ──────────────────────────────────────────────────────
 MAX_TOOL_ROUNDS = 10
-# 报告输出触发词
+MAX_CLARIFY_ROUNDS = 3           # 自适应反问最多轮数
 SYNTHESIS_TRIGGER = "synthesize_strategy_report"
-# 元路由工具名
 FRAMEWORK_SELECTOR = "select_applicable_frameworks"
 
+# NOTE: 与 agent_orchestrator.py 约定的信号前缀
+# orchestrator 捕获此前缀后，emit strategy_clarify SSE + session_pause SSE
+TROUT_CLARIFY_MARKER = "__TROUT_CLARIFY__:"
+
+# 5个关键信息维度（缺少任何一个都需要追问）
+_CLARIFY_DIMENSIONS = [
+    ("competitive_landscape", "竞争格局认知（主要竞品/差异认知）"),
+    ("target_audience",       "目标人群画像（谁是核心用户/购买频次）"),
+    ("brand_maturity",        "品牌成熟阶段（全新/已有基础/多品牌整合）"),
+    ("strategic_focus",       "当前战略重心（开市场/抢用户/提溢价/调性升级）"),
+    ("market_scope",          "市场地理范围（中国/出海/区域性）"),
+]
+
+
+# ══════════════════════════════════════════════════════════════
+# Phase -1：自适应反问机制
+# ══════════════════════════════════════════════════════════════
+
+async def _assess_and_clarify(
+    user_prompt: str,
+    handoff_context: str,
+    existing_answers: str,
+    clarify_round: int,
+) -> str | None:
+    """
+    评估当前已有信息是否覆盖5个关键维度。
+    返回：
+      - str：需要追问时，返回追问文本（将被 strategy_agent 加上 MARKER yield 出去）
+      - None：信息充足，无需追问，直接放行
+    """
+    # 构建评估上下文
+    info_context = f"用户品牌需求：{user_prompt}"
+    if handoff_context:
+        info_context += f"\n\n市场研究情报（Wacksman）：{handoff_context}"
+    if existing_answers:
+        info_context += f"\n\n用户补充回答：{existing_answers}"
+
+    dimensions_desc = "\n".join(
+        f"  [{key}] {label}" for key, label in _CLARIFY_DIMENSIONS
+    )
+
+    assessment_prompt = (
+        f"你是一位品牌战略总架构师（Trout），正在亲自评估以下信息是否足够完成深度的品牌战略分析。\n\n"
+        f"当前掌握的信息：\n{info_context}\n\n"
+        f"需要覆盖的5个战略关键维度：\n{dimensions_desc}\n\n"
+        f"请评估哪些维度信息明显缺失或模糊（无法支撑定位分析）。\n\n"
+        f"如果所有维度信息充足，或者已进行了 {clarify_round} 轮追问（上限），"
+        f"请回复：SUFFICIENT\n\n"
+        f"如果有明显缺失的维度，请回复：QUESTIONS\n[一段连贯的话术]。\n\n"
+        f"【追问话术要求——极其核心】：\n"
+        f"1. 承接过渡：绝对不能一上来直接生硬提问！开头第一段必须用 1-2 句话点评、总结你刚收到的信息（尤其是 Wacksman 整理的市场研究情报及其核心挑战）。让用户感受到你已经充分理解了前面的市场调研数据。\n"
+        f"2. 自然引出：随后使用类似“不过，要为您制定一套更扎实的品牌战略，仅仅看宏观市场还不够，我们还需要针对几个关键内部背景进行探讨……”的口吻引出缺失项。\n"
+        f"3. 精准追问：只把重点放在明显缺失的那 1-3 个维度进行提问，语言要像资深商业顾问般亲切专业，不要像机器做问卷般死板。"
+    )
+
+    messages = [
+        {"role": "system", "content": "你是品牌战略顾问助理，负责评估信息完整度并生成精准追问。"},
+        {"role": "user", "content": assessment_prompt},
+    ]
+
+    response = await call_llm(messages)
+    response = response.strip()
+
+    if response.startswith("SUFFICIENT") or clarify_round >= MAX_CLARIFY_ROUNDS:
+        logger.info("Trout 反问评估：信息充足或达到追问上限，放行继续")
+        return None
+
+    if response.startswith("QUESTIONS"):
+        questions_text = response[len("QUESTIONS"):].strip().lstrip("\n")
+        logger.info("Trout 反问 Round %d：发现信息缺口，生成追问", clarify_round + 1)
+        return questions_text
+
+    # 兜底：无法识别格式时放行
+    logger.warning("Trout 反问评估：无法识别 LLM 响应格式，放行继续")
+    return None
+
+
+# ══════════════════════════════════════════════════════════════
+# Phase 1-2：主流程
+# ══════════════════════════════════════════════════════════════
 
 async def run_strategy_agent_stream(
     user_prompt: str,
     handoff_context: str,
+    clarification_answers: str | None = None,
+    clarify_round: int = 0,
 ) -> AsyncGenerator[str, None]:
     """
     品牌战略 Agent 主入口（流式输出）。
 
-    Phase 1: 智能框架选择 + 多轮工具调用循环
-      - 第一轮：LLM 调用 select_applicable_frameworks 分析场景，返回 framework_sequence
-      - 后续轮：LLM 按 framework_sequence 顺序依次调用各品牌框架工具
-      - 直到 synthesize_strategy_report 被调用，循环结束
-
-    Phase 2: 流式生成 Markdown 品牌战略报告
-
     Args:
-        user_prompt:    用户的品牌需求原文
-        handoff_context: 市场研究 Agent（Wacksman）的 handoff 交接摘要
+        user_prompt:             用户的品牌需求原文
+        handoff_context:         Wacksman 市场研究 handoff 交接摘要
+        clarification_answers:   用户对追问的回答（None 表示尚未追问）
+        clarify_round:           当前是第几轮反问（由 orchestrator 传入）
+
+    Yields:
+        str: 流式输出的文本 chunk，或以 TROUT_CLARIFY_MARKER 开头的追问信号
     """
+    # ─── Phase -1：自适应反问 ────────────────────────────────
+    # NOTE: 仅在 clarification_answers 为 None 时进行评估
+    # 一旦用户回答后 orchestrator 会传入 clarification_answers，跳过此阶段
+    if clarification_answers is None:
+        questions = await _assess_and_clarify(
+            user_prompt=user_prompt,
+            handoff_context=handoff_context,
+            existing_answers="",
+            clarify_round=clarify_round,
+        )
+        if questions:
+            # NOTE: 发出追问信号，orchestrator 捕获后 emit strategy_clarify SSE + session_pause
+            yield f"{TROUT_CLARIFY_MARKER}{questions}"
+            return
+
+    # ─── Phase 0：组装输入消息 ────────────────────────────────
     system_prompt = load_agent_prompt("strategy")
 
-    # 初始消息：包含用户需求 + Wacksman 交接摘要
     user_content = f"品牌需求：\n{user_prompt}"
     if handoff_context:
-        user_content += f"\n\n{handoff_context}"
+        user_content += f"\n\n【市场研究交接（Wacksman）】\n{handoff_context}"
+    if clarification_answers:
+        user_content += f"\n\n【用户补充信息（战略追问回答）】\n{clarification_answers}"
+
     user_content += (
-        "\n\n【第一步必须】请调用 select_applicable_frameworks 分析本次品牌项目场景，"
-        "智能选择需要执行哪些战略框架，然后按选定顺序逐步完成分析。"
+        "\n\n【执行指令】请首先调用 select_applicable_frameworks 完成全局规划，"
+        "输出 theory_combo（包含 Layer 0/1/2 的理论选择），"
+        "然后按照规划的顺序依次调用各理论工具，完成所有分析后调用 synthesize_strategy_report。"
     )
 
     messages: list[dict] = [
@@ -69,61 +167,70 @@ async def run_strategy_agent_stream(
         {"role": "user", "content": user_content},
     ]
 
-    # NOTE: framework_sequence 由 select_applicable_frameworks 决定
-    # 这是让 agent 按照 LLM「选定的框架清单」执行的关键机制
-    framework_plan: list[str] = []
+    # 执行状态追踪
     executed_frameworks: list[str] = []
+    theory_combo: dict = {}
 
-    # ─── Phase 1: 智能框架选择 + 工具调用循环 ──────────────────────────────
+    # ─── Phase 1：工具调用循环 ────────────────────────────────
     for round_idx in range(1, MAX_TOOL_ROUNDS + 1):
         logger.info(
-            "Trout 工具循环 Round %d/%d | 已执行: %s | 计划序列: %s",
+            "Trout Phase 1 · Round %d/%d | 已执行: %s",
             round_idx, MAX_TOOL_ROUNDS,
-            executed_frameworks or "无",
-            framework_plan or "待选",
+            executed_frameworks or ["无"],
         )
 
-        response = await call_llm_with_tools(
+        content, tool_calls = await call_llm_with_tools(
             messages=messages,
             tools=TROUT_TOOLS,
         )
-
-        tool_calls = response.get("tool_calls") or []
-        text_content = (response.get("content") or "").strip()
+        text_content = (content or "").strip()
 
         # 情形 A：LLM 调用了工具
         if tool_calls:
-            parsed = parse_trout_tool_calls(tool_calls)
-
             messages.append({
                 "role": "assistant",
                 "content": text_content or None,
                 "tool_calls": tool_calls,
             })
 
+            parsed_results = parse_trout_tool_calls(tool_calls)
             synthesis_triggered = False
-            for tool_name, args in parsed:
-                logger.info("Trout 调用工具: %s", tool_name)
-                result_str = execute_trout_tool(tool_name, args)
-                executed_frameworks.append(tool_name)
 
-                # NOTE: 元路由工具执行完成后，从结果中提取 framework_sequence
-                # 这个序列将作为后续轮次的「路径图」，在 system 追加 context 时注入
+            for item in parsed_results:
+                tool_name = item["tool_name"]
+                result_str = item["result"]
+                executed_frameworks.append(tool_name)
+                logger.info("Trout 工具执行: %s", tool_name)
+
+                # 提取 theory_combo 供进度提示使用
                 if tool_name == FRAMEWORK_SELECTOR:
                     try:
-                        plan_result = json.loads(result_str)
-                        framework_plan = plan_result.get("framework_sequence", [])
-                        logger.info("Trout 框架计划已确定: %s", framework_plan)
-                    except (json.JSONDecodeError, AttributeError):
-                        logger.warning("Trout 框架计划解析失败，将由 LLM 自主决定")
+                        # select_applicable_frameworks 的执行结果是文本摘要，theory_combo 在 args 中
+                        # 从 tool_calls 原始 args 中提取
+                        for tc in tool_calls:
+                            if tc.get("function", {}).get("name") == FRAMEWORK_SELECTOR:
+                                raw = tc["function"].get("arguments", "{}")
+                                args = json.loads(raw) if isinstance(raw, str) else raw
+                                theory_combo = {
+                                    "layer0": args.get("layer0_frameworks", []),
+                                    "layer1": args.get("layer1_theory", ""),
+                                    "layer2": [d.get("framework_name") for d in args.get("layer2_drivers", [])],
+                                    "optional": args.get("optional_tools", []),
+                                }
+                                logger.info("Trout theory_combo 解析: %s", theory_combo)
+                                break
+                    except Exception as e:
+                        logger.warning("theory_combo 解析失败: %s", e)
 
+                # 将工具结果注入消息历史
+                tool_call_id = next(
+                    (tc.get("id", "") for tc in tool_calls
+                     if tc.get("function", {}).get("name") == tool_name),
+                    f"tool_{round_idx}_{tool_name}",
+                )
                 messages.append({
                     "role": "tool",
-                    "tool_call_id": next(
-                        (tc.get("id", "") for tc in tool_calls
-                         if tc.get("function", {}).get("name") == tool_name),
-                        f"tool_call_{round_idx}",
-                    ),
+                    "tool_call_id": tool_call_id,
                     "content": result_str,
                 })
 
@@ -132,30 +239,17 @@ async def run_strategy_agent_stream(
 
             if synthesis_triggered:
                 logger.info(
-                    "Trout 所有框架工具执行完毕。执行序列: %s",
+                    "Trout 所有工具执行完毕，进入报告生成。序列: %s",
                     " → ".join(executed_frameworks),
                 )
                 break
 
-            # NOTE: 若 framework_plan 已确定，在每轮工具结果后注入「当前进度」提示，
-            # 帮助 LLM 清楚知道下一步调用哪个工具（避免遗漏或重复调用）
-            if framework_plan:
-                remaining = [f for f in framework_plan if f not in executed_frameworks]
-                if remaining:
-                    next_tool = remaining[0]
-                    progress_hint = (
-                        f"[执行进度] 已完成: {', '.join(executed_frameworks)} | "
-                        f"下一步: {next_tool} | "
-                        f"剩余: {' → '.join(remaining)}"
-                    )
-                    messages.append({
-                        "role": "user",
-                        "content": progress_hint,
-                    })
+            # 注入执行进度提示，帮助 LLM 明确下一步工具
+            _inject_progress_hint(messages, executed_frameworks, theory_combo)
 
-        # 情形 B：LLM 直接返回文本（跳过工具调用）
+        # 情形 B：LLM 直接返回文本（不调用工具）
         elif text_content:
-            logger.info("Trout Round %d 直接返回文本，结束循环进入报告生成", round_idx)
+            logger.info("Trout Round %d 直接返回文本，跳出循环", round_idx)
             messages.append({"role": "assistant", "content": text_content})
             break
 
@@ -164,31 +258,86 @@ async def run_strategy_agent_stream(
             logger.warning("Trout Round %d 空响应，终止循环", round_idx)
             break
 
-    # ─── Phase 2: 流式生成最终战略报告 ────────────────────────────────────
-    # 构建报告生成指令，只报告本次实际执行的框架章节（跳过未执行的）
-    executed_display = [f for f in executed_frameworks if f not in (FRAMEWORK_SELECTOR, SYNTHESIS_TRIGGER)]
+    # ─── Phase 2：流式生成报告 ───────────────────────────────
+    executed_display = [
+        f for f in executed_frameworks
+        if f not in (FRAMEWORK_SELECTOR, SYNTHESIS_TRIGGER)
+    ]
+
     chapter_map = {
-        "apply_positioning_framework": "① 品牌定位",
-        "build_brand_house": "② 品牌屋",
-        "design_brand_architecture": "③ 品牌架构",
-        "apply_brand_archetypes": "④ 品牌原型系统",
-        "generate_naming_candidates": "⑤ 命名方案",
+        "analyze_competitive_landscape": "一、竞争战略诊断",
+        "apply_positioning_theory":      "二、核心品牌定位",
+        "apply_brand_driver":            "三、品牌驱动力分析",
+        "build_brand_house":             "四、品牌屋",
+        "design_brand_architecture":     "五、品牌架构",
+        "generate_naming_candidates":    "六、品牌命名建议",
     }
     chapters = [chapter_map[f] for f in executed_display if f in chapter_map]
-    chapters.append("⑥ 落地建议与 Handoff 摘要")
+    chapters.append("七、战略落地指引（含给Lois/Scher的下游建议）")
 
     messages.append({
         "role": "user",
         "content": (
-            f"请现在根据以上框架分析结果，生成完整的品牌战略 Markdown 报告。"
-            f"本次需要输出的章节：{' | '.join(chapters)}。"
-            "请严格按照 strategy.md 中定义的报告结构，每个章节均需详尽展开，"
-            "最后附上 <handoff> 标签数据供下游 Agent 读取。"
+            f"所有框架分析已完成（{len(executed_display)} 个工具）。"
+            f"请根据以上分析结果，生成完整的品牌战略 Markdown 报告。"
+            f"本次需输出章节：{' | '.join(chapters)}。"
+            "严格按照 strategy.md 报告结构，每章详尽展开，"
+            "最后附上 <handoff> 标签数据（含传播方向指引和视觉方向指引）。"
         ),
     })
 
-    logger.info("Trout 开始流式生成品牌战略报告（章节: %s）...", " | ".join(chapters))
+    logger.info("Trout Phase 2 开始流式生成报告（%d 章）...", len(chapters))
     async for chunk in call_llm_stream(messages):
         yield chunk
 
-    logger.info("Trout 品牌战略报告生成完成（总工具调用: %d 次）", len(executed_frameworks))
+    logger.info(
+        "Trout 报告生成完成（工具调用共 %d 次）",
+        len(executed_frameworks),
+    )
+
+
+# ══════════════════════════════════════════════════════════════
+# 内部辅助函数
+# ══════════════════════════════════════════════════════════════
+
+def _inject_progress_hint(
+    messages: list[dict],
+    executed: list[str],
+    theory_combo: dict,
+) -> None:
+    """
+    在工具结果后注入执行进度提示，帮助 LLM 明确下一步工具。
+    NOTE: 参考 market_agent.py 的 PROGRESS_MARKER 机制。
+    """
+    if not theory_combo:
+        return
+
+    # 构建完整预期执行序列
+    expected = ["analyze_competitive_landscape", "apply_positioning_theory"]
+    for fw in theory_combo.get("layer2", []):
+        if fw:
+            expected.append("apply_brand_driver")
+    expected.append("build_brand_house")
+    expected.extend(theory_combo.get("optional", []))
+    expected.append("synthesize_strategy_report")
+
+    # 去重保持顺序
+    seen: set[str] = set()
+    expected_unique: list[str] = []
+    for item in expected:
+        if item not in seen:
+            seen.add(item)
+            expected_unique.append(item)
+
+    remaining = [t for t in expected_unique if t not in executed]
+    if not remaining:
+        return
+
+    next_tool = remaining[0]
+    hint = (
+        f"[执行进度] 已完成: {' → '.join(executed)} | "
+        f"下一步请调用: {next_tool} | "
+        f"待执行: {' → '.join(remaining)}"
+    )
+    messages.append({"role": "user", "content": hint})
+    logger.debug("Trout 进度提示注入: 下一步 = %s", next_tool)

@@ -22,7 +22,7 @@ export const workspace: Record<string, string> = {
   'workspace.connecting': 'Connecting to AI agents...',
   'workspace.analyzing': 'Analyzing',
   'workspace.done': 'Done',
-  'workspace.bottom.placeholder': 'Send a message to Brandclaw',
+  'workspace.bottom.placeholder': 'Send a message to Branin',
   'workspace.cancel.title': 'Stop generation',
   'workspace.cancel': 'Stop',
   'workspace.send.title': 'Start new analysis',

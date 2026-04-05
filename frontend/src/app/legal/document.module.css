@@ -37,6 +37,13 @@
   font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.serviceName {
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 

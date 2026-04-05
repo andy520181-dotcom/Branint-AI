@@ -21,6 +21,7 @@ export default function PrivacyPage() {
           ← {t('legal.backHome')}
         </Link>
         <h1 className={styles.title}>{t('legal.privacyTitle')}</h1>
+        <p className={styles.serviceName}>{t('legal.serviceName')}</p>
         <p className={styles.body}>{t('legal.privacyBody')}</p>
       </main>
     </div>

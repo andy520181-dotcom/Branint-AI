@@ -5,7 +5,7 @@ import { LocaleProvider } from '@/contexts/LocaleContext';
 import ThemeInit from '@/components/ThemeInit';
 
 export const metadata: Metadata = {
-  title: 'Brandclaw AI — 全球首个AI品牌咨询智能体',
+  title: 'Branin AI — 全球首个AI品牌咨询智能体',
   description: '由 AI 驱动的专业品牌咨询平台，通过市场研究、品牌战略、内容策划、美术指导四大智能体，自动生成完整品牌战略报告。',
   keywords: '品牌咨询, AI智能体, 品牌战略, 市场研究, 内容策划',
   icons: { icon: '/logo.png', apple: '/logo.png' },

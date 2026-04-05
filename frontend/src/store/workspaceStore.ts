@@ -97,6 +97,20 @@ export const loadSession = (sessionId: string): PersistedState | null => {
   } catch { return null; }
 };
 
+/** Trout 品牌战略 Agent 自适应反问状态 */
+export interface StrategyClarifyState {
+  /** 是否处于等待用户回答的暂停状态 */
+  isPaused: boolean;
+  /** Trout 发出的追问文本 */
+  questions: string;
+  /** 用户的回答（提交前的草稿） */
+  answer: string;
+  /** 当前已进行的追问轮次（0=未追问，最多3轮） */
+  clarifyRound: number;
+  /** 上一次会话的 sessionId（用于继续提交时找回上下文） */
+  originalSessionId: string;
+}
+
 interface WorkspaceState {
   sessionId: string;
   userPrompt: string;
@@ -113,6 +127,8 @@ interface WorkspaceState {
   isStreaming: boolean;
   error: string | null;
   previousRounds: RoundSnapshot[];
+  /** Trout 自适应反问状态，null 表示未触发 */
+  strategyClarify: StrategyClarifyState | null;
 }
 
 interface WorkspaceActions {
@@ -136,6 +152,10 @@ interface WorkspaceActions {
   setPreviousRounds: (rounds: RoundSnapshot[] | ((prev: RoundSnapshot[]) => RoundSnapshot[])) => void;
   /** 执行时光倒流特效，物理抹除 targetRound 之后的所有轮次以及正在生成的当前轮次 */
   revertToRound: (targetRound: number) => void;
+  /** 设置/清除 Trout 反问状态 */
+  setStrategyClarify: (state: StrategyClarifyState | null) => void;
+  /** 更新反问回答草稿 */
+  setStrategyClarifyAnswer: (answer: string) => void;
   reset: () => void;
 }
 
@@ -152,6 +172,7 @@ const initialState: WorkspaceState = {
   isStreaming: false,
   error: null,
   previousRounds: [],
+  strategyClarify: null,
 };
 
 /** NOTE: 统一的持久化调用点，避免每个 action 重复手写完整的 PersistedState */
@@ -333,6 +354,13 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
       error: null
     };
   }),
+
+  setStrategyClarify: (state) => set({ strategyClarify: state }),
+
+  setStrategyClarifyAnswer: (answer) =>
+    set((s) => ({
+      strategyClarify: s.strategyClarify ? { ...s.strategyClarify, answer } : null,
+    })),
 
   reset: () => set({ ...initialState, agents: initialAgents() }),
 }));

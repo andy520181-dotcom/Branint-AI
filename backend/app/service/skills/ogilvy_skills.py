@@ -59,13 +59,9 @@ OGILVY_TOOLS = [
                             "enum": ["market", "strategy", "content", "visual"]
                         },
                         "description": "本次需要调用的 Agent 列表。注意先后顺序或并发关系由服务端解析。"
-                    },
-                    "plan_explanation": {
-                        "type": "string",
-                        "description": "向用户解释为什么这么安排流程的话术文本（Markdown）。"
                     }
                 },
-                "required": ["routing_sequence", "plan_explanation"]
+                "required": ["routing_sequence"]
             }
         }
     },

@@ -21,6 +21,8 @@ export interface WorkspaceBottomBarProps {
   onCancel: () => void;
   attachments: AttachmentItem[];
   onAttachmentsChange: (items: AttachmentItem[]) => void;
+  /** NOTE: Trout 追问等待状态，为 true 时底部输入栏切换为追问回答模式 */
+  isClarifying?: boolean;
   t: TFn;
 }
 
@@ -34,6 +36,7 @@ export function WorkspaceBottomBar({
   onCancel,
   attachments,
   onAttachmentsChange,
+  isClarifying = false,
   t,
 }: WorkspaceBottomBarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +70,7 @@ export function WorkspaceBottomBar({
       <div className={styles.bottomInner}>
         <div className={styles.bottomSpacer} />
         <div className={styles.bottomInputWrap}>
+
           {/* ── 附件预览区 ─────────────────────────────────── */}
           {attachments.length > 0 && (
             <div className={styles.attachmentsRow}>

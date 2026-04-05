@@ -3,6 +3,18 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    # ─── 数据库 ──────────────────────────────────────
+    # NOTE: 使用 postgresql:// 格式；db/database.py 内部自动转换为 asyncpg DSN
+    database_url: str = "postgresql://branin_user:password@localhost:5432/branin_db"
+
+    # ─── 阿里云 OSS ──────────────────────────────────
+    oss_access_key_id: str = ""
+    oss_access_key_secret: str = ""
+    oss_bucket_name: str = "branin-assets"
+    oss_endpoint: str = "oss-cn-guangzhou.aliyuncs.com"
+    # NOTE: 公共读 Bucket 的访问域名，上传后直接拼接文件路径即得公开 URL
+    oss_public_url: str = "https://branin-assets.oss-cn-guangzhou.aliyuncs.com"
+
     # LLM 配置
     deepseek_api_key: str = ""
     openai_api_key: str = ""
@@ -34,7 +46,7 @@ class Settings(BaseSettings):
     smtp_port: int = 465        # SSL 加密端口
     smtp_user: str = ""          # 你的 QQ 邮箱地址
     smtp_password: str = ""      # 邮箱授权码（非登录密码）
-    smtp_from_name: str = "Brandclaw AI"
+    smtp_from_name: str = "Branin AI"
 
     # JWT 认证
     jwt_secret: str = "woloong-jwt-secret-change-in-prod"

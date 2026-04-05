@@ -1,4 +1,4 @@
-# Brandclaw AI · Agent 共享铁律
+# Branin AI · Agent 共享铁律
 
 ## 输出规范
 - 使用中文输出，专业术语保留英文原文

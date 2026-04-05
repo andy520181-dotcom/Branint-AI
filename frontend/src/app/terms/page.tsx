@@ -21,6 +21,7 @@ export default function TermsPage() {
           ← {t('legal.backHome')}
         </Link>
         <h1 className={styles.title}>{t('legal.termsTitle')}</h1>
+        <p className={styles.serviceName}>{t('legal.serviceName')}</p>
         <p className={styles.body}>{t('legal.termsBody')}</p>
       </main>
     </div>
