@@ -11,3 +11,4 @@ pydantic-settings>=2.2.0
 tavily-python>=0.3.0
 python-multipart
 oss2>=2.18.0
+tenacity>=9.0.0
