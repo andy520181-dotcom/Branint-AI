@@ -114,6 +114,7 @@ export default function WorkspacePage() {
           history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
         }
         const currentAgents = useWorkspaceStore.getState().agents;
+        const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
         const currentOutputs: Record<string, string> = {};
         for (const a of Object.values(currentAgents)) {
           if (a.output) currentOutputs[a.id] = a.output;
@@ -121,17 +122,33 @@ export default function WorkspacePage() {
         if (userPrompt && Object.keys(currentOutputs).length > 0) {
           history.push({ user_prompt: userPrompt, agent_outputs: currentOutputs });
         }
+
+        // NOTE: 将被中断的当前半成品轮次推入 previousRounds，防止刷新后消失
+        if (userPrompt) {
+          const snapshot: RoundSnapshot = {
+            sessionId: activeSessionId,
+            userPrompt,
+            agents: { ...currentAgents },
+            selectedAgents: currentSelectedAgents,
+          };
+          setPreviousRounds((prev) => [...prev, snapshot]);
+        }
+
         setStrategyClarify(null);
         setBottomPrompt('');
+        
+        // NOTE: 为让 UI 展现连贯，用户看到的内容是原始需求 + 补充回答
+        const combinedPrompt = `${userPrompt}\n\n[品牌方补充]: ${inputText}`;
+
         const newSessionId = await createSession(
           user.id,
-          userPrompt,   // 保持原始品牌需求不变
+          combinedPrompt,   // UI 展示并传给后端
           history,
           [],
-          inputText,    // 用户对 Trout 追问的回答
+          inputText,    // Trout 专用的真实答案
           clarifyRound,
         );
-        initSession(newSessionId, userPrompt);
+        initSession(newSessionId, combinedPrompt);
         setActiveSessionId(newSessionId);
         setRestored(false);
         window.history.pushState(null, '', `/workspace/${newSessionId}`);
