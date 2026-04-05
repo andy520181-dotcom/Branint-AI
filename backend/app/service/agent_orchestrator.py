@@ -336,6 +336,9 @@ class AgentOrchestrator:
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
+                # NOTE: generate_workflow_dag 分支没有独立的 plan_text，
+                # 直接使用 plan_accumulated 作为 handoff 上下文
+                plan_handoff = plan_accumulated
             else:
                 # Fallback 降级：走纯旧式的文本输出解析
                 content = decision.get("content", "")
@@ -348,13 +351,17 @@ class AgentOrchestrator:
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
-                selected_agents, plan_text = _parse_routing_response(plan_accumulated)
+                selected_agents_from_text, plan_text = _parse_routing_response(plan_accumulated)
+                # NOTE: fallback 解析出的路由优先级低于工具调用，仅在 selected_agents 未赋值时生效
+                if not selected_agents:  # type: ignore[name-defined]
+                    selected_agents = selected_agents_from_text
+                plan_handoff = plan_text
 
             yield _sse("routing_decided", json.dumps(selected_agents))
             yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
 
             # NOTE: 记录 consultant_plan 的决策文本作为初始 handoff，供后续 Agent 了解宏观计划
-            project_context["handoffs"]["consultant_plan"] = plan_text
+            project_context["handoffs"]["consultant_plan"] = plan_handoff
             project_context["full_outputs"]["consultant_plan"] = plan_accumulated
 
             yield _sse("agent_complete", "consultant_plan")
