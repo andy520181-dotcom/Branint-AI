@@ -55,15 +55,18 @@ def _extract_handoff(output: str) -> str:
     return output[-500:] if len(output) > 500 else output
 
 
-async def _stream_text_as_chunks(text: str, chunk_size: int = 4):
+async def _stream_text_as_chunks(text: str, chunk_size: int = 8) -> AsyncGenerator[str, None]:
     """
-    将文本以打字机效果逐块 yield，用于 Trout 追问文本的流式推送。
-    NOTE: 与 run_planning_phase_stream 的推送机制保持一致。
+    将已落盘的文本以打字机效果流式推送。
+    用于断点续传时，让前端体验与首次生成一致，而不是一次性闪现。
+
+    NOTE: chunk_size=8 + 10ms 延迟 ≈ 800字/秒，既保证视觉流式效果，
+    又不会让长文本（如数千字的市场报告）重放耗时过久。
     """
-    import asyncio
     for i in range(0, len(text), chunk_size):
-        yield text[i: i + chunk_size]
-        await asyncio.sleep(0.015)
+        yield text[i : i + chunk_size]
+        await asyncio.sleep(0.01)
+
 
 
 def _build_handoff_context(project_context: dict, agent_keys: list[str]) -> str:
@@ -156,11 +159,16 @@ class AgentOrchestrator:
 
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
         if _is_completed("consultant_plan"):
-            # 断点续传：consultant_plan 已落盘，直接重放存档输出（不调用 LLM）
+            # 断点续传：consultant_plan 已落盘，以流式打字机效果重放存档（不调用 LLM）
             plan_accumulated = ckpt_outputs["consultant_plan"]
             selected_agents = ckpt_selected  # 复用上次的路由顺序
-            logger.info("[RESUME] consultant_plan 已完成，重放存档，路由: %s", selected_agents)
+            logger.info("[RESUME] consultant_plan 已完成，流式重放存档，路由: %s", selected_agents)
             yield _sse("agent_start", "consultant_plan")
+            # NOTE: 瞬间整块下发，关闭续传时的密集打字碎片流以防 React 重新渲染崩溃
+            yield _sse_raw(
+                "agent_chunk",
+                json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
+            )
             yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
             yield _sse("routing_decided", json.dumps(selected_agents))
             yield _sse("agent_complete", "consultant_plan")
@@ -381,11 +389,15 @@ class AgentOrchestrator:
         for agent_key in selected_agents:
 
             if _is_completed(agent_key):
-                # 断点续传：该 Agent 已落盘，直接重放存档输出（不调用 LLM）
+                # 断点续传：以流式打字机效果重放存档输出（不调用 LLM）
                 saved_output = ckpt_outputs[agent_key]
-                logger.info("[RESUME] Agent %s 已完成，重放存档（%d 字）", agent_key, len(saved_output))
-                # NOTE: project_context 已在函数开头预填充，此处仅需发出趄价 SSE 让前端显示
+                logger.info("[RESUME] Agent %s 已完成，流式重放存档（%d 字）", agent_key, len(saved_output))
                 yield _sse("agent_start", agent_key)
+                # NOTE: 瞬间整块下发，切掉续传时的碎块推送，完全消除"提交后短暂卡死"的 CPU 毛刺
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": agent_key, "chunk": saved_output}, ensure_ascii=False),
+                )
                 yield _sse("agent_output", json.dumps({"id": agent_key, "content": saved_output}))
                 yield _sse("agent_complete", agent_key)
                 continue

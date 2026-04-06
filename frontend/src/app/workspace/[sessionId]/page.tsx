@@ -137,18 +137,19 @@ export default function WorkspacePage() {
         setStrategyClarify(null);
         setBottomPrompt('');
         
-        // NOTE: 为让 UI 展现连贯，用户看到的内容是原始需求 + 补充回答
-        const combinedPrompt = `${userPrompt}\n\n[品牌方补充]: ${inputText}`;
+        // NOTE: 用户回答作为独立的新一轮对话 prompt，不做拼接——贯彻流式对话铁律
+        const newPrompt = inputText;
 
         const newSessionId = await createSession(
           user.id,
-          combinedPrompt,   // UI 展示并传给后端
+          newPrompt,        // 用户回答直接作为新轮次 prompt
+          undefined,        // sessionId 留空让后端生成
           history,
           [],
           inputText,    // Trout 专用的真实答案
           clarifyRound,
         );
-        initSession(newSessionId, combinedPrompt);
+        initSession(newSessionId, newPrompt);
         setActiveSessionId(newSessionId);
         setRestored(false);
         window.history.pushState(null, '', `/workspace/${newSessionId}`);
@@ -213,7 +214,7 @@ export default function WorkspacePage() {
         setAttachments([]);
       }
 
-      const newSessionId = await createSession(user.id, promptText, history, uploadedUrls);
+      const newSessionId = await createSession(user.id, promptText, undefined, history, uploadedUrls);
       setBottomPrompt('');
       initSession(newSessionId, promptText);
       setActiveSessionId(newSessionId);
@@ -291,9 +292,10 @@ export default function WorkspacePage() {
           ]),
         ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string; researchProgress: [] }>;
 
+        // NOTE: completed/error 的会话不应触发 SSE，只有真正 running/pending 的才需要续传
         const liveSession =
-          snap.status !== 'completed' &&
-          !(snap.status === 'error' && !hasAnyOutput);
+          snap.status === 'running' ||
+          (snap.status === 'pending' && hasAnyOutput);
 
         useWorkspaceStore.setState({
           sessionId,
@@ -311,26 +313,42 @@ export default function WorkspacePage() {
 
         setPreviousRounds(cached?.previousRounds ?? []);
 
-        if (snap.status === 'completed') {
+        if (snap.status === 'completed' || snap.status === 'error') {
+          // NOTE: 已完成或已出错的会话直接标记为 restored，绝不触发 SSE 连接。
+          // 这是防止"历史记录点击后重新生成"的核心前端保护。
+          if (snap.status === 'error' && !hasAnyOutput) {
+            useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
+          }
           setRestored(true);
-        } else if (hasAnyOutput) {
+        } else if (liveSession) {
+          // running / pending 且有落盘输出：连接 SSE 续传
           setRestored(false);
-        } else if (snap.status === 'error') {
-          useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
-          setRestored(true);
         } else {
           /*
-           * running / pending：尚无 agent 落盘（例如刚开始或节流间隔内刷新）。
+           * pending 且无 agent 落盘（例如刚开始或节流间隔内刷新）。
            * 后端已把 status 置为 running 或仍 pending，但会话已在首次访问时启动——只连 SSE 续跑，禁止 initSession。
            */
           setRestored(false);
         }
       })
-      .catch(() => {
+      .catch(async () => {
         // snapshot 接口失败（404 等），回退到 sessionStorage prompt（真正的首次访问）
         const prompt = sessionStorage.getItem(`prompt_${sessionId}`) ?? '';
         if (prompt) {
+          // 提前填充本地 Store，让屏幕立刻显示“用户气泡”而非白屏
           initSession(sessionId, prompt);
+          
+          const userId = sessionStorage.getItem(`user_${sessionId}`);
+          if (userId) {
+            try {
+              // 【核心异步创建】：阻塞等待写库完成后，再允许 SSE 连接
+              await createSession(userId, prompt, sessionId);
+            } catch (createErr) {
+              console.error('Failed to create session on landing redirect:', createErr);
+            }
+          }
+
+          // 核心：打开 SSE 连接闸门
           setRestored(false);
           return;
         }

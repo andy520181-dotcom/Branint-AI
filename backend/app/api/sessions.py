@@ -41,7 +41,7 @@ async def create_session(
     创建新的品牌咨询会话，持久化到 PostgreSQL。
     返回 session_id 供前端连接 SSE 流。
     """
-    session_id = str(uuid.uuid4())
+    session_id = body.session_id or str(uuid.uuid4())
 
     await session_repo.create_session(
         db,
@@ -50,6 +50,8 @@ async def create_session(
         user_prompt=body.user_prompt,
         conversation_history=[r.model_dump() for r in body.conversation_history],
         attachments=body.attachments,
+        strategy_clarification_answers=body.strategy_clarification_answers,
+        strategy_clarify_round=body.strategy_clarify_round,
     )
 
     # NOTE: 同步写入内存缓存，避免 stream_session 立即查库
@@ -58,6 +60,8 @@ async def create_session(
         "user_prompt": body.user_prompt,
         "conversation_history": [r.model_dump() for r in body.conversation_history],
         "attachments": body.attachments,
+        "strategy_clarification_answers": body.strategy_clarification_answers,
+        "strategy_clarify_round": body.strategy_clarify_round,
         "status": "pending",
         "report": None,
         "selected_agents": [],
@@ -117,6 +121,27 @@ async def stream_session(
     if not session_data:
         raise HTTPException(status_code=404, detail="会话不存在")
 
+    # NOTE: 已完成 / 已出错 的会话不应重新执行 Orchestrator，
+    #       直接返回已落盘的数据即可。这是防止"历史记录点击后重新生成"的核心保护。
+    current_status = session_data.get("status", "pending")
+
+    if current_status == "completed":
+        async def _replay_completed() -> AsyncGenerator[str, None]:
+            """已完成会话的快速重放：直接返回落盘数据，不调用 LLM"""
+            import json as _j
+            report = session_data.get("report")
+            yield f"event: session_complete\ndata: {_j.dumps({'report': report or ''})}\n\n"
+
+        return StreamingResponse(
+            _replay_completed(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+
     user_prompt = session_data["user_prompt"]
     conversation_history = session_data.get("conversation_history", [])
     attachments = session_data.get("attachments", [])
@@ -144,7 +169,7 @@ async def stream_session(
 
         try:
             async with AsyncSessionFactory() as gen_db:
-                # 标记为 running
+                # NOTE: 仅在非 completed 状态下才标记为 running（已完成的在上方短路返回）
                 await session_repo.update_session_status(gen_db, session_id, "running")
                 _session_cache[session_id]["status"] = "running"
 
@@ -179,11 +204,23 @@ async def stream_session(
                                         _chunk_buffers[aid] = _chunk_buffers.get(aid, "") + chunk
                                         now = _time.monotonic()
                                         if now - _last_persist_ts.get(aid, 0) >= THROTTLE_SECS:
-                                            await session_repo.update_agent_output(
-                                                gen_db, session_id, aid,
-                                                _chunk_buffers[aid], status="running",
-                                            )
-                                            _last_persist_ts[aid] = now
+                                            # NOTE: 强制写入超时，即使数据库由于连接黑洞卡死，也不能阻塞向前端推送文字的流！
+                                            try:
+                                                import asyncio
+                                                await asyncio.wait_for(
+                                                    session_repo.update_agent_output(
+                                                        gen_db, session_id, aid,
+                                                        _chunk_buffers[aid], status="running",
+                                                    ),
+                                                    timeout=3.0,
+                                                )
+                                                _last_persist_ts[aid] = now
+                                            except asyncio.TimeoutError:
+                                                logger.warning(f"更新 Agent {aid} 输出写库超时，回滚本次事务")
+                                                await gen_db.rollback()
+                                            except Exception as e:
+                                                logger.warning(f"更新 Agent {aid} 输出失败: {e}")
+                                                await gen_db.rollback()
                                 except Exception:
                                     pass
 

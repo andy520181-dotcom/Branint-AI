@@ -12,7 +12,10 @@ class HistoryRound(BaseModel):
     agent_outputs: dict[str, str] = {}  # {"market": "完整输出...", "strategy": "..."}
 
 
+from typing import Optional
+
 class CreateSessionRequest(BaseModel):
+    session_id: Optional[str] = Field(default=None, description="前端生成的 UUID，若不传则后端生成")
     user_prompt: str = Field(
         ...,
         min_length=1,
@@ -24,6 +27,9 @@ class CreateSessionRequest(BaseModel):
     conversation_history: list[HistoryRound] = []
     # NOTE: 本次对话附带的资产文件 URL列表（图片/PDF/文档），由前端上传并存儲后返回
     attachments: list[str] = []
+    # NOTE: 战略追问的回答和轮数（若有）
+    strategy_clarification_answers: Optional[str] = Field(default=None, description="战略重放澄清回答")
+    strategy_clarify_round: Optional[int] = Field(default=0, description="目前所属的澄清轮数")
 
 
 class CreateSessionResponse(BaseModel):

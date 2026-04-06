@@ -31,6 +31,11 @@ engine = create_async_engine(
     max_overflow=10,
     pool_pre_ping=True,  # 自动检测断开的连接，防止 idle 连接失效
     echo=False,          # 生产环境关闭 SQL 日志，调试时可改为 True
+    connect_args={
+        "ssl": False, 
+        "command_timeout": 5.0,  # 强制 5s 查询超时，彻底阻断数据库写死导致的流被切断
+        "server_settings": {"tcp_keepalives_idle": "60"}
+    },
 )
 
 # NOTE: expire_on_commit=False 避免在 async 场景下 commit 后访问属性触发懒加载报错

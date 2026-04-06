@@ -27,6 +27,8 @@ async def create_session(
     user_prompt: str,
     conversation_history: list[Any],
     attachments: list[str],
+    strategy_clarification_answers: str | None = None,
+    strategy_clarify_round: int = 0,
 ) -> SessionModel:
     """
     创建新会话记录，初始状态为 pending。
@@ -37,6 +39,8 @@ async def create_session(
         user_prompt=user_prompt,
         conversation_history=conversation_history,
         attachments=attachments,
+        strategy_clarification_answers=strategy_clarification_answers,
+        strategy_clarify_round=strategy_clarify_round,
         status="pending",
         selected_agents=[],
         agent_outputs={},

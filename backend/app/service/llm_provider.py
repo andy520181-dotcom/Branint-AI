@@ -71,6 +71,7 @@ async def call_llm_stream(
                 stream=True,
                 temperature=temp,
                 max_tokens=4096,
+                timeout=25.0,  # 强制 25s 超时限制，防止 TCP 假死阻塞整个协程和 SSE 推流
             )
             async for chunk in response:
                 token = chunk.choices[0].delta.content or ""
@@ -112,6 +113,7 @@ async def call_llm(
         stream=False,
         temperature=temp,
         max_tokens=4096,
+        timeout=45.0,  # 非流式调用给予更多等待时间，但仍必须防止永久死锁
     )
     return response.choices[0].message.content or ""
 
@@ -138,6 +140,7 @@ async def call_llm_with_tools(
         "temperature": temp,
         "max_tokens": 4096,
         "tools": tools,
+        "timeout": 45.0,  # 工具调用同样配置超时防假死
     }
     if tool_choice:
         kwargs["tool_choice"] = tool_choice

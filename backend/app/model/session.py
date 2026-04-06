@@ -66,6 +66,10 @@ class Session(Base):
     # 顾问最终汇总报告（session_complete 事件产出）
     report: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # 战略反问与追问记录
+    strategy_clarification_answers: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    strategy_clarify_round: Mapped[int] = mapped_column(nullable=False, default=0)
+
     # 时间戳：自动管理，无需应用层手动设置
     created_at: Mapped[datetime] = mapped_column(
         nullable=False,

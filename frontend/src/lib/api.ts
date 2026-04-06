@@ -20,6 +20,7 @@ export interface ConversationRound {
 export async function createSession(
   userId: string,
   prompt: string,
+  sessionId?: string,
   conversationHistory: ConversationRound[] = [],
   attachments: string[] = [],
   strategyClarifyAnswers?: string,
@@ -31,6 +32,7 @@ export async function createSession(
     body: JSON.stringify({
       user_id: userId,
       user_prompt: prompt,
+      ...(sessionId && { session_id: sessionId }),
       conversation_history: conversationHistory,
       attachments,
       // NOTE: 仅在 Trout 追问后继续提交时才传入，普通对话为 undefined（后端忽略）
