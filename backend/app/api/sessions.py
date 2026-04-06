@@ -78,7 +78,7 @@ async def create_session(
 
 async def _load_session_from_db(
     session_id: str, db: AsyncSession
-) -> dict | None:
+) -> Optional[dict]:
     """
     从数据库加载会话到内存缓存。
     进程重启后 stream / snapshot 接口调用此方法恢复状态。
@@ -270,7 +270,7 @@ async def _run_orchestrator_background(
             if session_id in _session_cache:
                 _session_cache[session_id]["status"] = "running"
 
-            final_report: str | None = None
+            final_report: Optional[str] = None
 
             async for event in orchestrator.run_session(
                 user_prompt,
@@ -288,8 +288,7 @@ async def _run_orchestrator_background(
                     if not is_chunk:
                         # 关键事件（routing_decided / agent_output / agent_complete 等）立即落盘
                         try:
-                            seq = await event_repo.append(gen_db, session_id, event)
-                            await gen_db.commit()
+                            seq = await event_repo.append_independent(session_id, event)
                             broadcaster.put(f"id: {seq}\n{event}")
                         except Exception as evlog_err:
                             logger.warning("event_log 写入失败（降级无 seq）: %s", evlog_err)
@@ -307,8 +306,7 @@ async def _run_orchestrator_background(
                                         now = _time.monotonic()
                                         if now - _last_evlog_ts.get(aid, 0) >= EVLOG_THROTTLE:
                                             try:
-                                                seq = await event_repo.append(gen_db, session_id, event)
-                                                await gen_db.commit()
+                                                seq = await event_repo.append_independent(session_id, event)
                                                 broadcaster.put(f"id: {seq}\n{event}")
                                                 _last_evlog_ts[aid] = now
                                             except Exception:

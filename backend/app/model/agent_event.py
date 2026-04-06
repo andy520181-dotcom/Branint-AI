@@ -16,7 +16,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import BigInteger, Integer, Text, func
+from sqlalchemy import BigInteger, DateTime, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -57,8 +57,9 @@ class AgentEvent(Base):
     # 结构化 payload（便于 snapshot 接口直接聚合，无需解析 raw_sse）
     payload: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
 
-    # 时间戳
+    # NOTE: timezone=True → TIMESTAMPTZ，避免 naive/aware datetime 冲突
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         server_default=func.now(),
     )
