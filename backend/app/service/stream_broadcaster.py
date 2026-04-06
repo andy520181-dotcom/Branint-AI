@@ -136,8 +136,8 @@ class SessionBroadcaster:
                                 pass
                     # agent_chunk 不放入 replay，后续用 agent_output 替代
                 elif "event: agent_start" in event:
-                    # agent_start 也不单独 replay（避免前端清空已有输出）
-                    pass
+                    # NOTE: 必须重放 agent_start，否则前端在 LLM 思考期（无 chunk 时）会一直卡在空白的 loading 态！
+                    replay_events.append(event)
                 elif "event: agent_output" in event:
                     # 有最终输出，用它替代累计 chunk（更权威）
                     for line in event.split("\n"):

@@ -76,6 +76,7 @@ async def call_llm_stream(
             async for chunk in response:
                 token = chunk.choices[0].delta.content or ""
                 if token:
+                    logger.info("LLM chunk: %r", token)
                     yield token
             return  # 正常完成，退出
 

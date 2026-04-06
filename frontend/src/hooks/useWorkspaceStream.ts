@@ -164,6 +164,7 @@ export function useWorkspaceStream(sessionId: string | null) {
           const keys = JSON.parse(e.data) as string[];
           // 首尾各加顾问节点，中间是决策出的专业 Agent
           const fullRoute: AgentId[] = [
+            'consultant_greeting',
             'consultant_plan',
             ...keys.filter((k): k is AgentId => ['market','strategy','content','visual'].includes(k)),
             'consultant_review',

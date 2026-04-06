@@ -73,6 +73,20 @@ async def create_session(
         "创建新会话: %s, 用户: %s, 历史轮次: %d, 附件: %d",
         session_id, body.user_id, len(body.conversation_history), len(body.attachments),
     )
+
+    # NOTE: POST 接口负责直接启动后台任务，实现真正的读写分离
+    from app.service.stream_broadcaster import get_or_create_broadcaster
+    import asyncio
+
+    broadcaster, _ = get_or_create_broadcaster(session_id)
+    session_data = _session_cache[session_id]
+    
+    logger.info("启动后台 Orchestrator 任务: %s", session_id)
+    asyncio.create_task(
+        _run_orchestrator_background(session_id, session_data, broadcaster),
+        name=f"orchestrator-{session_id[:8]}",
+    )
+
     return CreateSessionResponse(session_id=session_id)
 
 
@@ -115,23 +129,13 @@ async def stream_session(
     last_event_id: Optional[str] = Header(None, alias="Last-Event-ID"),
 ) -> StreamingResponse:
     """
-    SSE 流式接口：连接后自动开始执行多个 Agent。
-    前端使用 EventSource 连接此接口接收实时输出。
-
-    NOTE: 三条数据路径（优先级从高到低）：
-
-      路径 A：Last-Event-ID 存在（刷新/断线重连）
-        → 广播器在线：接入广播器，先回放内存中漏掉的事件，再实时接收
-        → 广播器离线（进程重启）：从 DB event_log 精确续传，同时重启 Orchestrator
-          填充剩余（如果 status 还是 running）
-
-      路径 B：首次连接（Last-Event-ID 为空，非 completed）
-        → 创建广播器 + 启动后台 Orchestrator 任务
-
-      路径 C：已完成会话
-        → 直接从 event_log（或 DB 快照）回放所有事件
+    SSE 流式接口：纯只读监听器。
+    
+    绝对禁止在此接口中启动任何大模型生成任务。
+    如果 broadcaster 在线，则听取实时流；
+    如果不在线（已完成或进程崩溃过），直接从 event_log 播放录像并结束。
     """
-    from app.service.stream_broadcaster import get_broadcaster, get_or_create_broadcaster
+    from app.service.stream_broadcaster import get_broadcaster
     import asyncio
 
     session_data = await _load_session_from_db(session_id, db)
@@ -147,48 +151,11 @@ async def stream_session(
         "Access-Control-Allow-Origin": "*",
     }
 
-    # ─── 路径 C：已完成会话 — 从 event_log 精确回放（最权威）───────────────
-    if current_status == "completed":
-        async def _replay_from_eventlog() -> AsyncGenerator[str, None]:
-            """优先从 event_log 回放（有 seq id 字段，前端可精确追踪位置）"""
-            from app.db.database import AsyncSessionFactory
-            async with AsyncSessionFactory() as replay_db:
-                events = await event_repo.fetch_since(replay_db, session_id, resume_seq)
-
-            if events:
-                # event_log 有完整记录，逐条回放（保留原始 SSE 格式）
-                for ev in events:
-                    yield f"id: {ev.seq}\n{ev.raw_sse}"
-                    if not ev.raw_sse.endswith("\n\n"):
-                        yield "\n"
-            else:
-                # 降级：event_log 无记录（旧会话），从 DB 快照构建
-                report = session_data.get("report")
-                agent_outputs = session_data.get("agent_outputs") or {}
-                selected = session_data.get("selected_agents") or []
-                agent_media = session_data.get("agent_media") or {}
-
-                if selected:
-                    yield f"event: routing_decided\ndata: {_json.dumps(selected)}\n\n"
-                for aid, output in agent_outputs.items():
-                    if output:
-                        yield f"event: agent_start\ndata: {aid}\n\n"
-                        yield f"event: agent_output\ndata: {_json.dumps({'id': aid, 'content': output}, ensure_ascii=False)}\n\n"
-                        yield f"event: agent_complete\ndata: {aid}\n\n"
-                for img in agent_media.get("agentImages", []):
-                    yield f"event: agent_image\ndata: {_json.dumps(img, ensure_ascii=False)}\n\n"
-                for vid in agent_media.get("agentVideos", []):
-                    yield f"event: agent_video\ndata: {_json.dumps(vid, ensure_ascii=False)}\n\n"
-                yield f"event: session_complete\ndata: {_json.dumps({'report': report or ''})}\n\n"
-
-        return StreamingResponse(_replay_from_eventlog(), media_type="text/event-stream", headers=SSE_HEADERS)
-
-    # ─── 路径 A & B：会话仍在运行 ──────────────────────────────────────────
     broadcaster = get_broadcaster(session_id)
 
     if broadcaster:
-        # 路径 A-1：广播器在线（刷新重连），接入即得最新进度
-        logger.info("广播器在线，刷新重连: %s (Last-Event-ID=%s)", session_id, last_event_id)
+        # 广播器在线：证明是当前进程刚 POST 创建的、真正在跑的会话
+        logger.info("广播器在线，接入监听: %s (Last-Event-ID=%s)", session_id, last_event_id)
 
         async def sse_listener_live() -> AsyncGenerator[str, None]:
             async for event in broadcaster.listen():
@@ -196,32 +163,48 @@ async def stream_session(
 
         return StreamingResponse(sse_listener_live(), media_type="text/event-stream", headers=SSE_HEADERS)
 
-    # 路径 A-2 或 B：广播器不在线（进程重启 或 首次连接）
-    broadcaster, is_new = get_or_create_broadcaster(session_id)
+    # 广播器不在线：说明会话要么已完成，要么是历史死会话（比如进程重启、断网等导致的僵尸记录）
+    if current_status in ("pending", "running"):
+        # 对这种因为没跑完而阴魂不散的僵尸，静默超度为 error，禁止其未来任何复苏企图
+        async def _fix_ghost_session() -> None:
+            from app.db.database import AsyncSessionFactory as ASF
+            async with ASF() as fix_db:
+                await session_repo.update_session_status(fix_db, session_id, "error")
+                logger.info("自动将孤儿运行态超度为 error（禁止重新生成）: %s", session_id)
+        asyncio.create_task(_fix_ghost_session(), name=f"fix-ghost-{session_id[:8]}")
 
-    if resume_seq > 0:
-        # 路径 A-2：进程重启后的续传（Last-Event-ID 存在但广播器已死）
-        # 先从 event_log 把 0..resume_seq 的历史灌入广播器（内存快速回放用）
-        # 再根据 status 决定是否重启 Orchestrator
-        logger.info("进程重启续传: %s (从 seq=%d 继续)", session_id, resume_seq)
-        async with db as restore_db:
-            missed = await event_repo.fetch_since(restore_db, session_id, 0)
-            for ev in missed:
-                broadcaster.put(f"id: {ev.seq}\n{ev.raw_sse}")
-    else:
-        logger.info("首次连接，启动后台 Orchestrator: %s", session_id)
+    async def _replay_from_eventlog() -> AsyncGenerator[str, None]:
+        """纯只读回放，绝不会等待未来事件，放完就关。"""
+        from app.db.database import AsyncSessionFactory
+        async with AsyncSessionFactory() as replay_db:
+            events = await event_repo.fetch_since(replay_db, session_id, resume_seq)
 
-    if is_new or current_status in ("pending", "running"):
-        asyncio.create_task(
-            _run_orchestrator_background(session_id, session_data, broadcaster),
-            name=f"orchestrator-{session_id[:8]}",
-        )
+        if events:
+            for ev in events:
+                yield f"id: {ev.seq}\n{ev.raw_sse}"
+                if not ev.raw_sse.endswith("\n\n"):
+                    yield "\n"
+        else:
+            # 降级：event_log 无记录，从 DB 快照强行塞入
+            report = session_data.get("report")
+            agent_outputs = session_data.get("agent_outputs") or {}
+            selected = session_data.get("selected_agents") or []
+            agent_media = session_data.get("agent_media") or {}
 
-    async def sse_listener() -> AsyncGenerator[str, None]:
-        async for event in broadcaster.listen():
-            yield event
+            if selected:
+                yield f"event: routing_decided\ndata: {_json.dumps(selected)}\n\n"
+            for aid, output in agent_outputs.items():
+                if output:
+                    yield f"event: agent_start\ndata: {aid}\n\n"
+                    yield f"event: agent_output\ndata: {_json.dumps({'id': aid, 'content': output}, ensure_ascii=False)}\n\n"
+                    yield f"event: agent_complete\ndata: {aid}\n\n"
+            for img in agent_media.get("agentImages", []):
+                yield f"event: agent_image\ndata: {_json.dumps(img, ensure_ascii=False)}\n\n"
+            for vid in agent_media.get("agentVideos", []):
+                yield f"event: agent_video\ndata: {_json.dumps(vid, ensure_ascii=False)}\n\n"
+            yield f"event: session_complete\ndata: {_json.dumps({'report': report or ''})}\n\n"
 
-    return StreamingResponse(sse_listener(), media_type="text/event-stream", headers=SSE_HEADERS)
+    return StreamingResponse(_replay_from_eventlog(), media_type="text/event-stream", headers=SSE_HEADERS)
 
 
 
@@ -303,17 +286,10 @@ async def _run_orchestrator_background(
                                     chunk = payload.get("chunk", "")
                                     if aid and chunk:
                                         _chunk_buffers[aid] = _chunk_buffers.get(aid, "") + chunk
-                                        now = _time.monotonic()
-                                        if now - _last_evlog_ts.get(aid, 0) >= EVLOG_THROTTLE:
-                                            try:
-                                                seq = await event_repo.append_independent(session_id, event)
-                                                broadcaster.put(f"id: {seq}\n{event}")
-                                                _last_evlog_ts[aid] = now
-                                            except Exception:
-                                                broadcaster.put(event)
-                                        else:
-                                            # 节流期内不写 event_log，但实时推送广播（保证流畅）
-                                            broadcaster.put(event)
+                                        # NOTE: 彻底干掉 agent_chunk 的全过程写库！
+                                        # 包括不写 sessions，也不写 event_log！
+                                        # 因为快照和前端重连完全依靠基于内存的 _history 压缩重建。
+                                        broadcaster.put(event)
                                 except Exception:
                                     broadcaster.put(event)
                 else:
@@ -334,31 +310,11 @@ async def _run_orchestrator_background(
                                 pass
 
                 if "event: agent_chunk" in event:
-                    for line in event.split("\n"):
-                        if line.startswith("data: "):
-                            try:
-                                payload = _json.loads(line[6:])
-                                aid = payload.get("id", "")
-                                if aid and _chunk_buffers.get(aid):
-                                    now = _time.monotonic()
-                                    if now - _last_persist_ts.get(aid, 0) >= 1.0:
-                                        try:
-                                            await _asyncio.wait_for(
-                                                session_repo.update_agent_output(
-                                                    gen_db, session_id, aid,
-                                                    _chunk_buffers[aid], status="running",
-                                                ),
-                                                timeout=3.0,
-                                            )
-                                            _last_persist_ts[aid] = now
-                                        except _asyncio.TimeoutError:
-                                            logger.warning("sessions 写库超时 agent=%s", aid)
-                                            await gen_db.rollback()
-                                        except Exception as e:
-                                            logger.warning("sessions 写库失败 agent=%s: %s", aid, e)
-                                            await gen_db.rollback()
-                            except Exception:
-                                pass
+                    # NOTE: 已彻底移除在此处高频同步调用 sessions 表 update 的逻辑！
+                    # 频繁修改 JSONB 会导致严重的行锁竞争（写库超时），甚至会毒化数据库连接，
+                    # 牵连整个 LLM 异步生成流出现长达 3.0s 的挂起延迟。
+                    # 全量内容完全由 _history 提供前端恢复，后端仅需在完成时落库一次即可。
+                    pass
 
                 if "event: agent_output" in event:
                     for line in event.split("\n"):

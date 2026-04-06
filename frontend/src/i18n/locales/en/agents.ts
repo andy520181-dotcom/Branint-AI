@@ -1,4 +1,8 @@
 export const agents: Record<string, string> = {
+  'agent.consultant_greeting.name': 'Brand Consultant Agent',
+  'agent.consultant_greeting.desc': 'Demand Diagnosis',
+  'agent.consultant_greeting.role': 'Brand Consultant · Diagnosis',
+  'agent.consultant_greeting.description': 'Receive and structure the user request.',
   'agent.consultant_plan.name': 'Brand Consultant Agent',
   'agent.consultant_plan.desc': 'Q&A · Diagnosis · Smart orchestration · Closing report',
   'agent.consultant_plan.role': 'Brand Consultant · Planning',

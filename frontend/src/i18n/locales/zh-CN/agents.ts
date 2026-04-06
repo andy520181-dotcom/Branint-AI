@@ -1,5 +1,8 @@
-/** Agent 卡片与展示名（与 data/agentConfigs 的 id 对应） */
 export const agents: Record<string, string> = {
+  'agent.consultant_greeting.name': '品牌顾问 Agent',
+  'agent.consultant_greeting.desc': '需求诊断',
+  'agent.consultant_greeting.role': 'Brand Consultant · 需求诊断',
+  'agent.consultant_greeting.description': '接收并梳理用户诉求，给出初步诊断。',
   'agent.consultant_plan.name': '品牌顾问 Agent',
   'agent.consultant_plan.desc': '互动问答·需求诊断·智能统筹·结案报告',
   'agent.consultant_plan.role': 'Brand Consultant · 执行计划',

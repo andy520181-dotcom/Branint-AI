@@ -55,17 +55,13 @@ def _extract_handoff(output: str) -> str:
     return output[-500:] if len(output) > 500 else output
 
 
-async def _stream_text_as_chunks(text: str, chunk_size: int = 8) -> AsyncGenerator[str, None]:
+async def _stream_text_as_chunks(text: str, chunk_size: int = 8, delay: float = 0.01) -> AsyncGenerator[str, None]:
     """
-    将已落盘的文本以打字机效果流式推送。
-    用于断点续传时，让前端体验与首次生成一致，而不是一次性闪现。
-
-    NOTE: chunk_size=8 + 10ms 延迟 ≈ 800字/秒，既保证视觉流式效果，
-    又不会让长文本（如数千字的市场报告）重放耗时过久。
+    将已落盘或内置的文本以打字机效果流式推送。
     """
     for i in range(0, len(text), chunk_size):
         yield text[i : i + chunk_size]
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(delay)
 
 
 
@@ -180,12 +176,35 @@ class AgentOrchestrator:
             yield _sse("agent_complete", "consultant_plan")
         else:
             # 场景 C：全新对话（正常启动）
-            yield _sse("agent_start", "consultant_plan")
-            logger.info("品牌顾问 — 开始需求诊断...")
+            yield _sse("agent_start", "consultant_greeting")
+            logger.info("品牌顾问 — 开始初步问候与需求诊断...")
 
-            decision = await run_ogilvy_decision(effective_prompt, conversation_history)
+            # NOTE: 将高耗时的 JSON 路由决策放进无阻塞的后台 task
+            decision_task = asyncio.create_task(run_ogilvy_decision(effective_prompt, conversation_history))
+
+            # 与此同时我们给前端流式推出问候语，完美用交互掩盖 6 秒的后端 LLM 等待时间
+            greeting = "✨ 收到了您的需求！我正在对您的业务场景进行初步诊断，并为您调兵遣将构建专属的策略工作流..."
+            greeting_accumulated = ""
+            # 每 0.08 秒流出 1 个字符，大概耗时 3-4 秒，刚刚好填补大模型的响应空窗期
+            async for chunk in _stream_text_as_chunks(greeting, chunk_size=1, delay=0.08):
+                greeting_accumulated += chunk
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": "consultant_greeting", "chunk": chunk}, ensure_ascii=False),
+                )
+            
+            # 第一段问候气泡结束
+            yield _sse("agent_output", json.dumps({"id": "consultant_greeting", "content": greeting_accumulated}))
+            yield _sse("agent_complete", "consultant_greeting")
+
+            # 问候语吐完后，我们从容地迎接真正的决策结果
+            decision = await decision_task
             action = decision.get("action", "none")
             args = decision.get("args", {})
+
+            # 开始执行计划的专属气泡
+            yield _sse("agent_start", "consultant_plan")
+            plan_accumulated = ""
 
             if action == "direct_response":
                 # NOTE: 轻量咋询直接回复模式：品牌顾问做主语直接流式作答，跳过全部专业 Agent
@@ -223,9 +242,12 @@ class AgentOrchestrator:
                     logger.error("Tavily 搜索失败: %s", e)
                     search_result = "抱歉，由于网络检索服务异常，未能获取最新资讯。"
                 
-                response_prompt = f"针对用户的问题，基于以下最新互联网检索结果进行解答：\n\n【检索结果】\n{search_result}"
-                direct_accumulated = f"> 已为您检索最新资讯：**{query}**\n\n"
+                response_prompt = f"针对用户的问题，基于以下最新互联网检索结果进行解答：\\n\\n【检索结果】\\n{search_result}"
+                direct_accumulated = f"> 已为您检索最新资讯：**{query}**\\n\\n"
                 
+                # 先把新增的前缀推送显示
+                yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": direct_accumulated}, ensure_ascii=False))
+
                 async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
                     direct_accumulated += chunk
                     yield _sse_raw(
@@ -244,7 +266,7 @@ class AgentOrchestrator:
                 logger.info("品牌顾问 — 触发 Export 动作: %s", doc_title)
                 
                 export_msg = (
-                    f"✅ **{doc_title}**\n\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
+                    f"✅ **{doc_title}**\\n\\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
                     "物理文件生成目前处于开发阶段，您可以稍后在系统的【下载面板】查收结果。"
                 )
                 
@@ -311,7 +333,6 @@ class AgentOrchestrator:
                 question_text = args.get("question", "您好，为了更好地为您提供服务，请问您能提供更多具体的背景信息吗？")
                 logger.info("Ogilvy 中断流水线，发起 %s 动作，发问内容: %s", action, question_text)
                 
-                plan_accumulated = ""
                 async for chunk in run_planning_phase_stream(question_text):
                     plan_accumulated += chunk
                     yield _sse_raw(
@@ -339,12 +360,11 @@ class AgentOrchestrator:
                 )
 
                 prompt_explain = (
-                    f"你决定启动以下智能体团队处理该需求：{agent_names}。\n"
+                    f"你决定启动以下智能体团队处理该需求：{agent_names}。\\n"
                     f"请用首席品牌顾问的口吻写一段话向用户流式播报（约2-3句即可，不要生硬罗列名字，要说出逻辑）：你已经完成了初步的需求诊断，为什么我们要采用这样的流程链路，表达你正在亲自调集团队进行各模块的深入分析。自然、专业即可。"
                 )
 
                 # 使用真实的流式生成，让大模型一边思考一边吐出解释
-                plan_accumulated = ""
                 async for chunk in run_direct_response_stream(user_prompt, prompt_explain, conversation_history):
                     plan_accumulated += chunk
                     yield _sse_raw(
@@ -359,7 +379,6 @@ class AgentOrchestrator:
                 content = decision.get("content", "")
                 logger.info("Ogilvy 回退至文本解析模式。")
 
-                plan_accumulated = ""
                 async for chunk in run_planning_phase_stream(content):
                     plan_accumulated += chunk
                     yield _sse_raw(

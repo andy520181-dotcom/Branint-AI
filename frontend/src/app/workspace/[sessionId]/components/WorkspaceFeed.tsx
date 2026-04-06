@@ -70,8 +70,6 @@ export function WorkspaceFeed({
                 const output = state?.output ?? '';
                 const isDone = state?.status === 'completed';
                 const hasNext = i < visibleRoundAgents.length - 1;
-                const plainFirstRoundConsultant =
-                  cfg.id === 'consultant_plan' && roundIndex === 0;
                 return (
                   <AgentLayoutWrapper
                     key={cfg.id}
@@ -79,7 +77,7 @@ export function WorkspaceFeed({
                     status={state?.status ?? 'waiting'}
                     hasNext={hasNext}
                     hasConnector={hasNext}
-                    plainBubble={plainFirstRoundConsultant}
+                    plainBubble={false}
                     t={t}
                   >
                     <RendererFactory
@@ -125,8 +123,6 @@ export function WorkspaceFeed({
           const nextState = nextCfg ? agents[nextCfg.id as AgentId] : null;
           const nextVisible = nextState && nextState.status !== 'waiting';
           const hasConnector = Boolean(hasNext && nextVisible);
-          const plainFirstRoundConsultant =
-            cfg.id === 'consultant_plan' && previousRounds.length === 0;
           return (
             <AgentLayoutWrapper
               key={cfg.id}
@@ -137,7 +133,7 @@ export function WorkspaceFeed({
               hasConnector={hasConnector}
               isTransferring={isTransferring}
               handoffMsg={handoffMsg}
-              plainBubble={plainFirstRoundConsultant}
+              plainBubble={false}
               t={t}
             >
               <RendererFactory

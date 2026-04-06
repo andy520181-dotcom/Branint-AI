@@ -332,10 +332,26 @@ export default function WorkspacePage() {
           ]),
         ) as Record<AgentId, { id: AgentId; status: AgentStatus; output: string; researchProgress: [] }>;
 
-        // NOTE: completed/error 的会话不应触发 SSE，只有真正 running/pending 的才需要续传
+        // ── 判断会话活跃度 ─────────────────────────────────────────────────
+        // hasFullOutput: 是否已有完成的 agent 输出（用于识别"进程崩溃导致状态卡住"的 running 会话）
+        const hasFullOutput = hasAnyOutput && Object.values(snap.agent_statuses ?? {}).some(
+          (s) => s === 'completed'
+        );
+
+        // 真正的活跃会话：running 且没有任何 completed agent（说明仍在进行中）
+        // 或者 pending 且已有部分输出（正在运行但节流期内）
         const liveSession =
-          snap.status === 'running' ||
-          (snap.status === 'pending' && hasAnyOutput);
+          (snap.status === 'running' && !hasFullOutput) ||
+          (snap.status === 'pending' && hasAnyOutput && !hasFullOutput);
+
+        // treatAsCompleted：明确完成 OR 状态卡住的 running（有完整输出视为完成）
+        // NOTE: 这是修复"历史会话点击触发重新生成"的核心判断。
+        // 数据库 running 状态可能因进程崩溃未被置为 completed，
+        // 若有完整 agent 输出，前端保守地视为已完成，不触发 SSE/Orchestrator。
+        const treatAsCompleted =
+          snap.status === 'completed' ||
+          snap.status === 'error' ||
+          (snap.status === 'running' && hasFullOutput);
 
         useWorkspaceStore.setState({
           sessionId,
@@ -345,7 +361,7 @@ export default function WorkspacePage() {
           agentImages: snap.agent_media?.agentImages ?? [],
           agentVideos: snap.agent_media?.agentVideos ?? [],
           finalReport: snap.report ?? '',
-          isComplete: snap.status === 'completed',
+          isComplete: treatAsCompleted,
           isStreaming: liveSession,
           currentAgentId: null,
           error: null,
@@ -369,31 +385,25 @@ export default function WorkspacePage() {
               sessionId: `${sessionId}-hist-${i}`,
               userPrompt: h.user_prompt ?? '',
               agents: histAgents,
-              selectedAgents: null, // 历史轮次无需严苛的路由动画结构，前端兜底渲染会展示含 output 的 Agent
+              selectedAgents: null,
             };
           }
         );
 
-        // 彻底丢弃 localStorage (cached) 的历史多媒体缓存，防止与真实数据库冲突。一切以后端 PostgreSQL 下发为准
-        const finalRounds = historyFromBackend;
+        setPreviousRounds(historyFromBackend);
 
-        setPreviousRounds(finalRounds);
-        if (snap.status === 'completed' || snap.status === 'error') {
-          // NOTE: 已完成或已出错的会话直接标记为 restored，绝不触发 SSE 连接。
-          // 这是防止"历史记录点击后重新生成"的核心前端保护。
+        if (treatAsCompleted) {
+          // 已完成（包含崩溃卡住的 running）：直接还原展示，绝不触发 SSE
           if (snap.status === 'error' && !hasAnyOutput) {
             useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
           }
           setRestored(true);
         } else if (liveSession) {
-          // running / pending 且有落盘输出：连接 SSE 续传
+          // 真正进行中的会话：连接 SSE 续传
           setRestored(false);
         } else {
-          /*
-           * pending 且无 agent 落盘（例如刚开始或节流间隔内刷新）。
-           * 后端已把 status 置为 running 或仍 pending，但会话已在首次访问时启动——只连 SSE 续跑，禁止 initSession。
-           */
-          setRestored(false);
+          // pending 全新会话且无输出：等待 initSession 调用，暂不触发 SSE
+          setRestored(true);
         }
       })
       .catch(async () => {
@@ -453,8 +463,10 @@ export default function WorkspacePage() {
     const prev = prevAgentIdRef.current;
     prevAgentIdRef.current = currentAgentId;
     if (prev && prev !== currentAgentId) {
+      const prevCfg = AGENT_CONFIGS.find((c) => c.id === prev);
       const currCfg = AGENT_CONFIGS.find((c) => c.id === currentAgentId);
-      if (currCfg) {
+      // NOTE: 只有当不是同一个角色（例如品牌顾问传给市场研究）时，才显示交接提示文案
+      if (currCfg && (!prevCfg || prevCfg.charName !== currCfg.charName)) {
         setHandoffMsg({
           agentId: prev,
           text: t('workspace.handoff').replace('{name}', t(`agent.${currCfg.id}.name`)),
