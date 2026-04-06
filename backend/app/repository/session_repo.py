@@ -144,4 +144,33 @@ async def set_session_report(
         .values(report=report, status="completed")
     )
     await db.commit()
+
+
+async def update_agent_media(
+    db: AsyncSession,
+    session_id: str,
+    media_category: str,  # "agentImages" or "agentVideos"
+    media_item: dict,     # {"id": "visual", "type": ..., "data_url": ...}
+) -> None:
+    """
+    更新 Session 中的多媒体资产记录 (JSONB)。
+    主要用于将 OSS 上传后的网络 URL 或视频 URL 记录下来，供前端复用。
+    """
+    result = await db.execute(select(SessionModel).where(SessionModel.id == session_id))
+    record = result.scalar_one_or_none()
+    if not record:
+        logger.warning("update_agent_media: 会话不存在 %s", session_id)
+        return
+
+    new_media = dict(getattr(record, "agent_media", None) or {})
+    cat_list = list(new_media.get(media_category, []))
+    cat_list.append(media_item)
+    new_media[media_category] = cat_list
+
+    await db.execute(
+        update(SessionModel)
+        .where(SessionModel.id == session_id)
+        .values(agent_media=new_media)
+    )
+    await db.commit()
     logger.info("会话报告已落库: %s", session_id)

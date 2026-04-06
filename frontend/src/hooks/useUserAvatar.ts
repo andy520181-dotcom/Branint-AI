@@ -1,32 +1,34 @@
 'use client';
 
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { getAvatarStorageKey, getStoredAvatarDataUrl, PROFILE_UPDATE_EVENT } from '@/lib/userProfile';
 
-/** 本地缓存的头像 data URL，随 PROFILE_UPDATE_EVENT 与其它组件同步 */
+/** 统一从 AuthContext 中获取用户真身头像（已迁移至 OSS URL），抛弃老旧的 localStorage 持久化 */
 export function useUserAvatar(userId: string | undefined | null) {
-  // NOTE: 惰性初始化同步读取 localStorage，避免首帧 null → 下一帧 dataUrl 的闪跳
-  const [dataUrl, setDataUrl] = useState<string | null>(
-    () => (userId ? getStoredAvatarDataUrl(userId) : null),
-  );
+  const { user } = useAuthContext();
+  
+  // NOTE: 这里做一层解耦防御，如果是查询当前用户，直接走 Context 流式反应，
+  // 若是查询其余用户头像（例如未来的社交功能），可在此处扩展独立 API 调用
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
+    if (!userId || !user) {
       setDataUrl(null);
       return;
     }
-    const sync = () => setDataUrl(getStoredAvatarDataUrl(userId));
-    sync();
-    window.addEventListener(PROFILE_UPDATE_EVENT, sync);
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === getAvatarStorageKey(userId)) sync();
+    
+    // 查询自己
+    if (userId === user.id) {
+      setDataUrl(user.avatar_url || null);
+    }
+    
+    // 全局通知事件监听（强制从 Context 内联刷新）
+    const updateHandler = () => {
+      // 通过 AuthContext 强更
     };
-    window.addEventListener('storage', onStorage);
-    return () => {
-      window.removeEventListener(PROFILE_UPDATE_EVENT, sync);
-      window.removeEventListener('storage', onStorage);
-    };
-  }, [userId]);
+    window.addEventListener('woloong-profile-updated', updateHandler);
+    return () => window.removeEventListener('woloong-profile-updated', updateHandler);
+  }, [userId, user]);
 
   return dataUrl;
 }

@@ -158,8 +158,14 @@ class AgentOrchestrator:
                 project_context["handoffs"][aid] = _extract_handoff(output)
 
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
-        if _is_completed("consultant_plan"):
-            # 断点续传：consultant_plan 已落盘，以流式打字机效果重放存档（不调用 LLM）
+        if strategy_clarification_answers:
+            # 场景 A：战略追问作答（直达路线）
+            logger.info("检测到战略追问交互，跳过前期顾问路由，直通 Strategy Agent 续写")
+            selected_agents = ["strategy", "content", "visual"]
+            yield _sse("routing_decided", json.dumps(selected_agents))
+            # 我们故意不下发 agent_start consultant_plan，这样前端就会把它隐藏，从而只显示 Trout
+        elif _is_completed("consultant_plan"):
+            # 场景 B：断点续传（consultant_plan 已落盘）
             plan_accumulated = ckpt_outputs["consultant_plan"]
             selected_agents = ckpt_selected  # 复用上次的路由顺序
             logger.info("[RESUME] consultant_plan 已完成，流式重放存档，路由: %s", selected_agents)
@@ -173,6 +179,7 @@ class AgentOrchestrator:
             yield _sse("routing_decided", json.dumps(selected_agents))
             yield _sse("agent_complete", "consultant_plan")
         else:
+            # 场景 C：全新对话（正常启动）
             yield _sse("agent_start", "consultant_plan")
             logger.info("品牌顾问 — 开始需求诊断...")
 

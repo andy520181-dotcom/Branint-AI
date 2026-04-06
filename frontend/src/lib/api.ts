@@ -78,9 +78,17 @@ export interface SessionSnapshot {
   /** key = agentId，value = 该 Agent 已完成的输出文本 */
   agent_outputs: Record<string, string>;
   agent_statuses: Record<string, string>;
+  agent_media?: {
+    agentImages?: any[];
+    agentVideos?: any[];
+  };
   report?: string | null;
   /** 路由中间段（market/strategy/...），不含 consultant_plan / consultant_review */
   selected_agents?: string[];
+  conversation_history?: Array<{
+    user_prompt: string;
+    agent_outputs: Record<string, string>;
+  }>;
 }
 
 /**

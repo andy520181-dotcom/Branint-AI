@@ -66,6 +66,11 @@ class Session(Base):
     # 顾问最终汇总报告（session_complete 事件产出）
     report: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # Agent 生成的所有云媒体（图片、视频网络 URL 资产） 格式: {"agentImages": [{"id":..., "url":...}], "agentVideos": [...]}
+    agent_media: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
+
     # 战略反问与追问记录
     strategy_clarification_answers: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     strategy_clarify_round: Mapped[int] = mapped_column(nullable=False, default=0)

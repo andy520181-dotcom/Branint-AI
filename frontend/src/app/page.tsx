@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { SiteNavLogo } from '@/components/SiteNavLogo';
 import { useRouter } from 'next/navigation';
@@ -102,41 +102,59 @@ export default function LandingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  /** 实际调用后端创建会话的逻辑（user 由调用方传入，避免闭包陈旧值） */
-  const doSubmit = async (
+  /**
+   * 实际提交："先跳转，后创建" 模式
+   * 前端生成 UUID 后立即跳转到 workspace 页面，
+   * createSession 调用推迟到 workspace 页面中执行，消除等待后端响应的卡顿。
+   */
+  const doSubmit = useCallback(async (
     currentUser: { id: string; email: string },
     currentPrompt: string,
   ) => {
     if (!currentPrompt.trim()) return;
     setSubmitting(true);
     try {
-      // 先上传附件
-      const uploadedUrls: string[] = [];
-      for (const item of attachments) {
+      // NOTE: 附件需要预上传（workspace 页面不处理文件对象），
+      // 但不阻塞跳转——并行上传并将 URL 写入 sessionStorage
+      const uploadPromises = attachments.map(async (item) => {
         try {
           const { url } = await uploadAsset(item.file);
-          uploadedUrls.push(url);
-        } catch { /* 单个失败不中断 */ }
+          return url;
+        } catch { return null; }
+      });
+
+      // 生成本地 UUID，立即跳转 (带随机回退)
+      const sessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15);
+      const trimmedPrompt = currentPrompt.trim();
+
+      // 将会话数据写入 sessionStorage，workspace 页面读取后创建后端会话
+      sessionStorage.setItem(`prompt_${sessionId}`, trimmedPrompt);
+      sessionStorage.setItem(`user_${sessionId}`, currentUser.id);
+
+      addHistory({
+        sessionId,
+        title: trimmedPrompt.slice(0, 40),
+        createdAt: new Date().toISOString(),
+        shareUrl: `/workspace/${sessionId}`,
+      });
+
+      // NOTE: 立即跳转！用户感受到即时切换，无需等待 createSession 响应
+      router.push(`/workspace/${sessionId}`);
+
+      // 后台等待附件上传完成，写入 sessionStorage 供 workspace 使用
+      const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
+      if (uploadedUrls.length > 0) {
+        sessionStorage.setItem(`attachments_${sessionId}`, JSON.stringify(uploadedUrls));
       }
       attachments.forEach((it) => URL.revokeObjectURL(it.previewUrl));
       setAttachments([]);
-
-      const session_id = await createSession(currentUser.id, currentPrompt.trim(), [], uploadedUrls);
-      addHistory({
-        sessionId: session_id,
-        title: currentPrompt.trim().slice(0, 40),
-        createdAt: new Date().toISOString(),
-        shareUrl: `/workspace/${session_id}`,
-      });
-      // NOTE: 工作台页面通过 sessionStorage 判断是新会话还是历史会话
-      // 如果缺少这一步，工作台会误走 fetchReport 分支，显示"分析完成"空页面
-      sessionStorage.setItem(`prompt_${session_id}`, currentPrompt.trim());
-      router.push(`/workspace/${session_id}`);
     } catch (err) {
       showToast(err instanceof Error ? err.message : t('error.network'), 3200);
       setSubmitting(false);
     }
-  };
+  }, [attachments, addHistory, router, t]);
 
   /** 提交品牌需求，创建会话后跳转工作台 */
   const handleSubmit = async () => {

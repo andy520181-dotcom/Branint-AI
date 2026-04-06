@@ -69,8 +69,35 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     e.target.value = '';
     if (!f || !user) return;
     try {
-      const dataUrl = await processAvatarFile(f);
-      setStoredAvatarDataUrl(user.id, dataUrl);
+      // 1. 直传文件到 OSS 代理资产库
+      const formData = new FormData();
+      formData.append('file', f);
+      const token = localStorage.getItem('woloong_token');
+
+      const uploadRes = await fetch('/api/assets/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error('UPLOAD_FAILED');
+      const uploadData = await uploadRes.json();
+      const ossUrl = uploadData.url;
+
+      // 2. 将 OSS 网址保存到用户账户关联表中
+      const updateRes = await fetch('/api/auth/profile/avatar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_url: ossUrl })
+      });
+
+      if (!updateRes.ok) throw new Error('UPDATE_FAILED');
+
+      // 3. 强制触发重渲染事件，让所有组件捕获到最新头像
+      window.dispatchEvent(new Event('woloong-profile-updated'));
       setAvatarError(null);
     } catch (err) {
       const code = err instanceof Error ? err.message : '';
@@ -80,10 +107,23 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     }
   };
 
-  const removeAvatar = () => {
+  const removeAvatar = async () => {
     if (!user) return;
-    setStoredAvatarDataUrl(user.id, null);
-    setAvatarError(null);
+    try {
+      const token = localStorage.getItem('woloong_token');
+      await fetch('/api/auth/profile/avatar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_url: '' })
+      });
+      window.dispatchEvent(new Event('woloong-profile-updated'));
+      setAvatarError(null);
+    } catch {
+      // ignore
+    }
   };
 
   const modal = (

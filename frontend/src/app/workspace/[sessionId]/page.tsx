@@ -131,7 +131,12 @@ export default function WorkspacePage() {
             agents: { ...currentAgents },
             selectedAgents: currentSelectedAgents,
           };
-          setPreviousRounds((prev) => [...prev, snapshot]);
+          setPreviousRounds((prev) => {
+            const nextRounds = [...prev, snapshot];
+            // 同步写入 store 和 localStorage 兜底
+            useWorkspaceStore.setState({ previousRounds: nextRounds });
+            return nextRounds;
+          });
         }
 
         setStrategyClarify(null);
@@ -140,21 +145,37 @@ export default function WorkspacePage() {
         // NOTE: 用户回答作为独立的新一轮对话 prompt，不做拼接——贯彻流式对话铁律
         const newPrompt = inputText;
 
-        const newSessionId = await createSession(
-          user.id,
-          newPrompt,        // 用户回答直接作为新轮次 prompt
-          undefined,        // sessionId 留空让后端生成
-          history,
-          [],
-          inputText,    // Trout 专用的真实答案
-          clarifyRound,
-        );
+        // 瞬间 UI 响应机制：预分配 UUID
+        const newSessionId = crypto.randomUUID();
+        
         initSession(newSessionId, newPrompt);
         setActiveSessionId(newSessionId);
-        setRestored(false);
+        setRestored(null); // 挂起 SSE，等待写库
         window.history.pushState(null, '', `/workspace/${newSessionId}`);
-        setSubmitting(false);
-      } catch {
+        
+        setTimeout(() => {
+          currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+
+        // 后台写库
+        try {
+          await createSession(
+            user.id,
+            newPrompt,
+            newSessionId,
+            history,
+            [],
+            inputText,    // Trout 专用的真实答案
+            clarifyRound,
+          );
+        } catch (err) {
+          console.error("Failed to create session on clarification reply:", err);
+        } finally {
+          setRestored(false);
+          setSubmitting(false);
+        }
+      } catch (err) {
+        console.error(err);
         setSubmitting(false);
       }
       return;
@@ -194,7 +215,11 @@ export default function WorkspacePage() {
           agents: { ...currentAgents },
           selectedAgents: useWorkspaceStore.getState().selectedAgents,
         };
-        setPreviousRounds((prev) => [...prev, snapshot]);
+        setPreviousRounds((prev) => {
+          const nextRounds = [...prev, snapshot];
+          useWorkspaceStore.setState({ previousRounds: nextRounds });
+          return nextRounds;
+        });
       }
 
       // 先上传附件，拿到服务器上的 URL 列表
@@ -214,17 +239,32 @@ export default function WorkspacePage() {
         setAttachments([]);
       }
 
-      const newSessionId = await createSession(user.id, promptText, undefined, history, uploadedUrls);
+      // 瞬间 UI 响应机制：预分配 UUID，消除 HTTP 创建耗时带来的“卡顿感”
+      const newSessionId = crypto.randomUUID();
+      
+      // 立即清理输入框和重置状态
       setBottomPrompt('');
       initSession(newSessionId, promptText);
       setActiveSessionId(newSessionId);
-      setRestored(false);
+      setRestored(null); // NOTE: 挂起 SSE 连接，直到我们后端创建完成
       window.history.pushState(null, '', `/workspace/${newSessionId}`);
+      
       setTimeout(() => {
         currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-      setSubmitting(false);
-    } catch {
+      }, 50);
+
+      // 后台执行真正的建库逻辑
+      try {
+        await createSession(user.id, promptText, newSessionId, history, uploadedUrls);
+      } catch (err) {
+        console.error("Failed to create session on multi-turn reply:", err);
+      } finally {
+        // 无论成功失败，开放 SSE 长连接请求阀门
+        setRestored(false);
+        setSubmitting(false);
+      }
+    } catch (err) {
+      console.error(err);
       setSubmitting(false);
     }
   };
@@ -302,8 +342,8 @@ export default function WorkspacePage() {
           userPrompt: snap.user_prompt ?? '',
           agents: agentsMap,
           selectedAgents: selectedAgentsResolved,
-          agentImages: cached?.agentImages ?? [],
-          agentVideos: cached?.agentVideos ?? [],
+          agentImages: snap.agent_media?.agentImages ?? [],
+          agentVideos: snap.agent_media?.agentVideos ?? [],
           finalReport: snap.report ?? '',
           isComplete: snap.status === 'completed',
           isStreaming: liveSession,
@@ -311,8 +351,33 @@ export default function WorkspacePage() {
           error: null,
         });
 
-        setPreviousRounds(cached?.previousRounds ?? []);
+        // NOTE: 从服务端备份重建历史轮次（当换电脑、清缓存或强制刷新时起效）
+        const historyFromBackend: RoundSnapshot[] = (snap.conversation_history || []).map(
+          (h: any, i: number) => {
+            const histAgents: Record<string, any> = {};
+            for (const [aId, aOut] of Object.entries(h.agent_outputs ?? {})) {
+              if (aOut) {
+                histAgents[aId] = {
+                  id: aId,
+                  status: 'completed',
+                  output: String(aOut),
+                  researchProgress: [],
+                };
+              }
+            }
+            return {
+              sessionId: `${sessionId}-hist-${i}`,
+              userPrompt: h.user_prompt ?? '',
+              agents: histAgents,
+              selectedAgents: null, // 历史轮次无需严苛的路由动画结构，前端兜底渲染会展示含 output 的 Agent
+            };
+          }
+        );
 
+        // 彻底丢弃 localStorage (cached) 的历史多媒体缓存，防止与真实数据库冲突。一切以后端 PostgreSQL 下发为准
+        const finalRounds = historyFromBackend;
+
+        setPreviousRounds(finalRounds);
         if (snap.status === 'completed' || snap.status === 'error') {
           // NOTE: 已完成或已出错的会话直接标记为 restored，绝不触发 SSE 连接。
           // 这是防止"历史记录点击后重新生成"的核心前端保护。

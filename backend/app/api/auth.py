@@ -6,6 +6,7 @@
     POST /api/auth/register     注册：校验 OTP + 设置密码 → 返回 JWT
     POST /api/auth/login        登录：邮箱 + 密码 → 返回 JWT
     GET  /api/auth/me           获取当前用户信息（需 Bearer Token）
+    POST /api/auth/profile/avatar 更新用户头像 URL
 """
 
 import uuid
@@ -13,14 +14,17 @@ import hashlib
 import secrets
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 import jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.db.database import get_db
+from app.db import user_repo
 from app.service.otp_service import generate_otp, verify_otp
 from app.service.email_service import send_otp_email
 
@@ -28,41 +32,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 bearer = HTTPBearer(auto_error=False)
 
-import json
-import os
-from pathlib import Path
-
-# NOTE: JSON 文件持久化，重启后数据不丢失
-# 生产环境建议替换为 PostgreSQL
-_DATA_DIR = Path(__file__).parent.parent.parent / "data"
-_USERS_FILE = _DATA_DIR / "users.json"
-
-
-def _load_users() -> Dict[str, dict]:
-    """从 JSON 文件加载用户数据，文件不存在时返回空字典"""
-    try:
-        if _USERS_FILE.exists():
-            return json.loads(_USERS_FILE.read_text(encoding="utf-8"))
-    except Exception as e:
-        logger.error("加载用户数据失败: %s", e)
-    return {}
-
-
-def _save_users(store: Dict[str, dict]) -> None:
-    """将用户数据持久化到 JSON 文件"""
-    try:
-        _DATA_DIR.mkdir(parents=True, exist_ok=True)
-        _USERS_FILE.write_text(
-            json.dumps(store, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-    except Exception as e:
-        logger.error("保存用户数据失败: %s", e)
-
-
-# 启动时加载已有用户
-_user_store: Dict[str, dict] = _load_users()
-logger.info("已加载 %d 个用户账号", len(_user_store))
 
 # ── 密码工具 ──────────────────────────────────────────────────────
 
@@ -127,17 +96,29 @@ class TokenResponse(BaseModel):
 class UserInfo(BaseModel):
     user_id: str
     email: str
+    avatar_url: Optional[str] = None
+
+
+class AvatarUpdateRequest(BaseModel):
+    avatar_url: str
 
 
 # ── 依赖注入 ──────────────────────────────────────────────────────
 
-def get_current_user(
+async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+    db: AsyncSession = Depends(get_db)
 ) -> UserInfo:
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未提供认证信息")
     payload = decode_jwt(credentials.credentials)
-    return UserInfo(user_id=payload["sub"], email=payload["email"])
+    
+    user_id = payload["sub"]
+    db_user = await user_repo.get_user_by_id(db, user_id)
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="查无此用户")
+        
+    return UserInfo(user_id=db_user.id, email=db_user.email, avatar_url=db_user.avatar_url)
 
 
 # ── 路由 ──────────────────────────────────────────────────────────
@@ -157,14 +138,14 @@ async def send_otp(req: SendOtpRequest) -> dict:
 
 
 @router.post("/register", response_model=TokenResponse, summary="注册新账号")
-async def register(req: RegisterRequest) -> TokenResponse:
+async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """
     注册流程：校验 OTP → 创建账号（含密码哈希）→ 返回 JWT
-    若邮箱已注册则报 409 Conflict
     """
     email = req.email.lower()
 
-    if email in _user_store:
+    existing_user = await user_repo.get_user_by_email(db, email)
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="该邮箱已注册，请直接登录",
@@ -183,11 +164,9 @@ async def register(req: RegisterRequest) -> TokenResponse:
         )
 
     user_id = str(uuid.uuid4())
-    _user_store[email] = {
-        "user_id": user_id,
-        "password_hash": _hash_password(req.password),
-    }
-    _save_users(_user_store)  # 持久化到 JSON 文件，重启后不丢失
+    hashed_pw = _hash_password(req.password)
+    
+    await user_repo.create_user(db, user_id, email, hashed_pw)
     logger.info("新用户注册: email=%s", email)
 
     token = _create_jwt(user_id, email)
@@ -195,24 +174,36 @@ async def register(req: RegisterRequest) -> TokenResponse:
 
 
 @router.post("/login", response_model=TokenResponse, summary="邮箱密码登录")
-async def login(req: LoginRequest) -> TokenResponse:
+async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     """
     登录流程：查找账号 → 验证密码 → 返回 JWT
     """
     email = req.email.lower()
-    record = _user_store.get(email)
+    db_user = await user_repo.get_user_by_email(db, email)
 
-    if not record or not _check_password(req.password, record["password_hash"]):
+    if not db_user or not _check_password(req.password, db_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="邮箱或密码错误",
         )
 
     logger.info("用户登录: email=%s", email)
-    token = _create_jwt(record["user_id"], email)
-    return TokenResponse(access_token=token, user_id=record["user_id"], email=email)
+    token = _create_jwt(db_user.id, email)
+    return TokenResponse(access_token=token, user_id=db_user.id, email=email)
 
 
 @router.get("/me", response_model=UserInfo, summary="获取当前用户信息")
 async def get_me(user: UserInfo = Depends(get_current_user)) -> UserInfo:
     return user
+
+
+@router.post("/profile/avatar", summary="更新用户头像")
+async def update_avatar(
+    req: AvatarUpdateRequest, 
+    user: UserInfo = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    success = await user_repo.update_avatar(db, user.user_id, req.avatar_url)
+    if not success:
+        raise HTTPException(status_code=500, detail="头像更新失败")
+    return {"message": "头像已更新", "avatar_url": req.avatar_url}

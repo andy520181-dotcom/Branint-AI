@@ -11,6 +11,8 @@ import logging
 import os
 import re
 
+from app.storage.oss_service import upload_file
+
 from google import genai
 
 logger = logging.getLogger(__name__)
@@ -96,12 +98,20 @@ async def generate_brand_images(
 
             for img in response.generated_images:
                 if img.image and img.image.image_bytes:
-                    img_b64 = base64.b64encode(img.image.image_bytes).decode("utf-8")
                     mime = "image/jpeg"
+                    logger.info("Nano Banner 图片生成成功，准备上传 OSS (大小: %d bytes)", len(img.image.image_bytes))
+                    
+                    # 彻底丢弃 base64 通过流强推前端的内存杀手做法，转为直接上传至阿里云 OSS
+                    oss_url = await upload_file(
+                        content=img.image.image_bytes,
+                        original_name="ai_generated_banner.jpg",
+                        content_type=mime,
+                    )
+                    
                     results.append({
                         "type": "banner",
                         "mime": mime,
-                        "data_url": f"data:{mime};base64,{img_b64}",
+                        "data_url": oss_url,
                     })
                     logger.info("Nano Banner 图片生成成功，大小: %d bytes", len(img.image.image_bytes))
             break  # 成功则跳出重试循环

@@ -90,6 +90,14 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.addEventListener('agent_start', (e) => {
         const agentId = e.data as AgentId;
         store().setAgentStatus(agentId, 'running');
+        // NOTE: 仅当该 agent 当前输出为空时才清空（防御性措施）。
+        // 在广播历史回放模式下，回放 agent_output 先于此事件之后到达，
+        // 不清空已有内容可避免刷新时的闪白（anti-flicker）。
+        // 真正的全新运行时 output 本来就是空，不会有任何影响。
+        const currentOutput = store().agents[agentId]?.output ?? '';
+        if (!currentOutput) {
+          store().setAgentOutput(agentId, '');
+        }
         store().setCurrentAgent(agentId);
       });
 

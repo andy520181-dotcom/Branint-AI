@@ -5,7 +5,7 @@ import { API_BASE as API_URL } from '@/lib/api';
 const TOKEN_KEY = 'woloong_token';
 const USER_KEY  = 'woloong_user';
 
-interface UserInfo { id: string; email: string; }
+interface UserInfo { id: string; email: string; avatar_url?: string; }
 
 interface AuthContextValue {
   user: UserInfo | null;
@@ -37,8 +37,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 首屏在浏览器绘制前从 localStorage 恢复登录态
   // NOTE: 闪跳由 layout.tsx 内联脚本 + CSS 在更早阶段解决，此处仅负责 React 状态同步
   useLayoutEffect(() => {
-    setUser(loadUser());
+    const cachedUser = loadUser();
+    setUser(cachedUser);
     setLoading(false);
+
+    // 异步拉取后端 PostgreSQL 的真实数据对齐（尤其是头像）
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token && cachedUser) {
+      fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.user_id) {
+          const info: UserInfo = { id: data.user_id, email: data.email, avatar_url: data.avatar_url };
+          saveUser(info, token);
+          setUser(info);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('woloong-profile-updated'));
+          }
+        }
+      }).catch(() => {})
+    }
   }, []);
 
   // 多 Tab 同步
@@ -66,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail ?? '注册失败'); }
     const data = await res.json();
-    const info: UserInfo = { id: data.user_id, email: data.email };
+    const info: UserInfo = { id: data.user_id, email: data.email, avatar_url: data.avatar_url };
     saveUser(info, data.access_token);
     setUser(info);
   }, []);
@@ -78,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail ?? '邮箱或密码错误'); }
     const data = await res.json();
-    const info: UserInfo = { id: data.user_id, email: data.email };
+    const info: UserInfo = { id: data.user_id, email: data.email, avatar_url: data.avatar_url };
     saveUser(info, data.access_token);
     setUser(info);
   }, []);
