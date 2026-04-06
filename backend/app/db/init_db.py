@@ -10,7 +10,9 @@ import logging
 from app.db.database import Base, engine
 
 # NOTE: 必须在 Base 之前导入所有 Model，否则 Base.metadata 中没有表定义
-import app.model.session  # noqa: F401
+import app.model.session      # noqa: F401
+import app.model.user         # noqa: F401
+import app.model.agent_event  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
