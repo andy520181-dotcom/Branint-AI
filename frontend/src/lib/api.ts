@@ -49,6 +49,37 @@ export async function createSession(
   return data.session_id;
 }
 
+/**
+ * 继续现有品牌咨询会话（多轮对话 / 战略追问回复）
+ *
+ * NOTE: 不创建新的历史记录，复用同一个 sessionId，
+ * 仅更新 user_prompt / conversation_history 并触发新一轮 Orchestrator。
+ */
+export async function continueSession(
+  sessionId: string,
+  prompt: string,
+  conversationHistory: ConversationRound[] = [],
+  attachments: string[] = [],
+  strategyClarifyAnswers?: string,
+  strategyClarifyRound?: number,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/continue`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_prompt: prompt,
+      conversation_history: conversationHistory,
+      attachments,
+      ...(strategyClarifyAnswers !== undefined && {
+        strategy_clarification_answers: strategyClarifyAnswers,
+        strategy_clarify_round: strategyClarifyRound ?? 1,
+      }),
+    }),
+  });
+  if (!res.ok) throw new Error(`继续会话失败 (${res.status})`);
+}
+
+
 /** 上传品牌资产文件（图片/PDF/文档），返回资源访问 URL */
 export async function uploadAsset(file: File): Promise<{ url: string; original_name: string }> {
   const form = new FormData();

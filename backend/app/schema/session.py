@@ -45,6 +45,26 @@ class CreateSessionRequest(BaseModel):
     strategy_clarify_round: Optional[int] = Field(default=0, description="目前所属的澄清轮数")
 
 
+class ContinueSessionRequest(BaseModel):
+    """
+    继续现有会话请求：多轮对话或战略追问回复时，
+    复用同一个 session_id 而非创建新记录。
+    """
+    user_prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=settings.user_prompt_max_chars,
+        description="用户本轮输入",
+    )
+    # NOTE: 追加本轮前的历史记录（含上一轮 agent 输出）
+    conversation_history: list[HistoryRound] = []
+    attachments: list[str] = []
+    # NOTE: 战略追问的回答（非追问场景为 None）
+    strategy_clarification_answers: Optional[str] = Field(default=None, description="战略追问回答")
+    strategy_clarify_round: Optional[int] = Field(default=0, description="当前追问轮次")
+
+
+
 class CreateSessionResponse(BaseModel):
     session_id: str
     message: str = "会话创建成功，请连接 SSE 流开始分析"

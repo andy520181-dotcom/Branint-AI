@@ -23,6 +23,7 @@ from app.repository import session_repo, event_repo
 from app.schema.session import (
     CreateSessionRequest,
     CreateSessionResponse,
+    ContinueSessionRequest,
     SessionListItem,
     SessionMetaUpdate,
 )
@@ -136,6 +137,59 @@ async def create_session(
 
     return CreateSessionResponse(session_id=session_id)
 
+
+@router.patch("/{session_id}/continue")
+async def continue_session(
+    session_id: str,
+    body: ContinueSessionRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    继续现有会话。
+
+    NOTE: 多轮对话或战略追问回复时调用（区别于 POST /sessions 的新建）。
+    复用已有的 session_id 不变，只更新 user_prompt、conversation_history 等字段，
+    并重置 status = pending、清空 agent_outputs 准备重跑新一轮 Orchestrator。
+    """
+    # 1. 持久化：更新现有会话记录
+    await session_repo.continue_session(
+        db,
+        session_id=session_id,
+        user_prompt=body.user_prompt,
+        conversation_history=[r.model_dump() for r in body.conversation_history],
+        attachments=body.attachments,
+        strategy_clarification_answers=body.strategy_clarification_answers,
+        strategy_clarify_round=body.strategy_clarify_round or 0,
+    )
+
+    # 2. 更新内存缓存，保证 SSE stream 立即使用新的数据
+    _session_cache[session_id] = {
+        "user_prompt": body.user_prompt,
+        "conversation_history": [r.model_dump() for r in body.conversation_history],
+        "attachments": body.attachments,
+        "strategy_clarification_answers": body.strategy_clarification_answers,
+        "strategy_clarify_round": body.strategy_clarify_round or 0,
+        "status": "pending",
+        "report": None,
+        "selected_agents": [],
+        "agent_outputs": {},
+        "agent_statuses": {},
+    }
+
+    # 3. 启动新一轮 Orchestrator 后台任务
+    from app.service.stream_broadcaster import get_or_create_broadcaster
+    import asyncio
+
+    broadcaster, _ = get_or_create_broadcaster(session_id)
+    session_data = _session_cache[session_id]
+
+    logger.info("续写会话，启动新一轮 Orchestrator: %s", session_id)
+    asyncio.create_task(
+        _run_orchestrator_background(session_id, session_data, broadcaster),
+        name=f"orchestrator-cont-{session_id[:8]}",
+    )
+
+    return {"status": "ok", "session_id": session_id}
 
 async def _load_session_from_db(
     session_id: str, db: AsyncSession

@@ -116,6 +116,46 @@ async def delete_session(db: AsyncSession, session_id: str) -> None:
     await db.commit()
 
 
+async def continue_session(
+    db: AsyncSession,
+    *,
+    session_id: str,
+    user_prompt: str,
+    conversation_history: list[Any],
+    attachments: list[str],
+    strategy_clarification_answers: str | None = None,
+    strategy_clarify_round: int = 0,
+) -> None:
+    """
+    继续现有会话。
+
+    NOTE: 多轮对话或战略追问回复时调用。
+    不创建新记录，而是更新现有会话的 user_prompt、conversation_history
+    字段，并将 status 重置为 pending，清空 agent_outputs / agent_statuses
+    以准备新一轮的流式生成。URL（session_id）保持不变。
+    """
+    await db.execute(
+        update(SessionModel)
+        .where(SessionModel.id == session_id)
+        .values(
+            user_prompt=user_prompt,
+            conversation_history=conversation_history,
+            attachments=attachments,
+            strategy_clarification_answers=strategy_clarification_answers,
+            strategy_clarify_round=strategy_clarify_round,
+            status="pending",
+            # NOTE: 重置当轮 agent 状态，保留已存档的 conversation_history 历史
+            agent_outputs={},
+            agent_statuses={},
+            selected_agents=[],
+            report=None,
+        )
+    )
+    await db.commit()
+    logger.info("会话已续写（复用 session_id）: %s", session_id)
+
+
+
 
 async def update_session_status(
     db: AsyncSession,

@@ -9,7 +9,7 @@ import type { AgentId, AgentStatus } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
-import { createSession, fetchSnapshot, uploadAsset } from '@/lib/api';
+import { createSession, continueSession, fetchSnapshot, uploadAsset } from '@/lib/api';
 import styles from './page.module.css';
 import type { RoundSnapshot } from './workspaceTypes';
 import { buildFeedRouteFromMiddleKeys } from './workspaceUtils';
@@ -141,36 +141,28 @@ export default function WorkspacePage() {
 
         setStrategyClarify(null);
         setBottomPrompt('');
-        
-        // NOTE: 用户回答作为独立的新一轮对话 prompt，不做拼接——贯彻流式对话铁律
-        const newPrompt = inputText;
 
-        // 瞬间 UI 响应机制：预分配 UUID
-        const newSessionId = crypto.randomUUID();
-        
-        initSession(newSessionId, newPrompt);
-        setActiveSessionId(newSessionId);
-        setRestored(null); // 挂起 SSE，等待写库
-        window.history.pushState(null, '', `/workspace/${newSessionId}`);
-        
+        // NOTE: 核心修复 — 追问回复不创建新会话，复用同一个 activeSessionId
+        // URL 保持不变，侧边栏历史记录依旧是同一条
+        initSession(activeSessionId, inputText);
+        setRestored(null); // 挂起 SSE，等待后端续写
+
         setTimeout(() => {
           currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 50);
 
-        // 后台写库
+        // 后台调用 PATCH /continue，不创建新历史记录
         try {
-          await createSession(
-            user.id,
-            newPrompt,
-            newSessionId,
-            newPrompt.slice(0, 40),
+          await continueSession(
+            activeSessionId,
+            inputText,
             history,
             [],
             inputText,    // Trout 专用的真实答案
             clarifyRound,
           );
         } catch (err) {
-          console.error("Failed to create session on clarification reply:", err);
+          console.error('Failed to continue session on clarification reply:', err);
         } finally {
           setRestored(false);
           setSubmitting(false);
@@ -181,6 +173,7 @@ export default function WorkspacePage() {
       }
       return;
     }
+
 
     // ── 普通多轮对话提交 ────
     const promptText = inputText;
@@ -240,25 +233,21 @@ export default function WorkspacePage() {
         setAttachments([]);
       }
 
-      // 瞬间 UI 响应机制：预分配 UUID，消除 HTTP 创建耗时带来的“卡顿感”
-      const newSessionId = crypto.randomUUID();
-      
-      // 立即清理输入框和重置状态
+      // NOTE: 核心修复 — 多轮对话不创建新 session，复用 activeSessionId
+      // URL 保持不变，用户在侧边栏只会看到一条历史记录
       setBottomPrompt('');
-      initSession(newSessionId, promptText);
-      setActiveSessionId(newSessionId);
-      setRestored(null); // NOTE: 挂起 SSE 连接，直到我们后端创建完成
-      window.history.pushState(null, '', `/workspace/${newSessionId}`);
-      
+      initSession(activeSessionId, promptText);
+      setRestored(null); // 挂起 SSE 连接，等待后端续写完成
+
       setTimeout(() => {
         currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
 
-      // 后台执行真正的建库逻辑
+      // 后台调用 PATCH /continue，不创建新历史记录
       try {
-        await createSession(user.id, promptText, newSessionId, promptText.slice(0, 40), history, uploadedUrls);
+        await continueSession(activeSessionId, promptText, history, uploadedUrls);
       } catch (err) {
-        console.error("Failed to create session on multi-turn reply:", err);
+        console.error('Failed to continue session on multi-turn reply:', err);
       } finally {
         // 无论成功失败，开放 SSE 长连接请求阀门
         setRestored(false);
