@@ -182,16 +182,8 @@ class AgentOrchestrator:
             # NOTE: 将高耗时的 JSON 路由决策放进无阻塞的后台 task
             decision_task = asyncio.create_task(run_ogilvy_decision(effective_prompt, conversation_history))
 
-            # 与此同时我们给前端流式推出问候语，完美用交互掩盖 6 秒的后端 LLM 等待时间
-            greeting = "✨ 收到了您的需求！我正在对您的业务场景进行初步诊断，并为您调兵遣将构建专属的策略工作流...\n\n"
+            # 等待真实的高耗时路由决策
             plan_accumulated = ""
-            # 每 0.08 秒流出 1 个字符，大概耗时 3-4 秒，刚刚好填补大模型的响应空窗期
-            async for chunk in _stream_text_as_chunks(greeting, chunk_size=1, delay=0.08):
-                plan_accumulated += chunk
-                yield _sse_raw(
-                    "agent_chunk",
-                    json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-                )
             
             # 问候语结束后，我们从容迎接真正的决策结果
             decision = await decision_task
@@ -349,7 +341,7 @@ class AgentOrchestrator:
 
                 prompt_explain = (
                     f"你决定启动以下智能体团队处理该需求：{agent_names}。\\n"
-                    f"请用首席品牌顾问的口吻写一段话向用户流式播报（约2-3句即可，不要生硬罗列名字，要说出逻辑）：你已经完成了初步的需求诊断，为什么我们要采用这样的流程链路，表达你正在亲自调集团队进行各模块的深入分析。自然、专业即可。"
+                    f"要求：严格遵循【90/10 法则】与【非武断调性】。用高级客户总监的口吻，【不要说任何打招呼的话，直接开门见山】给出一句对该赛道或需求的犀利/幽默洞察作为破冰，然后极其从容自信地交代这几个智能体的分工。这段话就是你作为品牌顾问本次服务的最开场白。"
                 )
 
                 # 使用真实的流式生成，让大模型一边思考一边吐出解释
