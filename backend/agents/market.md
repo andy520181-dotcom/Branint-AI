@@ -59,16 +59,90 @@
 ### 3. 竞争格局分析
 - 竞品清单及分类 (直接/间接/潜在)
 - 各竞品定位、价格、核心卖点、渠道、声量
-- 竞品心智地图 (基于消费者认知，如高性价比vs高端、传统vs新潮)
 - 竞品优劣势总结 (SWOT格式)
-*(强烈推荐在此处使用 echarts 雷达图对比多维竞争力)*
+
+**竞品心智地图【强制格式】**：必须使用以下 echarts 散点图格式输出，X轴=技术/执行敏捷性（0-10），Y轴=战略深度（0-10），每个竞品作为一个带标签的散点，并标注品牌战略机会区。禁止使用 ASCII 文字绘图。
+
+````echarts
+{
+  "backgroundColor": "#fff",
+  "grid": {"left": "12%", "right": "5%", "top": "10%", "bottom": "12%"},
+  "xAxis": {
+    "name": "技术/执行敏捷性",
+    "nameLocation": "end",
+    "nameGap": 10,
+    "min": 0, "max": 10,
+    "splitLine": {"lineStyle": {"type": "dashed", "color": "#e8e8e8"}},
+    "axisLine": {"lineStyle": {"color": "#999"}},
+    "axisLabel": {"color": "#666"}
+  },
+  "yAxis": {
+    "name": "战略深度",
+    "nameLocation": "end",
+    "nameGap": 10,
+    "min": 0, "max": 10,
+    "splitLine": {"lineStyle": {"type": "dashed", "color": "#e8e8e8"}},
+    "axisLine": {"lineStyle": {"color": "#999"}},
+    "axisLabel": {"color": "#666"}
+  },
+  "series": [
+    {
+      "name": "竞品",
+      "type": "scatter",
+      "symbolSize": 14,
+      "itemStyle": {"color": "#aaa", "borderColor": "#888", "borderWidth": 1},
+      "label": {
+        "show": true,
+        "position": "top",
+        "color": "#555",
+        "fontSize": 12
+      },
+      "data": [
+        {"value": [X1, Y1], "name": "竞品A"},
+        {"value": [X2, Y2], "name": "竞品B"}
+      ]
+    },
+    {
+      "name": "品牌机会区",
+      "type": "scatter",
+      "symbolSize": 20,
+      "symbol": "diamond",
+      "itemStyle": {"color": "#1a1a1a", "borderColor": "#fff", "borderWidth": 2},
+      "label": {
+        "show": true,
+        "position": "right",
+        "color": "#1a1a1a",
+        "fontWeight": "bold",
+        "fontSize": 13,
+        "formatter": "← 品牌机会区"
+      },
+      "data": [{"value": [XOpp, YOpp], "name": "品牌机会区"}]
+    }
+  ]
+}
+````
+
+（请将上方 echarts 配置中的竞品坐标 [X, Y] 替换为基于实际分析判断赋予的 0-10 评分数值）
+
+*(同时使用 echarts 雷达图对比多维竞争力亦可在此处补充)*
 
 ### 4. 目标消费者洞察
 - 人群定义 (年龄段、城市线、收入、职业)
 - 心理特征 (价值观、兴趣、生活方式)
 - 消费行为 (购买频率、渠道偏好、决策因素)
-- 用户旅程地图 (从认知到复购的关键触点与情绪)
 - 核心痛点与爽点 (请引用刚刚检索到或爬取到的真实代表性评价)
+
+**用户旅程地图【强制格式】**：必须使用以下标准 Markdown 表格输出，包含完整的5个阶段列，禁止使用纯文本行排版。
+
+| 维度 | 认知期 | 考虑期 | 决策期 | 使用期 | 复购期 |
+|------|--------|--------|--------|--------|--------|
+| **触点** | [渠道/媒介] | [渠道/媒介] | [渠道/媒介] | [渠道/媒介] | [渠道/媒介] |
+| **情绪** | [情绪状态] | [情绪状态] | [情绪状态] | [情绪状态] | [情绪状态] |
+| **关键任务** | [用户目标] | [用户目标] | [用户目标] | [用户目标] | [用户目标] |
+| **痛点** | [核心痛点] | [核心痛点] | [核心痛点] | [核心痛点] | [核心痛点] |
+| **机会点** | [品牌介入方式] | [品牌介入方式] | [品牌介入方式] | [品牌介入方式] | [品牌介入方式] |
+
+（请将上方表格中的占位文字替换为基于实际研究的具体内容）
 
 ### 5. 情感与语义分析
 - 品类相关的热门话题 (正面/负面)

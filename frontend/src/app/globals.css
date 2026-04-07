@@ -459,23 +459,67 @@ input, textarea { font-family: inherit; outline: none; }
 .markdown-body table {
   width: 100%;
   border-collapse: collapse;
-  margin: var(--space-3) 0;
-  font-size: var(--prose-body-size);
+  margin: var(--space-4) 0;
+  font-size: var(--font-size-md);
+  /* NOTE: 宽表格（如用户旅程地图）通过外层 .prose-table-wrap 实现横向滚动 */
 }
 .markdown-body th {
-  background: var(--color-surface-2);
-  color: var(--prose-heading-color);
-  padding: var(--prose-table-cell-padding-y) var(--prose-table-cell-padding-x);
+  background: var(--color-inverse-fill);
+  color: var(--color-on-inverse);
+  padding: var(--space-2) var(--space-4);
   text-align: left;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255,255,255,0.12);
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-caption);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .markdown-body td {
-  padding: var(--prose-table-cell-padding-y) var(--prose-table-cell-padding-x);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
   color: var(--prose-body-color);
+  vertical-align: top;
+  line-height: 1.55;
 }
-.markdown-body tr:nth-child(even) td { background: var(--color-surface-2); }
+/* 首列加粗：维度标签行（如「触点」「情绪」「痛点」） */
+.markdown-body td:first-child {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  background: var(--color-surface-2);
+  white-space: nowrap;
+  min-width: 72px;
+}
+/* 偶数数据行浅背景 — 跳过首列因为首列独立处理 */
+.markdown-body tr:nth-child(even) td { background: #fafaf8; }
+.markdown-body tr:nth-child(even) td:first-child { background: var(--color-surface-2); }
+[data-theme="dark"] .markdown-body tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+[data-theme="dark"] .markdown-body tr:nth-child(even) td:first-child { background: var(--color-surface-2); }
+/* 宽表格横向滚动容器（由 MarkdownRenderer sharedMarkdownComponents.table 注入） */
+.prose-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--space-4) 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+.prose-table-wrap table {
+  margin: 0;
+  border-radius: 0;
+  min-width: 600px;
+}
+.prose-table-wrap th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+.prose-table-wrap th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
+/* 深色模式：表头反色保持可读 */
+[data-theme="dark"] .markdown-body th {
+  background: var(--color-surface-2);
+  color: var(--text-primary);
+  border-color: var(--color-border);
+}
+[data-theme="dark"] .prose-table-wrap {
+  border-color: var(--color-border);
+}
 .markdown-body code {
   background: var(--color-surface-2);
   padding: 2px var(--space-1);

@@ -6,6 +6,18 @@ import { EChartsRenderer } from './EChartsRenderer';
 import styles from '../WorkspaceFeed.module.css';
 
 export const sharedMarkdownComponents: Components = {
+  /**
+   * NOTE: 所有 Markdown 表格统一包裹进 .prose-table-wrap 容器，
+   * 实现横向滚动（用户旅程地图等宽表格在窄屏下不溢出）
+   */
+  table(props: any) {
+    const { children, node, ...rest } = props;
+    return (
+      <div className="prose-table-wrap">
+        <table {...rest}>{children}</table>
+      </div>
+    );
+  },
   code(props: any) {
     const { children, className, node, ...rest } = props;
     const match = /language-(\w+)/.exec(className || '');
