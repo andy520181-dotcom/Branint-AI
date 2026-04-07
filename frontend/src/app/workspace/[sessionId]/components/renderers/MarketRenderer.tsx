@@ -22,6 +22,8 @@ export interface MarketRendererProps {
   isRunning: boolean;
   /** Wacksman 研究循环实时进度步骤 */
   researchProgress?: ResearchProgressStep[];
+  /** 可选：透传 Agent ID 以复用时间轴 UI（market 或 strategy） */
+  agentId?: 'market' | 'strategy';
 }
 
 /**
@@ -42,7 +44,7 @@ function parseMarketOutput(raw: string): { content: string; citations: SearchCit
  * 静默期：显示实时进度时间轴
  * 生成后：显示 Markdown 报告 + 来源引用卡片
  */
-export function MarketRenderer({ output, isRunning, researchProgress = [] }: MarketRendererProps) {
+export function MarketRenderer({ output, isRunning, researchProgress = [], agentId = 'market' }: MarketRendererProps) {
   const { content, citations } = useMemo(() => parseMarketOutput(output), [output]);
 
   const marketCitations = citations.filter((c) => c.type === 'market_data');
@@ -79,14 +81,16 @@ export function MarketRenderer({ output, isRunning, researchProgress = [] }: Mar
           <div className={marketStyles.progressHeader}>
             <div className={marketStyles.searchSpinner} />
             <span className={marketStyles.progressTitle}>
-              Wacksman 研究引擎运行中
+              {agentId === 'strategy' ? 'Trout 战略推演引擎运行中' : 'Wacksman 研究引擎运行中'}
             </span>
-            <span className={marketStyles.progressHint}>中型检索模式 · 约 20-40 秒</span>
+            <span className={marketStyles.progressHint}>
+              {agentId === 'strategy' ? '七维战略定位分析 · 约 30-50 秒' : '中型检索模式 · 约 20-40 秒'}
+            </span>
           </div>
 
           {researchProgress.length === 0 ? (
             <div className={marketStyles.progressInitializing}>
-              正在启动联网工具…
+              {agentId === 'strategy' ? '正在加载品牌战略全景框架…' : '正在启动联网工具…'}
             </div>
           ) : (
             <div className={marketStyles.progressSteps}>

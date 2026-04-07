@@ -3,22 +3,37 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SiteNavLogo } from '@/components/SiteNavLogo';
-import { useHistory } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import { SiteNavAuth } from '@/components/SiteNavAuth';
 import AuthModal from '@/components/auth/AuthModal';
 import { HistoryItem } from '@/types';
+import { fetchSessions } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function HistoryPage() {
   const { t, resolvedLocale } = useLocale();
-  const { getHistory } = useHistory();
+  const { user } = useAuth();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
-    setItems(getHistory());
-  }, [getHistory]);
+    if (!user?.id) {
+      setItems([]);
+      return;
+    }
+    fetchSessions(user.id)
+      .then(dbSessions => {
+        setItems(dbSessions.map(s => ({
+          sessionId: s.session_id,
+          title: s.title,
+          createdAt: s.created_at,
+          isPinned: s.is_pinned,
+          shareUrl: `/workspace/${s.session_id}`
+        })));
+      })
+      .catch(console.error);
+  }, [user?.id]);
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);

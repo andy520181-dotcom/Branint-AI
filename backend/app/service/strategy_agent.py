@@ -24,6 +24,8 @@ from collections.abc import AsyncGenerator
 from app.service.llm_provider import call_llm, call_llm_stream, call_llm_with_tools
 from app.service.prompt_loader import load_agent_prompt
 from app.service.skills.trout_skills import TROUT_TOOLS, parse_trout_tool_calls
+# 复用 Market Agent 的进度常量与机制
+from app.service.market_agent import PROGRESS_MARKER
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +112,12 @@ async def _assess_and_clarify(
     return None
 
 
+def _make_progress(step: str, detail: str = "") -> str:
+    """构造进度 token。Orchestrator 读取此格式后转发为 agent_research_progress SSE 事件。"""
+    payload = {"step": step, "detail": detail}
+    return f"{PROGRESS_MARKER}{json.dumps(payload, ensure_ascii=False)}"
+
+
 # ══════════════════════════════════════════════════════════════
 # Phase 1-2：主流程
 # ══════════════════════════════════════════════════════════════
@@ -146,6 +154,8 @@ async def run_strategy_agent_stream(
             # NOTE: 发出追问信号，orchestrator 捕获后 emit strategy_clarify SSE + session_pause
             yield f"{TROUT_CLARIFY_MARKER}{questions}"
             return
+
+    yield _make_progress("start", "Trout 启动战略规划引擎，准备开始深度推演…")
 
     # ─── Phase 0：组装输入消息 ────────────────────────────────
     system_prompt = load_agent_prompt("strategy")
@@ -201,6 +211,19 @@ async def run_strategy_agent_stream(
                 result_str = item["result"]
                 executed_frameworks.append(tool_name)
                 logger.info("Trout 工具执行: %s", tool_name)
+                
+                action_label = {
+                    "select_applicable_frameworks": "构建品牌战略全局规划",
+                    "analyze_competitive_landscape": "审视行业竞争格局与心智缝隙",
+                    "apply_positioning_theory": "推演核心品牌定位",
+                    "apply_brand_driver": "规划品牌传播底层驱动力",
+                    "build_brand_house": "搭建严密的品牌屋框架",
+                    "design_brand_architecture": "梳理多品牌业务矩阵",
+                    "generate_naming_candidates": "碰撞中英文品牌命名建议",
+                    "synthesize_strategy_report": "全维定鼎，正在整合战略报告",
+                }.get(tool_name, f"执行 {tool_name}")
+                
+                yield _make_progress(tool_name, f"{action_label}...")
 
                 # 提取 theory_combo 供进度提示使用
                 if tool_name == FRAMEWORK_SELECTOR:

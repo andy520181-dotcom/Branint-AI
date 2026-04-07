@@ -368,6 +368,10 @@ export default function WorkspacePage() {
           error: null,
         });
 
+        if (cached?.strategyClarify) {
+          useWorkspaceStore.setState({ strategyClarify: cached.strategyClarify });
+        }
+
         // NOTE: 从服务端备份重建历史轮次（当换电脑、清缓存或强制刷新时起效）
         const historyFromBackend: RoundSnapshot[] = (snap.conversation_history || []).map(
           (h: any, i: number) => {
@@ -444,6 +448,9 @@ export default function WorkspacePage() {
             error: null,
             previousRounds: saved.previousRounds ?? [],
           });
+          if (saved.strategyClarify) {
+            useWorkspaceStore.setState({ strategyClarify: saved.strategyClarify });
+          }
         } else {
           useWorkspaceStore.setState({
             sessionId,

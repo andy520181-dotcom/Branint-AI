@@ -48,6 +48,7 @@ interface PersistedState {
   isComplete: boolean;
   userPrompt: string;
   previousRounds?: RoundSnapshot[];
+  strategyClarify?: StrategyClarifyState | null;
 }
 
 /** 超出 MAX_CACHED_SESSIONS 时删除最旧的缓存 */
@@ -186,6 +187,7 @@ const persist = (s: WorkspaceState) =>
     isComplete: s.isComplete,
     userPrompt: s.userPrompt,
     previousRounds: s.previousRounds,
+    strategyClarify: s.strategyClarify,
   });
 
 /**
