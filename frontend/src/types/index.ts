@@ -1,5 +1,4 @@
 export type AgentId =
-  | 'consultant_greeting' // 品牌顾问 — 思考时的初步问候阶段
   | 'consultant_plan'   // 品牌顾问 — 执行计划阶段
   | 'market'
   | 'strategy'

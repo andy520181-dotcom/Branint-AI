@@ -10,7 +10,7 @@ export function buildFeedRouteFromMiddleKeys(middle: string[] | null | undefined
   if (!middle?.length) return null;
   const valid = middle.filter((k): k is AgentId => ROUTE_MIDDLE_KEYS.has(k));
   if (!valid.length) return null;
-  return ['consultant_greeting', 'consultant_plan', ...valid, 'consultant_review'];
+  return ['consultant_plan', ...valid, 'consultant_review'];
 }
 
 /** 将历史列表按日期分组 */

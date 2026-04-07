@@ -3,19 +3,6 @@ import type { AgentConfig } from '@/types';
 /** 顺序与后端 SSE 事件流一致，顾问首尾各一张卡片 */
 export const AGENT_CONFIGS: AgentConfig[] = [
   {
-    id: 'consultant_greeting',
-    name: '品牌顾问 Agent',
-    charName: 'Ogilvy',
-    role: 'Brand Consultant · 需求诊断',
-    description: '接收并梳理用户诉求，给出初步诊断。',
-    desc: '需求诊断',
-    avatar: '/agents/thumb/ogilvy.png',
-    color: 'var(--color-gold)',
-    colorDim: 'var(--agent-consultant-dim)',
-    icon: '',
-    index: -1,
-  },
-  {
     id: 'consultant_plan',
     name: '品牌顾问 Agent',
     charName: 'Ogilvy',

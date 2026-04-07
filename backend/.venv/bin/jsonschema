@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/andy/Desktop/Brandclaw AI/backend/.venv/bin/python3" "$0" "$@"
+'''exec' "/Users/andy/Desktop/Branin AI/backend/.venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

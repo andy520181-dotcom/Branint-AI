@@ -176,55 +176,46 @@ class AgentOrchestrator:
             yield _sse("agent_complete", "consultant_plan")
         else:
             # 场景 C：全新对话（正常启动）
-            yield _sse("agent_start", "consultant_greeting")
+            yield _sse("agent_start", "consultant_plan")
             logger.info("品牌顾问 — 开始初步问候与需求诊断...")
 
             # NOTE: 将高耗时的 JSON 路由决策放进无阻塞的后台 task
             decision_task = asyncio.create_task(run_ogilvy_decision(effective_prompt, conversation_history))
 
             # 与此同时我们给前端流式推出问候语，完美用交互掩盖 6 秒的后端 LLM 等待时间
-            greeting = "✨ 收到了您的需求！我正在对您的业务场景进行初步诊断，并为您调兵遣将构建专属的策略工作流..."
-            greeting_accumulated = ""
+            greeting = "✨ 收到了您的需求！我正在对您的业务场景进行初步诊断，并为您调兵遣将构建专属的策略工作流...\n\n"
+            plan_accumulated = ""
             # 每 0.08 秒流出 1 个字符，大概耗时 3-4 秒，刚刚好填补大模型的响应空窗期
             async for chunk in _stream_text_as_chunks(greeting, chunk_size=1, delay=0.08):
-                greeting_accumulated += chunk
+                plan_accumulated += chunk
                 yield _sse_raw(
                     "agent_chunk",
-                    json.dumps({"id": "consultant_greeting", "chunk": chunk}, ensure_ascii=False),
+                    json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                 )
             
-            # 第一段问候气泡结束
-            yield _sse("agent_output", json.dumps({"id": "consultant_greeting", "content": greeting_accumulated}))
-            yield _sse("agent_complete", "consultant_greeting")
-
-            # 问候语吐完后，我们从容地迎接真正的决策结果
+            # 问候语结束后，我们从容迎接真正的决策结果
             decision = await decision_task
             action = decision.get("action", "none")
             args = decision.get("args", {})
-
-            # 开始执行计划的专属气泡
-            yield _sse("agent_start", "consultant_plan")
-            plan_accumulated = ""
 
             if action == "direct_response":
                 # NOTE: 轻量咋询直接回复模式：品牌顾问做主语直接流式作答，跳过全部专业 Agent
                 response_prompt = args.get("response_prompt", "以首席品牌顾问身份回答用户咋询。")
                 logger.info("品牌顾问 — Direct Response 模式，跳过专业 Agent 流水线")
 
-                direct_accumulated = ""
                 async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
-                    direct_accumulated += chunk
+                    plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
 
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
                 yield _sse("agent_complete", "consultant_plan")
                 # NOTE: 直接回复完成后直接结束会话，无需 review 历程
                 yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
-                logger.info("品牌顾问 Direct Response 完成，输出: %d 字", len(direct_accumulated))
+                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                logger.info("品牌顾问 Direct Response 完成，输出: %d 字", len(plan_accumulated))
                 return
 
             elif action == "lightweight_web_search":
@@ -243,22 +234,22 @@ class AgentOrchestrator:
                     search_result = "抱歉，由于网络检索服务异常，未能获取最新资讯。"
                 
                 response_prompt = f"针对用户的问题，基于以下最新互联网检索结果进行解答：\\n\\n【检索结果】\\n{search_result}"
-                direct_accumulated = f"> 已为您检索最新资讯：**{query}**\\n\\n"
+                plan_accumulated += f"\n> 已为您检索最新资讯：**{query}**\n\n"
                 
                 # 先把新增的前缀推送显示
-                yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": direct_accumulated}, ensure_ascii=False))
+                yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": f"\n> 已为您检索最新资讯：**{query}**\n\n"}, ensure_ascii=False))
 
                 async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
-                    direct_accumulated += chunk
+                    plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
 
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
                 yield _sse("agent_complete", "consultant_plan")
                 yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
+                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
                 return
 
             elif action == "export_final_deliverable":
@@ -270,21 +261,20 @@ class AgentOrchestrator:
                     "物理文件生成目前处于开发阶段，您可以稍后在系统的【下载面板】查收结果。"
                 )
                 
-                direct_accumulated = ""
                 async for chunk in run_planning_phase_stream(export_msg):
-                    direct_accumulated += chunk
+                    plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
 
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
                 yield _sse("agent_complete", "consultant_plan")
                 yield _sse("routing_decided", json.dumps([]))
                 
                 # 推送导出完成伪信号
                 yield _sse("export_ready", json.dumps({"title": doc_title, "url": f"/api/exports/{doc_title}.pdf"}, ensure_ascii=False))
-                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
+                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
                 return
 
             elif action == "revert_to_checkpoint":
@@ -292,21 +282,20 @@ class AgentOrchestrator:
                 explanation = args.get("explanation", f"好的，系统上下文即将为您回退到历史第 {target_round} 轮的干净状态...")
                 logger.info("品牌顾问 — 触发 Revert 动作: 到 Round %s", target_round)
                 
-                direct_accumulated = ""
                 async for chunk in run_planning_phase_stream(explanation):
-                    direct_accumulated += chunk
+                    plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
                     
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
                 yield _sse("agent_complete", "consultant_plan")
                 yield _sse("routing_decided", json.dumps([]))
                 
                 # 给前端发出清空历史的数据指令
                 yield _sse("session_revert", json.dumps({"target_round": target_round}, ensure_ascii=False))
-                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
+                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
                 return
 
             elif action == "analyze_uploaded_asset":
@@ -314,18 +303,17 @@ class AgentOrchestrator:
                 logger.info("品牌顾问 — 触发 Analyze Uploaded Asset 动作: 重点 %s", asset_focus)
                 
                 explanation = f"⚠️ [系统截阻：目前前端暂未开放上传通道，但系统已正确识别您意图解析的侧重点 `{asset_focus}`。请尝试用纯文字再次描述。]"
-                direct_accumulated = ""
                 async for chunk in run_planning_phase_stream(explanation):
-                    direct_accumulated += chunk
+                    plan_accumulated += chunk
                     yield _sse_raw(
                         "agent_chunk",
                         json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
                     )
                     
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": direct_accumulated}))
+                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
                 yield _sse("agent_complete", "consultant_plan")
                 yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": direct_accumulated}, ensure_ascii=False))
+                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
                 return
 
             elif action == "clarify_requirement" or action == "request_human_approval":
