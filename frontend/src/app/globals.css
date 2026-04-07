@@ -471,9 +471,8 @@ input, textarea { font-family: inherit; outline: none; }
   border: 1px solid rgba(255,255,255,0.12);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-caption);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  letter-spacing: 0.02em;
+  /* NOTE: 不使用 white-space:nowrap，允许表头换行，防止宽表格溢出 */
 }
 .markdown-body td {
   padding: var(--space-3) var(--space-4);
@@ -481,14 +480,19 @@ input, textarea { font-family: inherit; outline: none; }
   color: var(--prose-body-color);
   vertical-align: top;
   line-height: 1.55;
+  /* NOTE: 长文本在单元格内换行，防止宽内容撑破表格布局 */
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
-/* 首列加粗：维度标签行（如「触点」「情绪」「痛点」） */
+/* 首列加粗：维度标签行（如「触点」「情绪」「痛点」）
+   NOTE: 短标签列适合 nowrap，但设上限防止过宽 */
 .markdown-body td:first-child {
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   background: var(--color-surface-2);
   white-space: nowrap;
-  min-width: 72px;
+  min-width: 60px;
+  max-width: 120px;
 }
 /* 偶数数据行浅背景 — 跳过首列因为首列独立处理 */
 .markdown-body tr:nth-child(even) td { background: #fafaf8; }
@@ -507,7 +511,9 @@ input, textarea { font-family: inherit; outline: none; }
 .prose-table-wrap table {
   margin: 0;
   border-radius: 0;
-  min-width: 600px;
+  /* NOTE: 宽度跟随内容自然撑开，不强制最小宽度，避免不必要的横滚 */
+  min-width: max-content;
+  width: 100%;
 }
 .prose-table-wrap th:first-child { border-radius: var(--radius-sm) 0 0 0; }
 .prose-table-wrap th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
