@@ -114,9 +114,17 @@ async def get_current_user(
     payload = decode_jwt(credentials.credentials)
     
     user_id = payload["sub"]
+    email   = payload.get("email", "")
     db_user = await user_repo.get_user_by_id(db, user_id)
+    
+    # NOTE: 如果 JWT 有效但 users 表无记录（老用户只在本地开发库注册，尚未同步到 RDS），
+    # 自动补建一条占位内容和随机版密码。JWT 签名正确即为合法性证明。
     if not db_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="查无此用户")
+        if not email:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="查无此用户")
+        placeholder_hash = _hash_password(secrets.token_hex(16))
+        db_user = await user_repo.create_user(db, user_id, email, placeholder_hash)
+        logger.info("自动补建用户记录 (JWT 已验证): user_id=%s email=%s", user_id, email)
         
     return UserInfo(user_id=db_user.id, email=db_user.email, avatar_url=db_user.avatar_url)
 

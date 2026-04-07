@@ -71,6 +71,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // NOTE: 头像上传/更新完成后，SettingsModal 会派发此事件，
+  //       这里重新拉取后端最新的用户信息（含最新 avatar_url）并同步到 Context 和 localStorage
+  useEffect(() => {
+    const onProfileUpdated = () => {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const cachedUser = loadUser();
+      if (!token || !cachedUser) return;
+      fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.user_id) {
+            const info: UserInfo = { id: data.user_id, email: data.email, avatar_url: data.avatar_url };
+            // 同步到 localStorage 和 React 状态，所有订阅了 user 的组件自动刷新
+            localStorage.setItem(USER_KEY, JSON.stringify(info));
+            setUser(info);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener('woloong-profile-updated', onProfileUpdated);
+    return () => window.removeEventListener('woloong-profile-updated', onProfileUpdated);
+  }, []);
+
   const sendOtp = useCallback(async (email: string) => {
     const res = await fetch(`${API_URL}/api/auth/send-otp`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

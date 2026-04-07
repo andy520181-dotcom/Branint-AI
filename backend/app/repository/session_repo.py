@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.model.session import Session as SessionModel
@@ -24,6 +24,7 @@ async def create_session(
     *,
     session_id: str,
     user_id: str,
+    title: str,
     user_prompt: str,
     conversation_history: list[Any],
     attachments: list[str],
@@ -36,6 +37,8 @@ async def create_session(
     record = SessionModel(
         id=session_id,
         user_id=user_id,
+        title=title,
+        is_pinned=False,
         user_prompt=user_prompt,
         conversation_history=conversation_history,
         attachments=attachments,
@@ -60,6 +63,58 @@ async def get_session(db: AsyncSession, session_id: str) -> Optional[SessionMode
     """
     result = await db.execute(select(SessionModel).where(SessionModel.id == session_id))
     return result.scalar_one_or_none()
+
+
+async def get_user_sessions(db: AsyncSession, user_id: str) -> list[SessionModel]:
+    """
+    获取用户的全部会话列表，用于侧边栏渲染。
+    云端排序逻辑：优先置顶项，其它按更新时间倒序。
+    """
+    stmt = (
+        select(SessionModel)
+        .where(SessionModel.user_id == user_id)
+        .order_by(SessionModel.is_pinned.desc(), SessionModel.updated_at.desc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def update_session_meta(
+    db: AsyncSession,
+    session_id: str,
+    title: str | None = None,
+    is_pinned: bool | None = None,
+) -> None:
+    """
+    更新前端操作的元数据（重命名、置顶）。
+    """
+    updates: dict[str, Any] = {}
+    if title is not None:
+        updates["title"] = title
+    if is_pinned is not None:
+        updates["is_pinned"] = is_pinned
+        
+    if not updates:
+        return
+
+    await db.execute(
+        update(SessionModel)
+        .where(SessionModel.id == session_id)
+        .values(**updates)
+    )
+    await db.commit()
+
+
+async def delete_session(db: AsyncSession, session_id: str) -> None:
+    """
+    物理删除会话记录。
+    """
+    await db.execute(
+        delete(SessionModel)
+        .where(SessionModel.id == session_id)
+    )
+    await db.commit()
+
 
 
 async def update_session_status(

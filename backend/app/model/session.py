@@ -32,6 +32,12 @@ class Session(Base):
     # 用户标识（JWT 解码后的 user_id）
     user_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
 
+    # 会话短语标题
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # 是否置顶显示
+    is_pinned: Mapped[bool] = mapped_column(nullable=False, server_default="false")
+
     # 用户本轮输入
     user_prompt: Mapped[str] = mapped_column(Text, nullable=False)
 

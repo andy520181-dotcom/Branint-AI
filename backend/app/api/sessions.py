@@ -20,7 +20,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.repository import session_repo, event_repo
-from app.schema.session import CreateSessionRequest, CreateSessionResponse
+from app.schema.session import (
+    CreateSessionRequest,
+    CreateSessionResponse,
+    SessionListItem,
+    SessionMetaUpdate,
+)
 from app.service.agent_orchestrator import AgentOrchestrator
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
@@ -30,6 +35,45 @@ logger = logging.getLogger(__name__)
 #       仅在 stream_session 执行期间持有，进程内共享。
 #       进程重启后从数据库重新加载 —— 这正是 PostgreSQL 迁移的核心收益。
 _session_cache: dict[str, dict] = {}
+
+
+# ─── 会话列表与元数据管理 ─────────────────────
+
+@router.get("", response_model=list[SessionListItem])
+async def list_user_sessions(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[SessionListItem]:
+    records = await session_repo.get_user_sessions(db, user_id)
+    return [
+        SessionListItem(
+            session_id=r.id,
+            title=r.title or (r.user_prompt[:40] if r.user_prompt else "新对话"),
+            is_pinned=bool(r.is_pinned),
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+        )
+        for r in records
+    ]
+
+@router.put("/{session_id}/meta")
+async def update_session_meta(
+    session_id: str,
+    body: SessionMetaUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    await session_repo.update_session_meta(
+        db, session_id, title=body.title, is_pinned=body.is_pinned
+    )
+    return {"status": "ok"}
+
+@router.delete("/{session_id}")
+async def delete_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    await session_repo.delete_session(db, session_id)
+    return {"status": "ok"}
 
 
 @router.post("", response_model=CreateSessionResponse)
@@ -42,11 +86,13 @@ async def create_session(
     返回 session_id 供前端连接 SSE 流。
     """
     session_id = body.session_id or str(uuid.uuid4())
+    title_val = body.title if body.title else body.user_prompt[:40]
 
     await session_repo.create_session(
         db,
         session_id=session_id,
         user_id=body.user_id,
+        title=title_val,
         user_prompt=body.user_prompt,
         conversation_history=[r.model_dump() for r in body.conversation_history],
         attachments=body.attachments,
@@ -57,6 +103,7 @@ async def create_session(
     # NOTE: 同步写入内存缓存，避免 stream_session 立即查库
     _session_cache[session_id] = {
         "user_id": body.user_id,
+        "title": title_val,
         "user_prompt": body.user_prompt,
         "conversation_history": [r.model_dump() for r in body.conversation_history],
         "attachments": body.attachments,

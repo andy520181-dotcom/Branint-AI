@@ -21,6 +21,7 @@ export async function createSession(
   userId: string,
   prompt: string,
   sessionId?: string,
+  title?: string,
   conversationHistory: ConversationRound[] = [],
   attachments: string[] = [],
   strategyClarifyAnswers?: string,
@@ -33,6 +34,7 @@ export async function createSession(
       user_id: userId,
       user_prompt: prompt,
       ...(sessionId && { session_id: sessionId }),
+      ...(title && { title }),
       conversation_history: conversationHistory,
       attachments,
       // NOTE: 仅在 Trout 追问后继续提交时才传入，普通对话为 undefined（后端忽略）
@@ -99,4 +101,41 @@ export async function fetchSnapshot(sessionId: string): Promise<SessionSnapshot>
   const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/snapshot`);
   if (!res.ok) throw new Error(`获取快照失败 (${res.status})`);
   return res.json() as Promise<SessionSnapshot>;
+}
+
+export interface SessionListItem {
+  session_id: string;
+  title: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 获取当前用户的会话列表 */
+export async function fetchSessions(userId: string): Promise<SessionListItem[]> {
+  const params = new URLSearchParams({ user_id: userId });
+  const res = await fetch(`${API_BASE}/api/sessions?${params.toString()}`);
+  if (!res.ok) throw new Error(`获取会话列表失败 (${res.status})`);
+  return res.json() as Promise<SessionListItem[]>;
+}
+
+/** 修改会话元数据（标题、置顶） */
+export async function updateSessionMeta(
+  sessionId: string,
+  meta: { title?: string; is_pinned?: boolean }
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/meta`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(meta),
+  });
+  if (!res.ok) throw new Error(`更新会话失败 (${res.status})`);
+}
+
+/** 删除会话 */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error(`删除会话失败 (${res.status})`);
 }

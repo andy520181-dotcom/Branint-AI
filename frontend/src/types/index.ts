@@ -56,6 +56,7 @@ export interface HistoryItem {
   createdAt: string;
   /** 打开该会话的路径，一般为 `/workspace/{sessionId}` */
   shareUrl: string;
+  isPinned?: boolean;
 }
 
 /** Agent 静态配置见 `@/data/agentConfigs` */

@@ -11,11 +11,24 @@ class HistoryRound(BaseModel):
     user_prompt: str = ""
     agent_outputs: dict[str, str] = {}  # {"market": "完整输出...", "strategy": "..."}
 
-
 from typing import Optional
+from datetime import datetime
+
+class SessionListItem(BaseModel):
+    session_id: str
+    title: str
+    is_pinned: bool
+    created_at: datetime
+    updated_at: datetime
+
+class SessionMetaUpdate(BaseModel):
+    title: Optional[str] = None
+    is_pinned: Optional[bool] = None
+
 
 class CreateSessionRequest(BaseModel):
     session_id: Optional[str] = Field(default=None, description="前端生成的 UUID，若不传则后端生成")
+    title: Optional[str] = Field(default=None, description="会话标题，若不传则自动截取第一句")
     user_prompt: str = Field(
         ...,
         min_length=1,

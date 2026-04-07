@@ -49,8 +49,14 @@ def _do_upload(object_key: str, content: bytes, content_type: str) -> str:
     """
     同步执行 OSS 上传（在线程池中调用，避免阻塞事件循环）。
     返回公开访问 URL。
+
+    NOTE: x-oss-object-acl: public-read 使每个上传对象可被公开访问，
+          无需将整个 Bucket 设为公开，保持 Bucket 级别的安全性。
     """
-    headers = {"Content-Type": content_type}
+    headers = {
+        "Content-Type": content_type,
+        "x-oss-object-acl": "public-read",   # 对象级别公开读，Bucket 仍保持私有
+    }
     _bucket.put_object(object_key, content, headers=headers)
     public_url = f"{settings.oss_public_url.rstrip('/')}/{object_key}"
     logger.info("OSS 上传成功: %s -> %s", object_key, public_url)

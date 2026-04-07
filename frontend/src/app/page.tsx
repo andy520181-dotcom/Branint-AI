@@ -7,9 +7,8 @@ import { useRouter } from 'next/navigation';
 import AuthModal from '@/components/auth/AuthModal';
 import { SiteNavAuth } from '@/components/SiteNavAuth';
 import { useAuth } from '@/hooks/useAuth';
-import { useHistory } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
-import { createSession, uploadAsset } from '@/lib/api';
+import { createSession, uploadAsset, fetchSessions } from '@/lib/api';
 import { AGENT_CONFIGS } from '@/data/agentConfigs';
 import heroStyles from '@/components/landing/landingHero.module.css';
 import { SharedHeroInput } from '@/components/landing/SharedHeroInput';
@@ -38,7 +37,6 @@ const EXAMPLE_PROMPTS_EN = [
 export default function LandingPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { addHistory, getHistory } = useHistory();
   const { t, resolvedLocale } = useLocale();
   const examplePrompts = resolvedLocale === 'en' ? EXAMPLE_PROMPTS_EN : EXAMPLE_PROMPTS;
   const [prompt, setPrompt] = useState('');
@@ -68,9 +66,12 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const recent = getHistory()[0];
-    setWorkspaceHref(recent ? `/workspace/${recent.sessionId}` : '/history');
-  }, [getHistory]);
+    if (user?.id) {
+       fetchSessions(user.id).then(res => {
+         if (res.length > 0) setWorkspaceHref(`/workspace/${res[0].session_id}`);
+       }).catch(err => console.error(err));
+    }
+  }, [user?.id]);
 
   const showToast = (msg: string, durationMs = 2800) => {
     setToast(msg);
@@ -133,13 +134,6 @@ export default function LandingPage() {
       sessionStorage.setItem(`prompt_${sessionId}`, trimmedPrompt);
       sessionStorage.setItem(`user_${sessionId}`, currentUser.id);
 
-      addHistory({
-        sessionId,
-        title: trimmedPrompt.slice(0, 40),
-        createdAt: new Date().toISOString(),
-        shareUrl: `/workspace/${sessionId}`,
-      });
-
       // NOTE: 立即跳转！用户感受到即时切换，无需等待 createSession 响应
       router.push(`/workspace/${sessionId}`);
 
@@ -154,7 +148,7 @@ export default function LandingPage() {
       showToast(err instanceof Error ? err.message : t('error.network'), 3200);
       setSubmitting(false);
     }
-  }, [attachments, addHistory, router, t]);
+  }, [attachments, router, t]);
 
   /** 提交品牌需求，创建会话后跳转工作台 */
   const handleSubmit = async () => {

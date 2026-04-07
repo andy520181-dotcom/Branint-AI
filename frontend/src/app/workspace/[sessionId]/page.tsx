@@ -163,6 +163,7 @@ export default function WorkspacePage() {
             user.id,
             newPrompt,
             newSessionId,
+            newPrompt.slice(0, 40),
             history,
             [],
             inputText,    // Trout 专用的真实答案
@@ -255,7 +256,7 @@ export default function WorkspacePage() {
 
       // 后台执行真正的建库逻辑
       try {
-        await createSession(user.id, promptText, newSessionId, history, uploadedUrls);
+        await createSession(user.id, promptText, newSessionId, promptText.slice(0, 40), history, uploadedUrls);
       } catch (err) {
         console.error("Failed to create session on multi-turn reply:", err);
       } finally {
@@ -417,7 +418,7 @@ export default function WorkspacePage() {
           if (userId) {
             try {
               // 【核心异步创建】：阻塞等待写库完成后，再允许 SSE 连接
-              await createSession(userId, prompt, sessionId);
+              await createSession(userId, prompt, sessionId, prompt.slice(0, 40));
             } catch (createErr) {
               console.error('Failed to create session on landing redirect:', createErr);
             }

@@ -14,6 +14,7 @@ import { maskEmail } from '@/lib/maskContact';
 import { getStoredDisplayName, setStoredAvatarDataUrl, setStoredDisplayName } from '@/lib/userProfile';
 import { processAvatarFile } from '@/lib/avatarImage';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
+import { API_BASE } from '@/lib/api';
 import AvatarPlaceholderIcon from '@/components/AvatarPlaceholderIcon';
 import styles from './SettingsModal.module.css';
 
@@ -74,7 +75,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
       formData.append('file', f);
       const token = localStorage.getItem('woloong_token');
 
-      const uploadRes = await fetch('/api/assets/upload', {
+      const uploadRes = await fetch(`${API_BASE}/api/assets/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -85,7 +86,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
       const ossUrl = uploadData.url;
 
       // 2. 将 OSS 网址保存到用户账户关联表中
-      const updateRes = await fetch('/api/auth/profile/avatar', {
+      const updateRes = await fetch(`${API_BASE}/api/auth/profile/avatar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     if (!user) return;
     try {
       const token = localStorage.getItem('woloong_token');
-      await fetch('/api/auth/profile/avatar', {
+      await fetch(`${API_BASE}/api/auth/profile/avatar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
