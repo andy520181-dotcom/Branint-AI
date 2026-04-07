@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { HistoryItem } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,8 @@ export interface UseHistorySidebarReturn {
   historyOpen: boolean;
   setHistoryOpen: (v: boolean) => void;
   historyGroups: { label: string; items: HistoryItem[] }[];
+  /** 是否正在拉取历史列表（未完成前不显示"暂无记录"） */
+  historyLoading: boolean;
   historyMenuOpenId: string | null;
   setHistoryMenuOpenId: (id: string | null) => void;
   historyToast: string;
@@ -30,18 +32,32 @@ export interface UseHistorySidebarReturn {
 /**
  * 封装历史记录侧边栏的所有状态与操作
  * 包括：open/close、菜单弹出、toast、rename/pin/share/delete
+ *
+ * NOTE: 修复了两个竞态条件：
+ * 1. 加载期间闪现"暂无会话记录"→ 新增 historyLoading 状态
+ * 2. 首次打开时 user?.id 尚未就绪，refreshHistory 直接 return
+ *    → 新增 useEffect 监听 user?.id，侧边栏已开时自动重试
  */
 export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): UseHistorySidebarReturn {
   const router = useRouter();
-  const { user } = useAuth(); // 使用用户鉴权
+  const { user } = useAuth();
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyGroups, setHistoryGroups] = useState<{ label: string; items: HistoryItem[] }[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [historyMenuOpenId, setHistoryMenuOpenId] = useState<string | null>(null);
   const [historyToast, setHistoryToast] = useState('');
 
+  // NOTE: 用 ref 追踪 historyOpen，便于在 user?.id 变化的 effect 中读取最新值，
+  //       避免闭包捕获旧值导致条件判断错误
+  const historyOpenRef = useRef(historyOpen);
+  useEffect(() => {
+    historyOpenRef.current = historyOpen;
+  }, [historyOpen]);
+
   const refreshHistory = useCallback(async () => {
     if (!user?.id) return;
+    setHistoryLoading(true);
     try {
       const dbSessions = await fetchSessions(user.id);
       // 将后端数据映射为 HistoryItem
@@ -55,6 +71,8 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
       setHistoryGroups(groupByDate(mappedItems, t));
     } catch (err) {
       console.error('Failed to refresh history:', err);
+    } finally {
+      setHistoryLoading(false);
     }
   }, [user?.id, t]);
 
@@ -63,11 +81,20 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
     setTimeout(() => setHistoryToast(''), 2200);
   }, []);
 
-  // 侧边栏开启时刷新历史列表；即使没有开启，也建议依赖 mount 拉取第一次，或者在主界面依赖时刷新（此处保留原有行为：开启时拉取即可保证不浪费请求）
+  // 侧边栏开关时的主 effect
   useEffect(() => {
     if (historyOpen) refreshHistory();
     else setHistoryMenuOpenId(null);
   }, [historyOpen, refreshHistory]);
+
+  // NOTE: 修复竞态 Bug2：
+  // 当用户在 user?.id 尚未就绪时就打开了侧边栏，refreshHistory 会因为 !user?.id 直接 return。
+  // 此 effect 监听 user?.id 变化，一旦 id 到位且侧边栏处于打开状态，立即补发请求。
+  useEffect(() => {
+    if (user?.id && historyOpenRef.current) {
+      refreshHistory();
+    }
+  }, [user?.id, refreshHistory]);
 
   // 点击空白区域收起右键菜单
   useEffect(() => {
@@ -154,6 +181,7 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
     historyOpen,
     setHistoryOpen,
     historyGroups,
+    historyLoading,
     historyMenuOpenId,
     setHistoryMenuOpenId,
     historyToast,

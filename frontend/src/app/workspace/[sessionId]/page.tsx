@@ -61,6 +61,7 @@ export default function WorkspacePage() {
   const {
     historyOpen, setHistoryOpen,
     historyGroups,
+    historyLoading,
     historyMenuOpenId, setHistoryMenuOpenId,
     historyToast,
     handleHistoryRename,
@@ -511,6 +512,7 @@ export default function WorkspacePage() {
         historyOpen={historyOpen}
         onClose={() => setHistoryOpen(false)}
         historyGroups={historyGroups}
+        historyLoading={historyLoading}
         sessionId={sessionId}
         resolvedLocale={resolvedLocale}
         historyMenuOpenId={historyMenuOpenId}

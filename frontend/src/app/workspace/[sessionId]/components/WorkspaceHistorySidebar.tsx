@@ -10,6 +10,8 @@ export interface WorkspaceHistorySidebarProps {
   historyOpen: boolean;
   onClose: () => void;
   historyGroups: { label: string; items: HistoryItem[] }[];
+  /** 正在拉取历史记录 — 此状态下不显示"暂无会话记录" */
+  historyLoading?: boolean;
   sessionId: string;
   resolvedLocale: string;
   historyMenuOpenId: string | null;
@@ -26,6 +28,7 @@ export function WorkspaceHistorySidebar({
   historyOpen,
   onClose,
   historyGroups,
+  historyLoading = false,
   sessionId,
   resolvedLocale,
   historyMenuOpenId,
@@ -52,7 +55,14 @@ export function WorkspaceHistorySidebar({
         </div>
 
         <div className={styles.historyBody}>
-          {historyGroups.length === 0 ? (
+          {historyLoading ? (
+            /* NOTE: 加载骨架屏 — 避免 API 请求期间闪现「暂无会话记录」 */
+            <div className={styles.historySkeletons}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={styles.historySkeleton} />
+              ))}
+            </div>
+          ) : historyGroups.length === 0 ? (
             <p className={styles.historyEmpty}>{t('workspace.historyEmpty')}</p>
           ) : (
             historyGroups.map((group) => (

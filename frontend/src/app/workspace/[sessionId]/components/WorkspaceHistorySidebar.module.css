@@ -74,6 +74,30 @@
   padding: 48px 20px;
 }
 
+/* 加载骨架屏：避免 API 飞行期间闪现「暂无会话记录」 */
+.historySkeletons {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.historySkeleton {
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    color-mix(in srgb, var(--color-surface-2) 60%, var(--color-surface)) 50%,
+    var(--color-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonSlide 1.4s ease-in-out infinite;
+}
+@keyframes skeletonSlide {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* 分组标签 */
 .historyGroup { margin-bottom: 4px; }
 .historyGroupLabel {
