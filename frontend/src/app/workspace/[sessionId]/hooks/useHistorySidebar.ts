@@ -48,6 +48,9 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
   const [historyMenuOpenId, setHistoryMenuOpenId] = useState<string | null>(null);
   const [historyToast, setHistoryToast] = useState('');
 
+  // 记录是否已经完成过初始加载（无论是非阻塞预取还是阻塞拉取）
+  const initialLoadDone = useRef(false);
+
   // NOTE: 用 ref 追踪 historyOpen，便于在 user?.id 变化的 effect 中读取最新值，
   //       避免闭包捕获旧值导致条件判断错误
   const historyOpenRef = useRef(historyOpen);
@@ -55,9 +58,23 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
     historyOpenRef.current = historyOpen;
   }, [historyOpen]);
 
+  // ── 核心策略：「预取」而非「懒加载」────────────────────────────────
+  //
+  // DeepSeek / ChatGPT 等产品侧边栏「秒现」的秘密：
+  // 不等用户点击再拉数据，而是在组件 mount 时就后台静默预取。
+  // 用户点击侧边栏时，数据已经在内存里 → 直接渲染，零延迟感知。
+  //
+  // 侧边栏开启时仍会发一次静默刷新以保持最新，但不阻塞渲染
+
   const refreshHistory = useCallback(async () => {
     if (!user?.id) return;
-    setHistoryLoading(true);
+    
+    // 如果还没完成过第一次加载，打开侧边栏时显示骨架屏
+    const shouldShowSkeleton = !initialLoadDone.current;
+    if (shouldShowSkeleton) {
+      setHistoryLoading(true);
+    }
+
     try {
       const dbSessions = await fetchSessions(user.id);
       // 将后端数据映射为 HistoryItem
@@ -69,10 +86,33 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
         shareUrl: `/workspace/${s.session_id}`,
       }));
       setHistoryGroups(groupByDate(mappedItems, t));
+      initialLoadDone.current = true;
     } catch (err) {
       console.error('Failed to refresh history:', err);
     } finally {
-      setHistoryLoading(false);
+      if (shouldShowSkeleton) {
+        setHistoryLoading(false);
+      }
+    }
+  }, [user?.id, t]);
+
+  /** 页面 mount 且 user 就绪后立即后台预取（不计入 loading 状态） */
+  const prefetchHistory = useCallback(async () => {
+    // 如果已经拉取过了不需要再预取
+    if (!user?.id || initialLoadDone.current) return;
+    try {
+      const dbSessions = await fetchSessions(user.id);
+      const mappedItems: HistoryItem[] = dbSessions.map((s) => ({
+        sessionId: s.session_id,
+        title: s.title,
+        createdAt: s.created_at,
+        isPinned: s.is_pinned,
+        shareUrl: `/workspace/${s.session_id}`,
+      }));
+      setHistoryGroups(groupByDate(mappedItems, t));
+      initialLoadDone.current = true;
+    } catch (err) {
+      console.error('Failed to prefetch history:', err);
     }
   }, [user?.id, t]);
 
@@ -81,15 +121,22 @@ export function useHistorySidebar({ sessionId, t }: UseHistorySidebarOptions): U
     setTimeout(() => setHistoryToast(''), 2200);
   }, []);
 
-  // 侧边栏开关时的主 effect
+  // 预取：user?.id 就绪后立即后台拉取，无论侧边栏是否打开
+  useEffect(() => {
+    if (user?.id) {
+      prefetchHistory();
+    }
+  }, [user?.id, prefetchHistory]);
+
+  // 侧边栏开关时的 effect：
+  // - 打开：触发静默刷新（复用 refreshHistory，此时数据大概率已在内存）
+  // - 关闭：收起菜单
   useEffect(() => {
     if (historyOpen) refreshHistory();
     else setHistoryMenuOpenId(null);
   }, [historyOpen, refreshHistory]);
 
-  // NOTE: 修复竞态 Bug2：
-  // 当用户在 user?.id 尚未就绪时就打开了侧边栏，refreshHistory 会因为 !user?.id 直接 return。
-  // 此 effect 监听 user?.id 变化，一旦 id 到位且侧边栏处于打开状态，立即补发请求。
+  // NOTE: user?.id 就绪时若侧边栏已打开，补发一次刷新（竞态保底）
   useEffect(() => {
     if (user?.id && historyOpenRef.current) {
       refreshHistory();
