@@ -173,9 +173,18 @@ export default function LandingPage() {
           <div className="site-nav-links">
             <a href="#features" className="site-nav-link">{t('nav.features')}</a>
             <a href="#pricing" className="site-nav-link">{t('nav.pricing')}</a>
-            <Link href={workspaceHref} className="site-nav-link">
+            <a 
+              href={workspaceHref}
+              className="site-nav-link"
+              onClick={(e) => {
+                if (workspaceHref !== '#hero') {
+                  e.preventDefault();
+                  router.push(workspaceHref);
+                }
+              }}
+            >
               {t('nav.workspace')}
-            </Link>
+            </a>
           </div>
         </div>
         <div className="site-nav-right">
