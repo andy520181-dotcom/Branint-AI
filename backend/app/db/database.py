@@ -33,7 +33,7 @@ engine = create_async_engine(
     echo=False,          # 生产环境关闭 SQL 日志，调试时可改为 True
     connect_args={
         "ssl": False, 
-        "command_timeout": 5.0,  # 强制 5s 查询超时，彻底阻断数据库写死导致的流被切断
+        "command_timeout": 60.0,  # 增加超时阈值，防止 create_all 在公网环境下超时
         "server_settings": {"tcp_keepalives_idle": "60"}
     },
 )

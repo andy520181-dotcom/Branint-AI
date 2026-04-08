@@ -15,7 +15,6 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings, configure_litellm_keys
 from app.api import sessions, auth, assets
-from app.db.init_db import init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,12 +30,11 @@ configure_litellm_keys()
 async def lifespan(app: FastAPI):
     """
     应用生命周期管理：
-    - 启动：自动建表（CREATE TABLE IF NOT EXISTS），幂等安全
-    - 关闭：（预留）清理资源
+    - 启动：完成配置加载等准备工作
+    - 关闭：清理资源
     """
-    logger.info("应用启动，正在初始化数据库...")
-    await init_db()
-    logger.info("数据库初始化完成，开始接受请求")
+    logger.info("应用启动，开始接受请求...")
+    # NOTE: 不再使用 create_all，请使用 `alembic upgrade head` 进行数据库迁移和表结构更新
     yield
     logger.info("应用关闭")
 
@@ -48,14 +46,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# NOTE: MVP 阶段允许所有来源，生产环境需限制为前端域名
-_allowed_origins = list({
-    settings.frontend_url,
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-})
+_allowed_origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
