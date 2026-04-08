@@ -19,7 +19,6 @@
 ### ⚡ Layer 0 · 竞争战略分析层（前置诊断，每次必跑）
 | 工具 | 说明 |
 |------|------|
-| JWT品牌四问 | 我们在哪 / 为何在此 / 可以去哪 / 如何到达（**始终必跑**） |
 | 波特竞争战略 | 成本领先 / 差异化 / 聚焦战略（竞争激烈市场选用） |
 | 蓝海战略 | 价值创新 + 剔除-减少-增加-创造 四步框架（需要开辟新空间时选用） |
 | 安索夫矩阵 | 市场渗透 / 产品开发 / 市场开发 / 多元化（增长方向不明时选用） |
@@ -54,7 +53,7 @@
 
 ```
 ① select_applicable_frameworks  ← 【必须第一步】全局规划，输出 theory_combo
-② analyze_competitive_landscape ← Layer 0 分析（JWT必跑 + 按需选1-2个）
+② analyze_competitive_landscape ← Layer 0 分析（按场景灵活选1-2个竞争框架）
 ③ apply_positioning_theory      ← Layer 1 定位（指定 theory_type）
 ④ apply_brand_driver            ← Layer 2 驱动力（按需，最多调用2次）
 ⑤ build_brand_house             ← 【必选】品牌屋（5层：战略/心智/利益/产品/传播）
@@ -73,20 +72,20 @@
 调用 `select_applicable_frameworks`：
 - 读取用户补充信息（clarification_answers）+ Wacksman 市场研究交接
 - 规划本次执行的完整 theory_combo：
-  - `layer0_frameworks`：JWT 必选 + 额外选 1-2 个
+  - `layer0_frameworks`：按场景灵活选 1-2 个竞争框架
   - `layer1_theory`：特劳特 / 里斯 / STP 三选一
   - `layer2_drivers`：0-2 个驱动力框架
   - `optional_tools`：是否需要品牌架构 / 命名
 
 **理论选择判断逻辑**：
 
-| 信号 | Layer 0 补充 | Layer 1 选择 | Layer 2 叠加 |
+| 信号 | Layer 0 框架 | Layer 1 选择 | Layer 2 叠加 |
 |------|------------|-------------|-------------|
-| 竞争激烈，找差异化空白 | 波特 | 特劳特 | 身份构建（Aaker/Kapferer） |
-| 需要创造/定义新品类 | 蓝海 | 里斯 | 品牌烙印 |
-| 新市场进入，细分不清 | 安索夫 | STP | CBBE / BAV |
-| 品牌使命感/文化驱动 | JWT | 特劳特或STP | 黄金圆 |
-| 品牌重塑，多维身份 | 波特 | 特劳特 | Kapferer棱镜 |
+| 竞争激烈，找差异化空白 | 波特竞争战略 | 特劳特 | 身份构建（Aaker/Kapferer） |
+| 需要创造/定义新品类 | 蓝海战略 | 里斯 | 品牌烙印 |
+| 新市场进入，细分不清 | 安索夫矩阵 | STP | CBBE / BAV |
+| 品牌使命感/文化驱动 | 波特 + 蓝海 | 特劳特或STP | 黄金圆 |
+| 品牌重塑，多维身份 | 波特竞争战略 | 特劳特 | Kapferer棱镜 |
 
 ### 第二步以后：按 theory_combo 顺序执行
 接收全局规划结果后，严格按照规划顺序依次调用各工具。**不得跳序、不得自行增减工具。**
@@ -114,17 +113,8 @@
 
 ## 一、竞争战略诊断
 
-### JWT 品牌四维诊断
-
-| 维度 | 分析 |
-|------|------|
-| 现在在哪（品牌现状） | [当前市场处境与竞争地位] |
-| 为何在此（根因分析） | [形成当前格局的深层原因] |
-| 可以去哪（战略机会） | [最有潜力的市场机会窗口] |
-| 如何到达（路径规划） | [实现战略突破的优先路径] |
-
 ### 竞争格局分析
-（根据 select_applicable_frameworks 规划的 layer0_frameworks，输出1-2个补充框架的分析结论，不标注框架名称，直接描述战略判断）
+（根据 select_applicable_frameworks 规划的 layer0_frameworks，输出1-2个竞争框架的分析结论，不标注框架名称，直接以战略语言描述诊断判断与机会窗口）
 
 ---
 
