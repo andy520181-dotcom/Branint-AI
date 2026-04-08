@@ -58,8 +58,8 @@ export default function LandingPage() {
   const [toast, setToast] = useState('');
   /** 启动页：首帧与 SSR 一致为 false，避免 hydration 不匹配；再在 layoutEffect 里同步 sessionStorage */
   const [splashDone, setSplashDone] = useState(false);
-  /** 与 SSR 首屏一致为 /history，挂载后再读 localStorage，避免 Nav Link hydration mismatch */
-  const [workspaceHref, setWorkspaceHref] = useState('/history');
+  /** 与 SSR 首屏一致为 #hero，挂载后再读 localStorage，避免 Nav Link hydration mismatch */
+  const [workspaceHref, setWorkspaceHref] = useState('#hero');
 
   useLayoutEffect(() => {
     if (shouldSkipSplash()) setSplashDone(true);

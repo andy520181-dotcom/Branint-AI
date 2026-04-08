@@ -355,6 +355,7 @@ async def _run_orchestrator_background(
                 _session_cache[session_id]["status"] = "running"
 
             final_report: Optional[str] = None
+            _session_paused: bool = False  # NOTE: 追踪是否因战略追问而挂起（非正常完成）
 
             async for event in orchestrator.run_session(
                 user_prompt,
@@ -455,18 +456,28 @@ async def _run_orchestrator_background(
 
                 if "event: session_pause" in event:
                     logger.info("会话挂起（战略追问）: %s", session_id)
+                    # NOTE: session_pause = 战略追问挂起，等待用户回答。
+                    # 必须记录此状态，防止 for 循环正常结束后错误落盘为 completed。
+                    _session_paused = True
 
-            # 流结束：写入最终报告
+            # 流结束：写入最终报告，或保持挂起状态
             if final_report is not None:
+                # 正常完成：写入 report 并标记 completed
                 await session_repo.set_session_report(gen_db, session_id, final_report)
                 if session_id in _session_cache:
                     _session_cache[session_id]["report"] = final_report
+                if session_id in _session_cache:
+                    _session_cache[session_id]["status"] = "completed"
+                logger.info("后台任务完成: %s (event_log 已落盘)", session_id)
+            elif _session_paused:
+                # NOTE: 战略追问挂起 — 维持 running 状态，等待用户通过 PATCH /continue 续写。
+                # 不能标记为 completed，否则前端刷新时会误判已完成、停止等待。
+                logger.info("后台任务挂起（等待追问回答）: %s", session_id)
             else:
                 await session_repo.update_session_status(gen_db, session_id, "completed")
-
-            if session_id in _session_cache:
-                _session_cache[session_id]["status"] = "completed"
-            logger.info("后台任务完成: %s (event_log 已落盘)", session_id)
+                if session_id in _session_cache:
+                    _session_cache[session_id]["status"] = "completed"
+                logger.info("后台任务完成: %s (event_log 已落盘)", session_id)
 
     except Exception as e:
         logger.error("后台 Orchestrator 异常: %s, 错误: %s", session_id, e, exc_info=True)

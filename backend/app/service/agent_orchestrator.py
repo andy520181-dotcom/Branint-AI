@@ -456,6 +456,13 @@ class AgentOrchestrator:
                             "agent_chunk",
                             json.dumps({"id": "strategy", "chunk": q_chunk}, ensure_ascii=False),
                         )
+                    # NOTE: 必须在 session_pause 之前发 agent_output，让 sessions.py 的
+                    # 持久化逻辑把追问内容写入 DB。否则广播器关闭后追问文本丢失，
+                    # 用户刷新后 strategy 卡片内容为空。
+                    yield _sse(
+                        "agent_output",
+                        json.dumps({"id": "strategy", "content": questions_text}, ensure_ascii=False),
+                    )
                     yield _sse(
                         "strategy_clarify",
                         json.dumps({"id": "strategy", "questions": questions_text}, ensure_ascii=False),
