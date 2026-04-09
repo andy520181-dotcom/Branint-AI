@@ -26,6 +26,55 @@ logger = logging.getLogger(__name__)
 
 AgentId = Literal["consultant_plan", "market", "strategy", "content", "visual", "consultant_review"]
 
+# ── 依赖声明表（方案 C · 依赖声明式路由）─────────────────────────────────────
+# 每个 Agent 声明自己正常工作所需的上游 handoff 来源。
+# Orchestrator 在执行前自动解析此表，将缺失的上游 Agent 插入队列前。
+# 新增/修改 Agent 时只需维护这张表，无需改动调度主流程。
+AGENT_DEPENDENCIES: dict[str, list[str]] = {
+    "market":   [],             # 无依赖，随时可独立运行
+    "strategy": ["market"],     # 需要市场研究提供竞争格局底数
+    "content":  ["strategy"],   # 需要战略 handoff 定内容方向
+    "visual":   ["strategy"],   # 需要战略 handoff 定视觉基调
+}
+
+
+def _resolve_dependencies(
+    selected_agents: list[str],
+    project_context: dict,
+) -> list[str]:
+    """
+    依赖声明式路由解析器（方案 C）。
+
+    遍历 selected_agents，对每个 Agent 检查其声明的上游依赖：
+    - 若依赖的 handoff 已存在于 project_context（上轮已运行）→ 跳过，直接复用
+    - 若依赖的 handoff 不存在 且 尚未在队列中 → 自动将其插入队列前
+
+    NOTE: 仅插入一级直接依赖（market → strategy），
+    不做递归深度解析，避免隐式链路过长。
+    若未来需要多级依赖（如 market → strategy → content），
+    可改为拓扑排序实现，见 TODO 注释。
+    """
+    handoffs = project_context.get("handoffs", {})
+    resolved: list[str] = []
+
+    for agent in selected_agents:
+        deps = AGENT_DEPENDENCIES.get(agent, [])
+        for dep in deps:
+            # NOTE: 已有 handoff 说明上游在之前轮次跑过，直接复用不重跑
+            if dep not in handoffs and dep not in resolved:
+                logger.info(
+                    "[依赖解析] %s 依赖 %s，handoff 不存在 → 自动插入执行队列",
+                    agent, dep,
+                )
+                resolved.append(dep)
+        if agent not in resolved:
+            resolved.append(agent)
+
+    if resolved != selected_agents:
+        logger.info("[依赖解析] 路由重排：%s → %s", selected_agents, resolved)
+
+    return resolved
+
 
 def _sse(event: str, data: str) -> str:
     """格式化单条 SSE 事件，换行符转义避免破坏协议格式"""
@@ -158,6 +207,9 @@ class AgentOrchestrator:
             # 场景 A：战略追问作答（直达路线）
             logger.info("检测到战略追问交互，跳过前期顾问路由，直通 Strategy Agent 续写")
             selected_agents = ["strategy", "content", "visual"]
+            # NOTE: 战略追问续写也做依赖解析——market 若在上轮已运行则直接复用，
+            # 若本轮因 Ogilvy 路由遗漏而缺失，则自动补充。
+            selected_agents = _resolve_dependencies(selected_agents, project_context)
             yield _sse("routing_decided", json.dumps(selected_agents))
             # 我们故意不下发 agent_start consultant_plan，这样前端就会把它隐藏，从而只显示 Trout
         elif _is_completed("consultant_plan"):
@@ -370,6 +422,11 @@ class AgentOrchestrator:
                 if not selected_agents:  # type: ignore[name-defined]
                     selected_agents = selected_agents_from_text
                 plan_handoff = plan_text
+
+            # ── 方案 C：依赖解析（所有新对话路径统一在此触发）────────────
+            # NOTE: 必须在 routing_decided 发出之前完成，这样前端渲染的卡片列表
+            # 就是依赖解析后的最终列表，用户看到的卡片顺序天然正确。
+            selected_agents = _resolve_dependencies(selected_agents, project_context)
 
             yield _sse("routing_decided", json.dumps(selected_agents))
             yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))

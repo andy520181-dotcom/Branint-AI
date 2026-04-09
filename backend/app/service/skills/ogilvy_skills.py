@@ -58,7 +58,22 @@ OGILVY_TOOLS = [
                             "type": "string",
                             "enum": ["market", "strategy", "content", "visual"]
                         },
-                        "description": "本次需要调用的 Agent 列表。注意先后顺序或并发关系由服务端解析。"
+                        "description": (
+                            "本次需要调用的 Agent 顺序列表。"
+                            "根据用户实际需求精准选择，只唤醒真正需要的 Agent，不多不少。"
+                            "可选值：market（市场研究）、strategy（品牌战略）、"
+                            "content（内容策划）、visual（视觉设计）。"
+                            "NOTE：Agent 间的上游数据依赖由系统自动处理，"
+                            "你只需根据用户需求判断哪些 Agent 应该被调用即可。"
+                        )
+                    },
+                    "plan_explanation": {
+                        "type": "string",
+                        "description": (
+                            "对本次路由安排的简短说明，应包含行业标签及偏重分析方向，"
+                            "供下游 Agent 接收到更精准的分析指令上下文。例如："
+                            "'消费品·食品饮料赛道，健康化趋势 + 情绪价值打法，先做竞争格局扫描，再落品牌战略。'"
+                        )
                     }
                 },
                 "required": ["routing_sequence"]
