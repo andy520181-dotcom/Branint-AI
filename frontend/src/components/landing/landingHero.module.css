@@ -1,6 +1,6 @@
 /**
  * 落地页 Hero：主标题 + 大输入区
- * 由首页与生成页空白态共用，避免 workspace 依赖 app/page.module.css
+ * Claude Design System — 羊皮纸背景 + 衬线标题 + 幽灵阴影输入框
  */
 
 .hero {
@@ -10,96 +10,88 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  /* 顶/底随视口略伸缩，主内容区在顶栏下垂直居中，避免整块堆在上方 */
-  padding: clamp(16px, 5vh, 48px) 24px clamp(28px, 6vh, 72px);
+  padding: clamp(64px, 10vh, 120px) 24px clamp(48px, 7vh, 80px);
   position: relative;
   overflow: hidden;
   min-height: 0;
+  background-color: #f5f4ed;
 }
 
-/* 极淡的装饰光晕（仅首页使用，生成页可不渲染） */
-.glowOrb1 {
-  position: absolute;
-  top: -80px;
-  left: 50%;
-  transform: translateX(-60%);
-  width: 600px;
-  height: 600px;
-  background: var(--hero-glow-neutral);
-  pointer-events: none;
-}
-.glowOrb2 {
-  position: absolute;
-  bottom: 0;
-  right: 10%;
-  width: 400px;
-  height: 400px;
-  background: var(--hero-glow-accent);
-  pointer-events: none;
-}
+/* Claude 设计不使用光晕，保留节点以兼容渲染逻辑，但设为不可见 */
+.glowOrb1, .glowOrb2 { display: none; }
 
 .headline {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-7);
-  max-width: min(920px, 100%);
+  gap: 20px;
+  margin-bottom: 48px;
+  max-width: min(820px, 100%);
   padding: 0 8px;
   box-sizing: border-box;
 }
+
+/* NOTE: Claude 规范 — 衬线字体，500 weight，无粗体，line-height 1.10（紧凑书名感） */
 .headlinePrimary {
-  font-size: var(--font-size-hero);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
+  font-family: Georgia, Times, 'Times New Roman', serif;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 500;
+  line-height: 1.10;
+  letter-spacing: normal;
+  color: #141413;
   text-align: center;
 }
+
+/* NOTE: subtitle — Sans 字体，宽松行高 1.60，Olive Gray 色调 */
 .headlineSub {
-  font-size: var(--font-size-prose-h3);
-  font-weight: var(--font-weight-light);
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.60;
+  letter-spacing: normal;
+  color: #5e5d59;
   text-align: center;
   max-width: 36em;
   white-space: pre-wrap;
 }
+
 @media (max-width: 520px) {
   .headline {
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
+    gap: 16px;
+    margin-bottom: 36px;
   }
   .headlinePrimary {
-    font-size: clamp(1.2rem, 4.8vw, 2.25rem);
+    font-size: clamp(1.6rem, 7vw, 2.5rem);
   }
   .headlineSub {
-    font-size: var(--font-size-body);
+    font-size: 1rem;
   }
   .inputWrapper {
-    margin-bottom: var(--space-7);
+    margin-bottom: var(--space-6);
   }
 }
-/* 兼容旧类名（若其它处引用） */
+
+/* 兼容旧类名 */
 .headlineGold {
-  color: var(--text-primary);
+  color: #141413;
 }
 
+/* NOTE: 输入框容器 — 白色浮卡 + Border Cream + 幽灵阴影，Claude 风格 */
 .inputWrapper {
   width: 100%;
-  max-width: 850px;
-  background: var(--color-surface);
-  border: none;
-  border-radius: var(--radius-xl);
+  max-width: 720px;
+  background: #ffffff;
+  border: 1px solid #e8e6dc;
+  border-radius: 12px;
   padding: 20px 20px 16px;
-  box-shadow: var(--shadow-hero-input);
-  transition: box-shadow var(--transition-normal);
-  margin-bottom: var(--space-8);
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+  margin-bottom: 48px;
   position: relative;
 }
 .inputWrapper:focus-within {
-  box-shadow: var(--shadow-hero-input-focus);
+  border-color: #3898ec;
+  box-shadow: rgba(56, 152, 236, 0.15) 0px 0px 0px 3px, rgba(0, 0, 0, 0.06) 0px 4px 24px;
 }
 
 .textareaWrap {
@@ -118,7 +110,7 @@
 }
 .ledText {
   font-size: var(--font-size-body);
-  color: var(--text-muted);
+  color: #87867f;
   line-height: 1.7;
 }
 
@@ -142,7 +134,7 @@
   width: 100%;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: #141413;
   font-size: var(--font-size-body);
   line-height: 1.7;
   resize: none;
@@ -151,7 +143,7 @@
   padding: 2px 0 0 0;
 }
 .textarea::placeholder {
-  color: var(--text-muted);
+  color: #87867f;
 }
 
 .inputFooter {
@@ -162,7 +154,7 @@
 }
 
 .submitBtn:disabled {
-  background: var(--color-control-disabled);
+  background: #d1cfc5;
   opacity: 1;
   cursor: not-allowed;
 }
@@ -170,8 +162,8 @@
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--color-spinner-ring-on-inverse);
-  border-top-color: var(--color-on-inverse);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #faf9f5;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
@@ -179,6 +171,6 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding: clamp(12px, 4vh, 32px) 16px clamp(20px, 5vh, 40px);
+    padding: clamp(40px, 6vh, 64px) 16px clamp(32px, 5vh, 48px);
   }
 }

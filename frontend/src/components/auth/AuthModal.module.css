@@ -19,11 +19,11 @@
   position: relative;
   width: 100%;
   max-width: 480px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  background: #faf9f5;
+  border-radius: 12px;
   padding: 40px 32px 32px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0,0,0,0.04);
-  /* spring-like 弹性入场：轻微下滑 + 小缩放 + 淡入 */
+  border: 1px solid #f0eee6;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 40px;
   animation: modalIn 420ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 @keyframes modalIn {
@@ -55,11 +55,13 @@
 .closeBtn:active { transform: scale(0.88); }
 
 .title {
-  font-size: var(--font-size-heading);
-  font-weight: 700;
-  color: var(--text-primary);
+  font-family: Georgia, Times, 'Times New Roman', serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: #141413;
   margin-bottom: 28px;
   text-align: center;
+  line-height: 1.20;
 }
 
 .form {
@@ -72,16 +74,17 @@
 .inputRow {
   display: flex;
   align-items: center;
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
+  background: #ffffff;
+  border-radius: 8px;
   padding: 0 16px;
   height: 54px;
   gap: 12px;
-  border: 1px solid transparent;
+  border: 1px solid #e8e6dc;
   transition: border-color var(--transition-fast);
 }
 .inputRow:focus-within {
-  border-color: var(--color-border-hover);
+  border-color: #3898ec;
+  box-shadow: rgba(56, 152, 236, 0.15) 0px 0px 0px 3px;
 }
 
 .inputLabel {
@@ -150,16 +153,17 @@
   margin-top: 4px;
   width: 100%;
   height: 52px;
-  background: var(--color-inverse-fill);
-  color: var(--color-on-inverse);
+  /* NOTE: Claude Terracotta 主按鈕 */
+  background: #c96442;
+  color: #faf9f5;
   font-size: var(--font-size-body-lg);
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  transition: opacity 150ms ease, transform 120ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 150ms ease;
 }
-.submitBtn:hover:not(:disabled) { opacity: 0.85; }
-.submitBtn:active:not(:disabled) { transform: scale(0.975); }
-.submitBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+.submitBtn:hover:not(:disabled) { background: #b55a3b; }
+.submitBtn:active:not(:disabled) { background: #a24b2f; }
+.submitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* 切换登录/注册 */
 .toggle {

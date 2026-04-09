@@ -4,11 +4,11 @@
    ═══════════════════════════════════════════════ */
 
 :root {
-  --color-bg:         #F8F7F2;
-  --color-surface:    #FFFFFF;
-  --color-surface-2:  #F0EFE9;
-  --color-border:     rgba(0, 0, 0, 0.08);
-  --color-border-accent: rgba(0, 0, 0, 0.18);
+  --color-bg: #f5f4ed;
+  --color-surface: #faf9f5;
+  --color-surface-2: #e8e6dc;
+  --color-border: #f0eee6;
+  --color-border-accent: #e8e6dc;
 
   --color-gold:       #555555;
   --color-gold-dim:   rgba(85, 85, 85, 0.08);
@@ -25,9 +25,9 @@
   --agent-content-dim:  rgba(16, 185, 129, 0.10);
   --agent-visual-dim:   rgba(245, 158, 11, 0.10);
 
-  --text-primary:   #333333;
-  --text-secondary: #555555;
-  --text-muted:     #999999;
+  --text-primary: #141413;
+  --text-secondary: #4d4c48;
+  --text-muted: #87867f;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -51,8 +51,8 @@
   --transition-slow:   400ms ease;
 
   --shadow-gold: 0 0 30px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-hero-input: 0 2px 16px rgba(0, 0, 0, 0.07);
+  --shadow-card: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  --shadow-hero-input: rgba(0, 0, 0, 0.05) 0px 4px 24px;
   --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.1);
   --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.14);
@@ -121,37 +121,31 @@
   /* 登录等次级弹层（略浅于设置遮罩） */
   --overlay-dialog: rgba(0, 0, 0, 0.35);
   --color-border-hover: rgba(0, 0, 0, 0.15);
-  --color-link: #2563eb;
-  --color-link-hover: #1d4ed8;
+  --color-link: #d97757;
+  --color-link-hover: #c96442;
 
   /* 落地页 .page 背景（随 [data-theme] 切换） */
-  --color-landing-page-fallback: #ffffff;
-  --gradient-landing-page: linear-gradient(
-    180deg,
-    #e4e8fd 0%,
-    #eaedfb 26%,
-    #f2f4fc 48%,
-    #fafbff 78%,
-    #ffffff 100%
-  );
-  /* 生成页用户消息气泡：与页底对比用 surface；层次靠描边 + 紧阴影，避免与背景糊成一片 */
+  --color-landing-page-fallback: #f5f4ed;
+  /* NOTE: Claude 风格不使用渐变，用纯色 Parchment 背景 */
+  --gradient-landing-page: #f5f4ed;
   --color-user-message-bubble: var(--color-surface);
 
-  /* Hero 装饰光晕（大输入区与首页共用） */
-  --hero-glow-neutral: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
-  --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
+  /* Hero 装饰光晕（Claude 设计不使用光晕） */
+  --hero-glow-neutral: none;
+  --hero-glow-accent: none;
 
   /* 导航栏头像骨架 shimmer */
   --skeleton-shimmer-low: rgba(0, 0, 0, 0.06);
   --skeleton-shimmer-mid: rgba(0, 0, 0, 0.1);
 
-  --color-btn-primary-start: #666666;
-  --color-btn-primary-end: #333333;
-  --gradient-btn-primary: linear-gradient(135deg, var(--color-btn-primary-start) 0%, var(--color-btn-primary-end) 100%);
+  /* Claude 品牌色 - Terracotta */
+  --color-btn-primary-start: #c96442;
+  --color-btn-primary-end: #c96442;
+  --gradient-btn-primary: #c96442;
 
-  /* 吸顶导航：与页面背景协调，随主题切换 */
-  --nav-bg: rgba(248, 247, 242, 0.92);
-  --nav-link-hover-bg: rgba(0, 0, 0, 0.06);
+  /* 吸顶导航：Parchment 固定背景，无毛玻璃 */
+  --nav-bg: #f5f4ed;
+  --nav-link-hover-bg: #e8e6dc;
 
   /* 顶栏尺寸：主页 .site-nav 与生成页 .topBar 必须一致，避免路由切换时顶栏闪跳 */
   --app-nav-padding-y: 18px;
@@ -175,8 +169,8 @@
    * system-ui / -apple-system → macOS/iOS 为 SF；中文常为苹方
    * 与此前 Inter + Noto 视觉接近，故「看起来差不多」是正常现象
    */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', 'Segoe UI', sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-serif: Georgia, Times, 'Times New Roman', serif;
 
   /*
    * 生成页 Agent 流式 Markdown（.markdown-body）语义令牌 — 字号/色/重/间距均由此派生，禁止在组件中写死 px/#hex
@@ -233,22 +227,22 @@
 
 /* 深色主题（由 ThemeInit / 系统设置 写入 html[data-theme="dark"]） */
 [data-theme="dark"] {
-  --color-bg:         #1a1a1c;
-  --color-surface:    #2c2c2e;
-  --color-surface-2:  #3a3a3c;
-  --color-border:     rgba(255, 255, 255, 0.1);
-  --color-border-accent: rgba(255, 255, 255, 0.2);
+  --color-bg: #f5f4ed;
+  --color-surface: #faf9f5;
+  --color-surface-2: #e8e6dc;
+  --color-border: #f0eee6;
+  --color-border-accent: #e8e6dc;
 
   --color-gold:       #AAAAAA;
   --color-gold-dim:   rgba(170, 170, 170, 0.12);
   --color-gold-glow:  rgba(170, 170, 170, 0.15);
 
-  --text-primary:   #f5f5f7;
-  --text-secondary: #c7c7cc;
-  --text-muted:     #8e8e93;
+  --text-primary: #141413;
+  --text-secondary: #4d4c48;
+  --text-muted: #87867f;
 
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.06);
-  --shadow-hero-input: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --shadow-card: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+  --shadow-hero-input: rgba(0, 0, 0, 0.05) 0px 4px 24px;
   --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.45);
   --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
   --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -265,35 +259,27 @@
   --overlay-scrim: rgba(0, 0, 0, 0.5);
   --overlay-modal: rgba(0, 0, 0, 0.55);
   --overlay-dialog: rgba(0, 0, 0, 0.45);
-  --color-link: #60a5fa;
-  --color-link-hover: #93c5fd;
+  --color-link: #d97757;
+  --color-link-hover: #c96442;
 
-  --color-landing-page-fallback: #1a1a1c;
-  --gradient-landing-page: linear-gradient(
-    180deg,
-    #23252e 0%,
-    #1d1e24 40%,
-    #1a1a1c 100%
-  );
+  --color-landing-page-fallback: #f5f4ed;
+  --gradient-landing-page: none;
   --color-user-message-bubble: var(--color-surface);
 
-  --hero-glow-neutral: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
-  --hero-glow-accent: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  --hero-glow-neutral: none;
+  --hero-glow-accent: none;
 
   --skeleton-shimmer-low: rgba(255, 255, 255, 0.06);
   --skeleton-shimmer-mid: rgba(255, 255, 255, 0.12);
 
-  --color-btn-primary-start: #9a9a9e;
-  --color-btn-primary-end: #5c5c60;
+  --color-btn-primary-start: #0071e3;
+  --color-btn-primary-end: #0071e3;
   --gradient-btn-primary: linear-gradient(135deg, var(--color-btn-primary-start) 0%, var(--color-btn-primary-end) 100%);
 
-  --nav-bg: rgba(26, 26, 28, 0.94);
+  --nav-bg: rgba(26, 26, 28, 0.85);
   --nav-link-hover-bg: rgba(255, 255, 255, 0.08);
 }
-[data-theme="dark"] .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-border-accent);
-}
+[data-theme="dark"] .btn-ghost:hover { text-decoration: none; background: #d1cfc5; }
 
 @media (max-width: 768px) {
   :root {
@@ -311,10 +297,13 @@ html {
 }
 
 body {
+  /* NOTE: Claude 规范 — 不减字间距。文学局颮需要袈松自然的字间距 */
+  letter-spacing: 0;
   background-color: var(--color-bg);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  line-height: 1.6;
+  /* NOTE: 宽松行高 1.60 赋予阅读节奏，接近书籍排版 */
+  line-height: 1.60;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -341,33 +330,36 @@ input, textarea { font-family: inherit; outline: none; }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 32px;
-  background: var(--gradient-btn-primary);
-  color: var(--color-on-inverse);
-  font-weight: 700;
-  font-size: var(--font-size-body-lg);
-  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  background: #c96442;
+  color: #faf9f5;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 8px;
   transition: all var(--transition-normal);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  letter-spacing: 0.02em;
+  box-shadow: #c96442 0px 0px 0px 0px, #c96442 0px 0px 0px 1px;
+  border: none;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); }
-.btn-primary:active { transform: translateY(0); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-primary:focus-visible { outline: 2px solid #3898ec; outline-offset: 2px; }
+.btn-primary:hover { background: #b55a3b; }
+.btn-primary:active { background: #a24b2f; box-shadow: inset 0px 0px 0px 1px rgba(0,0,0,0.15); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
-  color: var(--text-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  background: var(--color-surface);
+  padding: 8px 16px;
+  color: #4d4c48;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  background: #e8e6dc;
   transition: all var(--transition-fast);
+  box-shadow: #e8e6dc 0px 0px 0px 0px, #d1cfc5 0px 0px 0px 1px;
 }
-.btn-ghost:hover { color: var(--text-primary); border-color: var(--color-border-accent); background: var(--color-surface-2); }
+.btn-ghost:hover { text-decoration: none; background: #d1cfc5; }
 
 /* Markdown / Agent 流式输出（生成页统一入口：class="markdown-body"） */
 .markdown-body {
@@ -645,6 +637,8 @@ input, textarea { font-family: inherit; outline: none; }
   top: 0;
   z-index: var(--app-nav-z);
   box-sizing: border-box;
+  background: #f5f4ed;
+  border-bottom: 1px solid #f0eee6;
 }
 .site-nav-logo {
   display: flex;
@@ -680,8 +674,8 @@ input, textarea { font-family: inherit; outline: none; }
   padding: 8px 14px;
   font-size: var(--font-size-body);
   font-weight: 500;
-  color: var(--text-muted);
-  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  border-radius: 8px;
   text-decoration: none;
   white-space: nowrap;
   transition: background var(--transition-fast), color var(--transition-fast);

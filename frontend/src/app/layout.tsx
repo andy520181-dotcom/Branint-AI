@@ -23,7 +23,7 @@ export const metadata: Metadata = {
  * 并在浏览器解析 HTML 时同步执行，功能不受影响。next/script beforeInteractive 放在
  * <body> 中可能在首帧绘制之后才执行，时序不够可靠，因此此处刻意使用 <head> 内联脚本。
  */
-const BOOTSTRAP_SCRIPT = `(function(){try{var v=localStorage.getItem('woloong_theme');var p=(v==='dark'||v==='light'||v==='system')?v:'light';var d=p==='dark'||(p==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.setAttribute('data-theme-pref',p)}catch(e){}try{if(sessionStorage.getItem('bc_splash_seen')==='1'){document.documentElement.setAttribute('data-splash-done','1')}}catch(e){}try{document.documentElement.setAttribute('data-auth',localStorage.getItem('woloong_user')?'1':'0')}catch(e){document.documentElement.setAttribute('data-auth','0')}})();`;
+const BOOTSTRAP_SCRIPT = `(function(){try{document.documentElement.setAttribute('data-theme','light');document.documentElement.setAttribute('data-theme-pref','light');}catch(e){}try{if(sessionStorage.getItem('bc_splash_seen')==='1'){document.documentElement.setAttribute('data-splash-done','1')}}catch(e){}try{document.documentElement.setAttribute('data-auth',localStorage.getItem('woloong_user')?'1':'0')}catch(e){document.documentElement.setAttribute('data-auth','0')}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

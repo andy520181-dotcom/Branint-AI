@@ -240,9 +240,10 @@ export default function LandingPage() {
           }
           t={t}
         />
+      </main>
 
-        {/* Agent 展示 */}
-        <section id="features" className={styles.agentsSection} aria-label={t('nav.features')}>
+      {/* Agent 展示 */}
+      <section id="features" className={styles.agentsSection} aria-label={t('nav.features')}>
         <div className={styles.agentsRow}>
           {LANDING_AGENTS.map((a) => (
             <div key={a.id} className={styles.agentPill} style={{ '--agent-color': a.color } as React.CSSProperties}>
@@ -269,10 +270,9 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-        </section>
-        {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
-        <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
-      </main>
+      </section>
+      {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
+      <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
 
       {/* Auth 弹窗 */}
       {showAuth && (

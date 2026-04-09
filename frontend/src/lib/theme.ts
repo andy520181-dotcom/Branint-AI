@@ -4,11 +4,7 @@ export type ThemePreference = 'light' | 'dark' | 'system';
 const STORAGE_KEY = 'woloong_theme';
 
 export function getResolvedTheme(pref: ThemePreference): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'light';
-  if (pref === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return pref;
+  return 'light';
 }
 
 /** 写入 localStorage，并在 html 上设置 data-theme（解析后的 light/dark） */

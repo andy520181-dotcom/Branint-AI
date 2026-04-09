@@ -1,27 +1,38 @@
-/* 自顶栏起淡紫 → 白，顶区略加深（色标见 globals --gradient-landing-page） */
+/* Claude Design System — Parchment (#f5f4ed) 暖纸质背景 */
 .page {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-landing-page-fallback);
-  background-image: var(--gradient-landing-page);
+  background-color: #f5f4ed;
 }
 
-/* 导航由全局 .site-nav / .site-nav-logo / .site-nav-right 提供基础样式 */
 .navUser { display: flex; align-items: center; gap: 12px; }
 .navEmail { font-size: var(--font-size-caption); color: var(--text-muted); }
 
-/* 顶栏登录态骨架见 globals .site-nav-auth-skeleton */
-
 /* Hero / 大输入区样式见 components/landing/landingHero.module.css */
 
+/* NOTE: Agent 展示区采用 Ivory (#faf9f5) 微切灰，与 Parchment 产生"浮平台"层次感 */
 .agentsSection {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: #faf9f5;
+  border-top: 1px solid #f0eee6;
+  padding: 64px 24px 80px;
 }
+
+.agentsSectionTitle {
+  font-family: Georgia, Times, 'Times New Roman', serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #141413;
+  margin-bottom: 32px;
+  letter-spacing: 0;
+  line-height: 1.20;
+}
+
 .pricingAnchor {
   width: 100%;
   height: 1px;
@@ -34,18 +45,18 @@
   bottom: max(28px, env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(0);
-  background: var(--color-toast-bg);
-  color: var(--color-toast-text);
+  background: #141413;
+  color: #faf9f5;
   font-size: var(--font-size-body);
   padding: 12px 22px;
-  border-radius: var(--radius-full);
+  border-radius: 8px;
   max-width: min(92vw, 420px);
   white-space: normal;
   text-align: center;
   line-height: 1.45;
   pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 24px;
   animation: toastSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes toastSlideUp {
@@ -59,41 +70,39 @@
   }
 }
 
-
 .agentsRow {
   display: flex;
-  gap: var(--space-2);
+  gap: 12px;
   flex-wrap: nowrap;
   justify-content: center;
   width: 100%;
-  max-width: 850px;
+  max-width: 900px;
 }
 
+/* NOTE: Claude 风格卡片 — Ivory 底 + 细 Border Cream 边 + 幽灵阴影，无大投影 */
 .agentPill {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 12px 12px;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #f0eee6;
+  border-radius: 8px;
+  padding: 16px;
   flex: 1;
   min-width: 0;
-  transition: all var(--transition-normal);
-  box-shadow: none;
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+  box-shadow: rgba(0, 0, 0, 0.04) 0px 4px 16px;
 }
 .agentPill:hover {
-  transform: translateY(-2px);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-agent-pill-hover);
-  border-color: var(--color-border-hover);
+  border-color: #e8e6dc;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 24px;
 }
 
 /* 上方：头像 + 名称 横排 */
 .agentPillBody {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -102,7 +111,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
   flex: 1;
 }
@@ -110,20 +119,18 @@
 .agentPillCharName {
   font-size: var(--font-size-xs);
   font-weight: 400;
-  color: var(--text-muted);
+  color: #87867f;
   white-space: nowrap;
 }
 
 .agentPillAvatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   flex-shrink: 0;
   overflow: hidden;
-  /* NOTE: 去掉圆框，改用轻投影提升层次感 */
-  box-shadow: var(--shadow-agent-avatar);
-  /* 图片未解码前避免透明底闪一下 */
-  background: var(--color-surface-2);
+  box-shadow: #e8e6dc 0px 0px 0px 0px, #d1cfc5 0px 0px 0px 1px;
+  background: #e8e6dc;
 }
 .agentPillAvatar img {
   width: 100%;
@@ -134,7 +141,7 @@
 .agentPillName {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--text-primary);
+  color: #141413;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -143,15 +150,17 @@
 /* 下方：描述文字 */
 .agentPillTags {
   font-size: var(--font-size-2xs);
-  color: var(--text-muted);
+  color: #5e5d59;
   line-height: 1.6;
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
 }
 
 @media (max-width: 640px) {
-  .agentPill { min-width: 160px; padding: 12px 16px; }
+  .agentsRow { flex-wrap: wrap; }
+  .agentPill { min-width: 160px; }
+  .agentsSection { padding: 48px 16px 64px; }
 }

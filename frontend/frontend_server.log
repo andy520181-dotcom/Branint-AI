@@ -1,0 +1,493 @@
+
+> branin-web@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.6:3000
+- Environments: .env.local
+✓ Ready in 305ms
+
+ GET / 200 in 289ms (next.js: 151ms, application-code: 138ms)
+✓ Compiled in 354ms
+ GET / 200 in 79ms (next.js: 26ms, application-code: 54ms)
+ GET /workspace/cd9e4a01-9375-41ae-9f74-3cbf3718fdce 200 in 544ms (next.js: 519ms, application-code: 25ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+✓ Compiled in 184ms
+ GET / 200 in 100ms (next.js: 50ms, application-code: 50ms)
+ GET /workspace/1acbf3a6-d4c8-4347-b6b9-99e46a01e21e 200 in 27ms (next.js: 10ms, application-code: 16ms)
+ GET / 200 in 25ms (next.js: 6ms, application-code: 19ms)
+ GET /workspace/13bef95b-825b-4ffb-aa15-b6f12e854294 200 in 28ms (next.js: 11ms, application-code: 17ms)
+ GET / 200 in 27ms (next.js: 6ms, application-code: 21ms)
+ GET / 200 in 138ms (next.js: 39ms, application-code: 99ms)
+ GET /workspace/e55f17c5-295f-43cf-8767-03300f4fabcb 200 in 73ms (next.js: 30ms, application-code: 43ms)
+ GET / 200 in 94ms (next.js: 24ms, application-code: 70ms)
+ GET /workspace/a2454e88-fc0d-46f0-89d2-0e0925cae2cc 200 in 70ms (next.js: 31ms, application-code: 39ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET / 200 in 25ms (next.js: 7ms, application-code: 18ms)
+ GET /workspace/eb1f26db-8279-4600-b78b-b89c14eb1410 200 in 19ms (next.js: 4ms, application-code: 14ms)
+ GET / 200 in 46ms (next.js: 9ms, application-code: 37ms)
+ GET /workspace/1d88be4b-c66b-4329-b61d-f754a0f6ba05 200 in 28ms (next.js: 6ms, application-code: 23ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET / 200 in 57ms (next.js: 11ms, application-code: 46ms)
+ GET /workspace/18f009be-4271-4fb3-b68a-8a1a06ebab22 200 in 69ms (next.js: 13ms, application-code: 56ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+✓ Compiled in 139ms
+✓ Compiled in 38ms
+ GET / 200 in 46ms (next.js: 18ms, application-code: 29ms)
+ GET /workspace/baa02636-19bb-449a-88c5-c22fcdb9c989 200 in 32ms (next.js: 11ms, application-code: 20ms)
+ GET /workspace/baa02636-19bb-449a-88c5-c22fcdb9c989 200 in 126ms (next.js: 6ms, application-code: 121ms)
+ GET / 200 in 16ms (next.js: 3ms, application-code: 12ms)
+ GET / 200 in 3ms (next.js: 1117µs, application-code: 2ms)
+ GET / 200 in 8ms (next.js: 675µs, application-code: 7ms)
+ GET /workspace/780aa48f-982a-4b10-8dfb-020dd6d98e3b 200 in 13ms (next.js: 3ms, application-code: 9ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET / 200 in 23ms (next.js: 8ms, application-code: 15ms)
+ GET /workspace/77c8be3e-792f-4822-b79d-5c86af58dbfc 200 in 23ms (next.js: 6ms, application-code: 17ms)
+ GET / 200 in 23ms (next.js: 7ms, application-code: 16ms)
+ GET /workspace/faa7c0a4-64bf-46b9-8c57-4bee75a6abe1 200 in 20ms (next.js: 5ms, application-code: 16ms)
+ GET / 200 in 25ms (next.js: 6ms, application-code: 19ms)
+ GET /workspace/33c379c1-11ee-41b7-b46b-1bc19fd73e03 200 in 27ms (next.js: 8ms, application-code: 19ms)
+ GET /workspace/ede3ccd0-0767-4e00-a6d2-5d2961113f2c 200 in 21ms (next.js: 6ms, application-code: 15ms)
+ GET /workspace/3db70619-c090-481c-a962-eb0ab5c8fdaf 200 in 27ms (next.js: 5ms, application-code: 21ms)
+ GET /workspace/5595a202-c2b2-497e-a77f-e852c4dba02a 200 in 24ms (next.js: 8ms, application-code: 16ms)
+✓ Compiled in 134ms
+✓ Compiled in 394ms
+ GET / 200 in 132ms (next.js: 52ms, application-code: 80ms)
+ GET /workspace/f2e69011-2195-42ab-9c30-7a03168b386a 200 in 27ms (next.js: 13ms, application-code: 14ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+ GET / 200 in 38ms (next.js: 13ms, application-code: 25ms)
+ GET /workspace/d9f2d8d7-e382-48a0-b3bb-16ea39ba2982 200 in 25ms (next.js: 9ms, application-code: 16ms)
+ GET / 200 in 24ms (next.js: 8ms, application-code: 16ms)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8779:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at doubleInvokeEffectsOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10117:133)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:79)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8779:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at doubleInvokeEffectsOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10117:133)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:79)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147)
+    at recursivelyTraverseAndDoubleInvokeEffectsInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10110:147) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+✓ Compiled in 257ms
+ GET /workspace/a7e8608c-3f39-4e91-8cf3-51267fd784d2 200 in 85ms (next.js: 41ms, application-code: 44ms)
+ GET / 200 in 14ms (next.js: 3ms, application-code: 11ms)
+ GET /workspace/d6a7f3b4-71bd-40c2-9a3e-3da6eb454946 200 in 14ms (next.js: 4ms, application-code: 10ms)
+ GET / 200 in 26ms (next.js: 6ms, application-code: 20ms)
+✓ Compiled in 230ms
+✓ Compiled in 274ms
+[browser] ./src/app/page.tsx:275:8
+Unterminated regexp literal
+  273 |         </section>
+  274 |         </div>
+> 275 |       </section>
+      |        ^^^^^^^^^
+  276 |       {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
+  277 |       <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
+  278 |
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+    at handleErrors (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./src/app/page.tsx:275:8
+Unterminated regexp literal
+  273 |         </section>
+  274 |         </div>
+> 275 |       </section>
+      |        ^^^^^^^^^
+  276 |       {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
+  277 |       <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
+  278 |
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+    at handleErrors (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./src/app/page.tsx:275:8
+Unterminated regexp literal
+  273 |         </section>
+  274 |         </div>
+> 275 |       </section>
+      |        ^^^^^^^^^
+  276 |       {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
+  277 |       <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
+  278 |
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+    at handleErrors (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./src/app/page.tsx:275:8
+Unterminated regexp literal
+  273 |         </section>
+  274 |         </div>
+> 275 |       </section>
+      |        ^^^^^^^^^
+  276 |       {/* 定价锚点占位（无文案），供导航 #pricing 滚动定位 */}
+  277 |       <div id="pricing" aria-hidden="true" className={styles.pricingAnchor} />
+  278 |
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+    at handleErrors (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+ GET / 200 in 51ms (next.js: 19ms, application-code: 32ms)
+ GET /workspace/5595a202-c2b2-497e-a77f-e852c4dba02a 200 in 37ms (next.js: 7ms, application-code: 31ms)
+✓ Compiled in 80ms
+✓ Compiled in 32ms
+ GET /workspace/61383d2a-389d-451b-8507-5e53fb95695a 200 in 86ms (next.js: 49ms, application-code: 37ms)
+ GET / 200 in 11ms (next.js: 4ms, application-code: 8ms)
+ GET /workspace/53ad3390-ca16-4d74-ac80-373e77f188ba 200 in 42ms (next.js: 14ms, application-code: 28ms)
+ GET / 200 in 39ms (next.js: 16ms, application-code: 22ms)
+✓ Compiled in 61ms
+ GET /workspace/bd6ab0f5-8531-4537-a851-0101cff13842 200 in 44ms (next.js: 21ms, application-code: 23ms)
+ GET / 200 in 25ms (next.js: 8ms, application-code: 16ms)
+✓ Compiled in 51ms
+ GET / 200 in 198ms (next.js: 13ms, application-code: 185ms)
+ GET / 200 in 159ms (next.js: 12ms, application-code: 147ms)
+ GET /workspace/5595a202-c2b2-497e-a77f-e852c4dba02a 200 in 167ms (next.js: 92ms, application-code: 74ms)
+ GET /workspace/5595a202-c2b2-497e-a77f-e852c4dba02a 200 in 31ms (next.js: 6ms, application-code: 25ms)
+✓ Compiled in 133ms
+ GET /workspace/0efdb53b-da40-4b99-a5a2-40f9ac4714b1 200 in 59ms (next.js: 31ms, application-code: 28ms)
+ GET / 200 in 54ms (next.js: 27ms, application-code: 27ms)
+✓ Compiled in 58ms
+ GET / 200 in 138ms (next.js: 52ms, application-code: 86ms)
+[browser] TypeError: Failed to fetch
+    at fetchSessions (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:105:23)
+    at LandingPage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2670:155)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0ffc9n7._.js:2676:33)
+✓ Compiled in 73ms
+✓ Compiled in 151ms
+✓ Compiled in 432ms
+✓ Compiled in 56ms
+✓ Compiled in 46ms
+✓ Compiled in 151ms

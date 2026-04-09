@@ -1,0 +1,951 @@
+INFO:     Will watch for changes in these directories: ['/Users/andy/Desktop/Branin AI/backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [7893] using WatchFiles
+/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+INFO:     Started server process [7895]
+INFO:     Waiting for application startup.
+2026-04-09 13:44:49,038 [INFO] app.main: 应用启动，开始接受请求...
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60417 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+2026-04-09 13:58:19,774 [INFO] app.api.auth: 用户登录: email=442324917@qq.com
+INFO:     127.0.0.1:60417 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60417 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60417 - "GET /api/sessions/cd9e4a01-9375-41ae-9f74-3cbf3718fdce/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60417 - "GET /api/sessions/cd9e4a01-9375-41ae-9f74-3cbf3718fdce/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60538 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60942 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60942 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60944 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60942 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61011 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61012 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61011 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61298 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61298 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61319 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61321 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61319 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61339 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61369 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61370 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61369 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61420 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61500 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61516 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61516 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61517 - "GET /api/sessions/baa02636-19bb-449a-88c5-c22fcdb9c989/snapshot HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61516 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61548 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61549 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61518 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61548 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61595 - "GET /api/sessions?user_id=8f0ee69a-dfe4-4988-9202-6660f3245f7f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63821 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63821 - "GET /api/auth/me HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 416, in app
+    solved_result = await solve_dependencies(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/dependencies/utils.py", line 648, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/auth.py", line 118, in get_current_user
+    db_user = await user_repo.get_user_by_id(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/db/user_repo.py", line 21, in get_user_by_id
+    result = await db.execute(select(User).where(User.id == user_id))
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1364, in _checkout
+    del fairy
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1350, in _checkout
+    fairy._connection_record.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+INFO:     127.0.0.1:63822 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1364, in _checkout
+    del fairy
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1350, in _checkout
+    fairy._connection_record.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+INFO:     127.0.0.1:63918 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 718, in checkout
+    rec._checkin_failed(err, _fairy_was_created=False)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+INFO:     127.0.0.1:63902 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 718, in checkout
+    rec._checkin_failed(err, _fairy_was_created=False)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 866, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 179, in __aexit__
+    self._do_exit(exc_type)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 265, in _do_exit
+    raise asyncio.TimeoutError
+asyncio.exceptions.TimeoutError
+INFO:     127.0.0.1:63923 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 718, in checkout
+    rec._checkin_failed(err, _fairy_was_created=False)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 179, in __aexit__
+    self._do_exit(exc_type)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 265, in _do_exit
+    raise asyncio.TimeoutError
+asyncio.exceptions.TimeoutError
+INFO:     127.0.0.1:63924 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 718, in checkout
+    rec._checkin_failed(err, _fairy_was_created=False)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 179, in __aexit__
+    self._do_exit(exc_type)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/async_timeout/__init__.py", line 265, in _do_exit
+    raise asyncio.TimeoutError
+asyncio.exceptions.TimeoutError
+INFO:     127.0.0.1:51888 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51888 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51888 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51888 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52067 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52067 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52109 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52109 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52187 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52187 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53693 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53693 - "GET /api/auth/me HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 416, in app
+    solved_result = await solve_dependencies(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/dependencies/utils.py", line 648, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/auth.py", line 118, in get_current_user
+    db_user = await user_repo.get_user_by_id(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/db/user_repo.py", line 21, in get_user_by_id
+    result = await db.execute(select(User).where(User.id == user_id))
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1364, in _checkout
+    del fairy
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1350, in _checkout
+    fairy._connection_record.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+INFO:     127.0.0.1:53694 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 48, in list_user_sessions
+    records = await session_repo.get_user_sessions(db, user_id)
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 78, in get_user_sessions
+    result = await db.execute(stmt)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 449, in execute
+    result = await greenlet_spawn(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1364, in _checkout
+    del fairy
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 1350, in _checkout
+    fairy._connection_record.get_connection()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 901, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connection.py", line 2443, in connect
+    return await connect_utils._connect(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
