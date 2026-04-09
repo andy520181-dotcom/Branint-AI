@@ -162,7 +162,10 @@ async def continue_session(
         strategy_clarify_round=body.strategy_clarify_round or 0,
     )
 
-    # 2. 更新内存缓存，保证 SSE stream 立即使用新的数据
+    # 获取最新落地的数据
+    record = await session_repo.get_session(db, session_id)
+
+    # 2. 更新内存缓存，保证 SSE stream 立即使用新的数据（带有保留的 market 输出）
     _session_cache[session_id] = {
         "user_prompt": body.user_prompt,
         "conversation_history": [r.model_dump() for r in body.conversation_history],
@@ -170,10 +173,10 @@ async def continue_session(
         "strategy_clarification_answers": body.strategy_clarification_answers,
         "strategy_clarify_round": body.strategy_clarify_round or 0,
         "status": "pending",
-        "report": None,
-        "selected_agents": [],
-        "agent_outputs": {},
-        "agent_statuses": {},
+        "report": record.report if record else None,
+        "selected_agents": record.selected_agents if record else [],
+        "agent_outputs": record.agent_outputs if record else {},
+        "agent_statuses": record.agent_statuses if record else {},
     }
 
     # 3. 启动新一轮 Orchestrator 后台任务

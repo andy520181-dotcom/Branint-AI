@@ -145,9 +145,10 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.addEventListener('agent_research_progress', (e) => {
         try {
           const { id, progress } = JSON.parse(e.data) as { id: AgentId; progress: string };
-          const parsed = JSON.parse(progress) as { step: string; detail: string };
+          const parsed = JSON.parse(progress) as { step: string; label: string; detail: string };
           const progressStep: ResearchProgressStep = {
             step: parsed.step,
+            label: parsed.label ?? parsed.detail, // NOTE: 已有旧数据除错兼容
             detail: parsed.detail,
             ts: Date.now(),
             done: false,

@@ -112,9 +112,9 @@ async def _assess_and_clarify(
     return None
 
 
-def _make_progress(step: str, detail: str = "") -> str:
+def _make_progress(step: str, label: str = "", detail: str = "") -> str:
     """构造进度 token。Orchestrator 读取此格式后转发为 agent_research_progress SSE 事件。"""
-    payload = {"step": step, "detail": detail}
+    payload = {"step": step, "label": label, "detail": detail}
     return f"{PROGRESS_MARKER}{json.dumps(payload, ensure_ascii=False)}"
 
 
@@ -155,7 +155,7 @@ async def run_strategy_agent_stream(
             yield f"{TROUT_CLARIFY_MARKER}{questions}"
             return
 
-    yield _make_progress("start", "Trout 启动战略规划引擎，准备开始深度推演…")
+    yield _make_progress("start", label="Trout 启动战略规划引擎，准备开始深度推演…")
 
     # ─── Phase 0：组装输入消息 ────────────────────────────────
     system_prompt = load_agent_prompt("strategy")
@@ -223,7 +223,7 @@ async def run_strategy_agent_stream(
                     "synthesize_strategy_report": "全维定鼎，正在整合战略报告",
                 }.get(tool_name, f"执行 {tool_name}")
                 
-                yield _make_progress(tool_name, f"{action_label}...")
+                yield _make_progress(tool_name, label=action_label)
 
                 # 提取 theory_combo 供进度提示使用
                 if tool_name == FRAMEWORK_SELECTOR:

@@ -7,7 +7,9 @@ import type { RoundSnapshot } from '@/app/workspace/[sessionId]/workspaceTypes';
 export interface ResearchProgressStep {
   /** 工具名称，如 web_search_market_data */
   step: string;
-  /** 人类可读第一行＋详情 */
+  /** 步骤标题，对应 _ACTION_LABELS 中的人类可读描述 */
+  label: string;
+  /** 步骤具体细节，如搜索关键词、竞品名称（可为空） */
   detail: string;
   /** 时间戳 */
   ts: number;

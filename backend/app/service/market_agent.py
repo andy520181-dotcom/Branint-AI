@@ -63,13 +63,57 @@ def _strip_tool_xml(content: str | None) -> str:
     content = re.sub(r'<\|?DSML\|?.*?>', '', content)
     return content.strip()
 
-def _make_progress(step: str, detail: str = "") -> str:
+def _make_progress(step: str, label: str = "", detail: str = "") -> str:
     """
     构造进度 token。格式：MARKER + JSON。
     Orchestrator 读取此格式后转发为 agent_research_progress SSE 事件。
+
+    Args:
+        step:   工具 action 名称（用于标识步骤类型）
+        label:  步骤标题，对应 _ACTION_LABELS 中的人类可读描述
+        detail: 步骤具体细节，如搜索关键词、竞品名称等（可为空）
     """
-    payload = {"step": step, "detail": detail}
+    payload = {"step": step, "label": label, "detail": detail}
     return f"{PROGRESS_MARKER}{json.dumps(payload, ensure_ascii=False)}"
+
+
+# NOTE: 社交平台引用质量过滤器，避免 Tavily 返回垃圾结果显示到引用卡片
+# 如果搜索结果明显不是有效用户声音页面，则不入库。
+_BAD_EXTENSIONS = (".txt", ".pdf", ".csv", ".zip", ".json", ".xml", ".rss", ".atom")
+_BAD_TITLE_SIGNALS = ("dict_", "vocab.", "__", "Rss", ".txt", ".pdf")
+
+
+def _is_valid_social_citation(result: dict) -> bool:
+    """
+    判断一条 Tavily 搜索结果是否适合作为社交平台引用展示。
+    宁缺勿濮：不满足任何一条则返回 False。
+    """
+    url: str = result.get("url", "").lower()
+    title: str = result.get("title", "")
+    snippet: str = result.get("content", "")
+    score: float = result.get("score", 0.0)
+
+    # 过滤文件类链接（字典、文档、压缩包等）
+    if any(url.endswith(ext) for ext in _BAD_EXTENSIONS):
+        logger.debug("[Citation过滤] 文件类链接跳过: %s", url)
+        return False
+
+    # 过滤标题中包含明显垃圾信号的结果
+    if any(sig in title for sig in _BAD_TITLE_SIGNALS):
+        logger.debug("[Citation过滤] 垃圾标题跳过: %s", title)
+        return False
+
+    # Tavily 相关性分过低说明结果与搜索意图偏差过大
+    if score and score < 0.3:
+        logger.debug("[Citation过滤] 相关性过低（0.3以下）跳过: %s", url)
+        return False
+
+    # snippet 过短或为空（无法呈现有效内容）
+    if not snippet or len(snippet.strip()) < 20:
+        logger.debug("[Citation过滤] snippet 过短或为空，跳过: %s", url)
+        return False
+
+    return True
 
 
 async def _run_research_loop(
@@ -107,7 +151,7 @@ async def _run_research_loop(
     search_citations: list[dict] = []
 
     # 初始进度：开始研究
-    yield _make_progress("start", "Wacksman 启动研究引擎，准备调用联网工具…")
+    yield _make_progress("start", label="Wacksman 启动研究引擎，准备调用联网工具…")
 
     for round_num in range(MAX_RESEARCH_ROUNDS):
         logger.info("Wacksman 研究循环 Round %d/%d", round_num + 1, MAX_RESEARCH_ROUNDS)
@@ -149,7 +193,7 @@ async def _run_research_loop(
         elif action == "generate_data_visualization":
             detail = f"构建：{args.get('chart_type', 'chart')}"
 
-        yield _make_progress(action, f"{action_label}{'  |  ' + detail if detail else ''}")
+        yield _make_progress(action, action_label, detail)
 
         # 将模型的 tool_call 意图追加到 messages
         # NOTE: content 中可能包含 DeepSeek 的 XML 工具调用格式，需要清理
@@ -235,6 +279,9 @@ async def _run_research_loop(
                 + format_search_result_for_llm(search_result)
             )
             for r in search_result.get("results", []):
+                # NOTE: 必须通过质量过滤，否则 Tavily 可能返回字典文件、RSS、乱码内容
+                if not _is_valid_social_citation(r):
+                    continue
                 search_citations.append({
                     "type": "social_review",
                     "platform": platform_focus,

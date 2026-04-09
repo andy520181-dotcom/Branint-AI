@@ -26,6 +26,18 @@ export interface MarketRendererProps {
   agentId?: 'market' | 'strategy';
 }
 
+const BAD_EXTENSIONS = ['.txt', '.pdf', '.csv', '.zip', '.json', '.xml', '.rss', '.atom'];
+const BAD_TITLE_SIGNALS = ['dict_', 'vocab.', '__', 'Rss', '.txt', '.pdf'];
+
+function isValidCitation(c: SearchCitation): boolean {
+  if (!c.url) return false;
+  const urlLower = c.url.toLowerCase();
+  if (BAD_EXTENSIONS.some(ext => urlLower.endsWith(ext))) return false;
+  if (BAD_TITLE_SIGNALS.some(sig => c.title?.includes(sig))) return false;
+  if (!c.snippet || c.snippet.trim().length < 10) return false;
+  return true;
+}
+
 /**
  * 解析市场研究报告末尾的 <market_citations> 数据块
  */
@@ -34,7 +46,10 @@ function parseMarketOutput(raw: string): { content: string; citations: SearchCit
   const content = raw.replace(/<market_citations>[\s\S]*?<\/market_citations>/, '').trim();
   let citations: SearchCitation[] = [];
   if (citationsMatch) {
-    try { citations = JSON.parse(citationsMatch[1]); } catch { /* ignore */ }
+    try { 
+      const parsed = JSON.parse(citationsMatch[1]); 
+      citations = Array.isArray(parsed) ? parsed.filter(isValidCitation) : [];
+    } catch { /* ignore */ }
   }
   return { content, citations };
 }
@@ -112,7 +127,13 @@ export function MarketRenderer({ output, isRunning, researchProgress = [], agent
                     <span className={marketStyles.progressStepIndex} aria-hidden>
                       {i + 1}
                     </span>
-                    <span className={marketStyles.progressStepDetail}>{p.detail}</span>
+                    <span className={marketStyles.progressStepDetail}>
+                      {/* NOTE: label 是步骤标题（如"联网检索市场规模…"），detail 是搜索词等细节 */}
+                      {p.label || p.detail}
+                      {p.detail && p.label && p.detail !== p.label && (
+                        <span className={marketStyles.progressStepSubDetail}> | {p.detail}</span>
+                      )}
+                    </span>
                   </div>
                 </div>
               ))}

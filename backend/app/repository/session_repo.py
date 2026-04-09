@@ -130,10 +130,31 @@ async def continue_session(
     继续现有会话。
 
     NOTE: 多轮对话或战略追问回复时调用。
-    不创建新记录，而是更新现有会话的 user_prompt、conversation_history
-    字段，并将 status 重置为 pending，清空 agent_outputs / agent_statuses
-    以准备新一轮的流式生成。URL（session_id）保持不变。
+    更新 user_prompt、conversation_history 等。
+    如果是战略追问回复，保留之前的 market / consultant_plan 的断点以复用；
+    否则清空所有以便全新流式生成。
     """
+    result = await db.execute(select(SessionModel).where(SessionModel.id == session_id))
+    record = result.scalar_one_or_none()
+    if not record:
+        return
+
+    if strategy_clarification_answers:
+        # 是战略追问回调：清除当前策略及后续 Agent 的旧数据，保留之前完成的成果（如 market）
+        new_outputs = dict(record.agent_outputs or {})
+        new_statuses = dict(record.agent_statuses or {})
+        for a in ["strategy", "content", "visual", "consultant_review"]:
+            new_outputs.pop(a, None)
+            new_statuses.pop(a, None)
+        selected_agents = list(record.selected_agents or [])
+        report = record.report
+    else:
+        # 新的多轮聊天：彻底清空，重新跑全流程
+        new_outputs = {}
+        new_statuses = {}
+        selected_agents = []
+        report = None
+
     await db.execute(
         update(SessionModel)
         .where(SessionModel.id == session_id)
@@ -144,11 +165,10 @@ async def continue_session(
             strategy_clarification_answers=strategy_clarification_answers,
             strategy_clarify_round=strategy_clarify_round,
             status="pending",
-            # NOTE: 重置当轮 agent 状态，保留已存档的 conversation_history 历史
-            agent_outputs={},
-            agent_statuses={},
-            selected_agents=[],
-            report=None,
+            agent_outputs=new_outputs,
+            agent_statuses=new_statuses,
+            selected_agents=selected_agents,
+            report=report,
         )
     )
     await db.commit()
