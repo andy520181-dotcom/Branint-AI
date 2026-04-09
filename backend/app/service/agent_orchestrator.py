@@ -488,11 +488,13 @@ class AgentOrchestrator:
                 stream = run_market_agent_stream(enriched_user_prompt, handoff_context)
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
+                is_strategy_rerun = "strategy" in project_context["full_outputs"]
                 stream = run_strategy_agent_stream(
                     enriched_user_prompt,
                     handoff_context,
                     clarification_answers=strategy_clarification_answers,
                     clarify_round=strategy_clarify_round,
+                    skip_clarify=is_strategy_rerun,
                 )
             elif agent_key == "content":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy"])

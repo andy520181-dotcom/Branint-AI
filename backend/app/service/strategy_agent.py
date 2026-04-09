@@ -127,6 +127,7 @@ async def run_strategy_agent_stream(
     handoff_context: str,
     clarification_answers: str | None = None,
     clarify_round: int = 0,
+    skip_clarify: bool = False,
 ) -> AsyncGenerator[str, None]:
     """
     品牌战略 Agent 主入口（流式输出）。
@@ -141,9 +142,8 @@ async def run_strategy_agent_stream(
         str: 流式输出的文本 chunk，或以 TROUT_CLARIFY_MARKER 开头的追问信号
     """
     # ─── Phase -1：自适应反问 ────────────────────────────────
-    # NOTE: 仅在 clarification_answers 为 None 时进行评估
-    # 一旦用户回答后 orchestrator 会传入 clarification_answers，跳过此阶段
-    if clarification_answers is None:
+    # NOTE: 当 skip_clarify=True (如用户要求重新生成)，或者已有 clarification_answers 时，跳过此阶段
+    if not skip_clarify and clarification_answers is None:
         questions = await _assess_and_clarify(
             user_prompt=user_prompt,
             handoff_context=handoff_context,
@@ -296,7 +296,6 @@ async def run_strategy_agent_stream(
         "generate_naming_candidates":    "六、品牌命名建议",
     }
     chapters = [chapter_map[f] for f in executed_display if f in chapter_map]
-    chapters.append("七、战略落地指引（含给Lois/Scher的下游建议）")
 
     messages.append({
         "role": "user",
