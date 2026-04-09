@@ -1,0 +1,234 @@
+/* BrandHouseRender.module.css */
+
+.container {
+  width: 100%;
+  margin: var(--space-4) 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+/* ── Roof (品牌战略层) ── */
+.roof {
+  /* 使用 CSS clip-path 裁切成梯形，模拟屋顶 */
+  clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+  background: var(--color-user-message-bubble, #2A2A28);
+  color: #FFFFFF;
+  padding: 32px 40px 24px;
+  text-align: center;
+  position: relative;
+  /* 为避免尖角被直接切掉文字，内外边距需要控制好 */
+  margin-bottom: 2px;
+}
+
+.roofTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 16px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.roofGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.roofItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roofItemLabel {
+  font-weight: var(--font-weight-semibold);
+  color: #FFFFFF;
+}
+
+.roofItemValue {
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ── Positioning (第一排单独的定海神针) ── */
+.positioningRow {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.positioningLabel {
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  /* 使用暖色强调色，这里利用 link color 或 button primary */
+  background: var(--color-link);
+  color: #FFFFFF;
+  line-height: 1.3;
+}
+
+.positioningValue {
+  flex: 1;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── Body Modules (下方的模块组) ── */
+.modulesContainer {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.module {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+.module:last-child {
+  border-bottom: none;
+}
+
+/* 左侧分类 Bracket区 */
+.categoryCol {
+  width: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 0;
+  position: relative;
+}
+
+.categoryText {
+  transform: rotate(-90deg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.15em;
+  color: var(--color-link);
+  white-space: nowrap;
+}
+
+/* 模拟左侧那个红色的括号线 */
+.categoryBracket {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  right: 8px; /* 靠右贴近名称列 */
+  width: 6px;
+  border-top: 2px solid var(--color-link);
+  border-bottom: 2px solid var(--color-link);
+  border-right: 2px solid var(--color-link);
+  opacity: 0.6;
+}
+
+/* 右侧子行区 */
+.rowsContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* 允许内部元素收缩 */
+}
+
+.row {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  align-items: stretch;
+}
+.row:last-child {
+  border-bottom: none;
+}
+
+/* 行名 (原来的红色块，现在改为优雅的强调色块) */
+.rowName {
+  width: 100px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  /* 使用次级强调背景，如 surface-2 或者带着主题色的浅底色 */
+  background: color-mix(in srgb, var(--color-link) 10%, var(--color-surface-2));
+  color: color-mix(in srgb, var(--color-link) 80%, #000);
+  border-right: 1px solid var(--color-border);
+  line-height: 1.3;
+}
+
+/* 具体内容块区域 */
+.itemsGrid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px; /* 用 gap+底色 模拟边框，或者直接用 flex 布局内部元素的边框 */
+  background: var(--color-border); /* 线条颜色 */
+  padding: 1px; /* 边框 */
+}
+
+/* 考虑到有的一行有2个，有的一行有5个，最好能自适应，且等宽 */
+.itemCell {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  padding: 16px 12px;
+  text-align: center;
+  gap: 6px;
+}
+
+.itemTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.itemDesc {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* 窄屏适配 */
+@media (max-width: 640px) {
+  .roofGrid {
+    grid-template-columns: 1fr;
+  }
+  .itemsGrid {
+    flex-direction: column;
+  }
+  .itemCell {
+    /* 在竖屏时去掉底部多余边线，靠 gap 就够了 */
+  }
+  .positioningRow {
+    flex-direction: column;
+  }
+  .positioningLabel {
+    width: 100%;
+  }
+}

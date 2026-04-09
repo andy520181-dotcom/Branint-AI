@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 import { EChartsRenderer } from './EChartsRenderer';
 import { JourneyMapRender } from './JourneyMapRender';
+import { BrandHouseRender } from './BrandHouseRender';
 import styles from '../WorkspaceFeed.module.css';
 
 // Helper to extract 2D text array from react-markdown rehype ast table node
@@ -70,17 +71,30 @@ export const sharedMarkdownComponents: Components = {
   code(props: any) {
     const { children, className, node, ...rest } = props;
     const match = /language-(\w+)/.exec(className || '');
+    
+    let codeStr = '';
+    if (typeof children === 'string') {
+      codeStr = children;
+    } else if (Array.isArray(children)) {
+      codeStr = children.join('');
+    } else if (children !== undefined && children !== null) {
+      codeStr = String(children);
+    }
+    
     if (match && match[1] === 'echarts') {
-      let codeStr = '';
-      if (typeof children === 'string') {
-        codeStr = children;
-      } else if (Array.isArray(children)) {
-        codeStr = children.join('');
-      } else if (children !== undefined && children !== null) {
-        codeStr = String(children);
-      }
       return <EChartsRenderer optionsJsonStr={codeStr.replace(/\n$/, '')} />;
     }
+    
+    if (match && match[1] === 'jsonbrandhouse') {
+      try {
+        const data = JSON.parse(codeStr);
+        return <BrandHouseRender data={data} />;
+      } catch (e) {
+        console.error('Brand House JSON parse error:', e);
+        // 如果断流中 JSON 生成不完整，降级返回普通的思考中或代码块
+      }
+    }
+    
     return (
       <code {...rest} className={className}>
         {children}
