@@ -195,8 +195,17 @@ class AgentOrchestrator:
             "full_outputs": {},  # 各 Agent 的完整输出（供 review 引用）
         }
 
-        # NOTE: 先将已落盘的完成输出填充到 project_context，
-        # 这样即使不重跑它们，下游 Agent 也能拿到正确的 handoff 数据
+        # NOTE: 1. 先从对话历史中（过往轮次）提取最近的 Agent 输出，填充上下文
+        # 这样能保障多轮对话中，如果本轮只跑子干路任务（如只跑 strategy），能正确继承上轮的 handoff 避免强制重跑前置依赖
+        if conversation_history:
+            for round_data in conversation_history:
+                history_outputs = round_data.get("agent_outputs", {})
+                for aid, output in history_outputs.items():
+                    if output:
+                        project_context["full_outputs"][aid] = output
+                        project_context["handoffs"][aid] = _extract_handoff(output)
+
+        # NOTE: 2. 再将本轮已落盘的完成输出填充（覆盖历史），支持当前轮次的断点续传
         for aid, output in ckpt_outputs.items():
             if output:
                 project_context["full_outputs"][aid] = output
@@ -206,7 +215,7 @@ class AgentOrchestrator:
         if strategy_clarification_answers:
             # 场景 A：战略追问作答（直达路线）
             logger.info("检测到战略追问交互，跳过前期顾问路由，直通 Strategy Agent 续写")
-            selected_agents = ["strategy", "content", "visual"]
+            selected_agents = ["strategy"]
             # NOTE: 战略追问续写也做依赖解析——market 若在上轮已运行则直接复用，
             # 若本轮因 Ogilvy 路由遗漏而缺失，则自动补充。
             selected_agents = _resolve_dependencies(selected_agents, project_context)
