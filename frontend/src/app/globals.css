@@ -5,9 +5,9 @@
 
 :root {
   --color-bg: #f5f4ed;
-  --color-surface: #faf9f5;
-  --color-surface-2: #e8e6dc;
-  --color-border: #f0eee6;
+  --color-surface: #ffffff; /* 纯白，保证最极致的文本对比度和卡片漂浮感 */
+  --color-surface-2: #f8f7f2;
+  --color-border: #eeede5;
   --color-border-accent: #e8e6dc;
 
   --color-gold:       #555555;
@@ -128,7 +128,10 @@
   --color-landing-page-fallback: #f5f4ed;
   /* NOTE: Claude 风格不使用渐变，用纯色 Parchment 背景 */
   --gradient-landing-page: #f5f4ed;
-  --color-user-message-bubble: var(--color-surface);
+  
+  /* 聊天组件：用户气泡颜色方案 A（深黛灰，白字） */
+  --color-user-message-bubble: #2A2A28;
+  --color-user-message-text: #ffffff;
 
   /* Hero 装饰光晕（Claude 设计不使用光晕） */
   --hero-glow-neutral: none;
@@ -235,7 +238,8 @@
   --color-link-hover: #c96442;
   --color-landing-page-fallback: #f5f4ed;
   --gradient-landing-page: #f5f4ed;
-  --color-user-message-bubble: var(--color-surface);
+  --color-user-message-bubble: #2A2A28;
+  --color-user-message-text: #ffffff;
   --hero-glow-neutral: none;
   --hero-glow-accent: none;
   /* NOTE: 按钮和导航与浅色主题一致，不使用 Apple Blue 或深色毛玻璃 */
@@ -628,11 +632,11 @@ input, textarea { font-family: inherit; outline: none; }
   gap: 10px;
 }
 .site-nav-link {
-  padding: 8px 14px;
+  padding: 8px 16px; /* 稍微加宽 padding 适配胶囊两端 */
   font-size: var(--font-size-body);
   font-weight: 500;
   color: var(--text-secondary);
-  border-radius: 8px;
+  border-radius: 9999px; /* 改为胶囊形 */
   text-decoration: none;
   white-space: nowrap;
   transition: background var(--transition-fast), color var(--transition-fast);

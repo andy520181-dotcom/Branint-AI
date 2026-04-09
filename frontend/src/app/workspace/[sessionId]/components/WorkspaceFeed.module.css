@@ -444,7 +444,7 @@
   position: relative;
   max-width: 65%;
   background: var(--color-user-message-bubble);
-  color: var(--text-primary);
+  color: var(--color-user-message-text);
   font-size: var(--font-size-body-lg);
   line-height: 1.65;
   padding: 12px 18px;

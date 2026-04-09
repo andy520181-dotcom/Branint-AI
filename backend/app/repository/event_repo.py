@@ -156,3 +156,22 @@ async def get_latest_seq(
         )
     )
     return result.scalar() or 0
+
+
+async def delete_events_by_agents(
+    db: AsyncSession,
+    session_id: str,
+    agent_ids: List[str],
+) -> None:
+    """物理删除属于某些 agent 的所有事件记录（用于战略追问时清除旧的分支记录）"""
+    if not agent_ids:
+        return
+    from sqlalchemy import delete
+    await db.execute(
+        delete(AgentEvent)
+        .where(
+            AgentEvent.session_id == session_id,
+            AgentEvent.agent_id.in_(agent_ids),
+        )
+    )
+    await db.commit()

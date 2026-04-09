@@ -143,11 +143,19 @@ async def continue_session(
         # 是战略追问回调：清除当前策略及后续 Agent 的旧数据，保留之前完成的成果（如 market）
         new_outputs = dict(record.agent_outputs or {})
         new_statuses = dict(record.agent_statuses or {})
-        for a in ["strategy", "content", "visual", "consultant_review"]:
+        
+        # NOTE: 包括 consultant_plan 也要清除。因为后续前端重新连接时如果读取 snapshot 或 event_log 
+        # 都不应该再显示上一次的品牌顾问推导，否则会导致 UI 上出现旧的开场白
+        agents_to_clear = ["consultant_plan", "strategy", "content", "visual", "consultant_review"]
+        for a in agents_to_clear:
             new_outputs.pop(a, None)
             new_statuses.pop(a, None)
         selected_agents = list(record.selected_agents or [])
         report = record.report
+        
+        # 物理清理对应的 event_log 防止刷新和断线重连时的幽灵回放
+        from app.repository import event_repo
+        await event_repo.delete_events_by_agents(db, session_id, agents_to_clear)
     else:
         # 新的多轮聊天：彻底清空，重新跑全流程
         new_outputs = {}

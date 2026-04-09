@@ -246,36 +246,25 @@ export default function LandingPage() {
       <section id="features" className={styles.agentsSection} aria-label={t('nav.features')}>
         <div className={styles.agentsRow}>
           {LANDING_AGENTS.map((a) => (
-            <div key={a.id} className={styles.agentPill} style={{ '--agent-color': a.color } as React.CSSProperties}>
-              {/* 上方：头像 + 名称 */}
-              <div className={styles.agentPillBody}>
-                <div className={styles.agentPillAvatar} data-component="agent-avatar">
-                  <img src={a.avatar} alt={a.charName} width={34} height={34} fetchPriority="high" decoding="sync" />
-                </div>
-                <div className={styles.agentPillHeader}>
-                  <span className={styles.agentPillName}>{t(`agent.${a.id}.name`)}</span>
-                  <span className={styles.agentPillCharName}>{a.charName}</span>
-                </div>
+            <div key={a.id} className={styles.agentCol} style={{ '--agent-color': a.color } as React.CSSProperties}>
+              <div className={styles.colAvatarWrap} data-component="agent-avatar">
+                <img src={a.avatar} alt={a.charName} width={52} height={52} fetchPriority="high" decoding="sync" />
               </div>
-              {/* 下方：描述文字，每行 2 个标签，居中对齐 */}
-              <p className={styles.agentPillTags}>
+              <div className={styles.colHeader}>
+                <span className={styles.colCharName}>{a.charName}</span>
+                {/* 恢复 "Agent" 词缀，这是传达 AI 智能体核心概念的重点信息 */}
+                <span className={styles.colRole}>{t(`agent.${a.id}.name`)}</span>
+              </div>
+              <div className={styles.colDesc}>
                 {(() => {
                   const tags = t(`agent.${a.id}.desc`)
                     .split('·')
                     .map((s) => s.trim())
                     .filter(Boolean);
-                  // NOTE: 每 2 个标签为一行，用 · 连接后居中显示
-                  const rows: string[][] = [];
-                  for (let i = 0; i < tags.length; i += 2) {
-                    rows.push(tags.slice(i, i + 2));
-                  }
-                  return rows.map((row, i) => (
-                    <span key={i} style={{ display: 'block', whiteSpace: 'nowrap' }}>
-                      {row.join('·')}
-                    </span>
-                  ));
+                  // 用斜杠连接，形成类似 "/" 的轻盈分割，不使用换行
+                  return tags.join(' / ');
                 })()}
-              </p>
+              </div>
             </div>
           ))}
         </div>
