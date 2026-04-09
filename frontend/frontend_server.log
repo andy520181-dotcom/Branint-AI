@@ -491,3 +491,28 @@ Import traces:
 ✓ Compiled in 56ms
 ✓ Compiled in 46ms
 ✓ Compiled in 151ms
+ GET /workspace/ed4a0ae8-f98d-4b80-85f9-ef4f75f4ca36 200 in 63ms (next.js: 27ms, application-code: 36ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET / 200 in 36ms (next.js: 20ms, application-code: 16ms)
+ GET /workspace/3e9c0a85-7fc4-4cc9-8b4c-a090cd61ea82 200 in 28ms (next.js: 10ms, application-code: 18ms)
+ GET / 200 in 25ms (next.js: 7ms, application-code: 19ms)
+ GET /workspace/54f237ca-23cd-4007-9dab-cd78c3fdd494 200 in 32ms (next.js: 7ms, application-code: 25ms)
+ GET / 200 in 24ms (next.js: 3ms, application-code: 21ms)
+ GET /workspace/2dfe12b5-42e4-41f6-b26f-8d4a93fd481c 200 in 33ms (next.js: 13ms, application-code: 20ms)
+ GET / 200 in 28ms (next.js: 7ms, application-code: 21ms)
+ GET /workspace/34d95cd5-91c9-4df8-ade1-67e00e8596a5 200 in 27ms (next.js: 8ms, application-code: 20ms)
+ GET /workspace/1c8abf83-7f0b-4618-9cd9-b9756e11d6e8 200 in 40ms (next.js: 17ms, application-code: 23ms)
+ GET / 200 in 25ms (next.js: 6ms, application-code: 20ms)
+ GET /workspace/97e426e2-a9ba-4e93-91ac-9a266f09bddd 200 in 24ms (next.js: 8ms, application-code: 16ms)
+ GET / 200 in 26ms (next.js: 4ms, application-code: 22ms)
+✓ Compiled in 60ms
+✓ Compiled in 97ms
+ GET /workspace/84e09353-1a61-49e1-ad7c-0495277c640c 200 in 54ms (next.js: 26ms, application-code: 29ms)
+[browser] Failed to create session on landing redirect: TypeError: Failed to fetch
+    at createSession (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0u6-onh._.js:31:23)
+    at WorkspacePage.useEffect (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0tqoks8._.js:5195:177) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_0tqoks8._.js:5197:41)
+ GET /workspace/84e09353-1a61-49e1-ad7c-0495277c640c 200 in 98ms (next.js: 42ms, application-code: 56ms)
+ GET /workspace/cd9e4a01-9375-41ae-9f74-3cbf3718fdce 200 in 18ms (next.js: 6ms, application-code: 12ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET /workspace/b102b99a-9a4e-46d2-bf61-031224b5970b 200 in 37ms (next.js: 12ms, application-code: 25ms)
+✓ Compiled in 190ms

@@ -9,7 +9,7 @@
   gap: 0;
   padding: 32px;
   box-sizing: border-box;
-  background: var(--gradient-landing-page, linear-gradient(180deg, #e4e8fd 0%, #ffffff 100%));
+  background: var(--gradient-landing-page, #f5f4ed);
   transition: opacity 420ms ease, visibility 420ms ease;
 }
 

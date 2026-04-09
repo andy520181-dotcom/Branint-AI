@@ -949,3 +949,348 @@ Traceback (most recent call last):
   File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/connect_utils.py", line 1102, in __connect_addr
     await connected
 asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+INFO:     127.0.0.1:56203 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56203 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56230 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56230 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56230 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56230 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56273 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56273 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56288 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56288 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56434 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56434 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56434 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56434 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56641 - "GET /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c/snapshot HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56646 - "OPTIONS /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56641 - "GET /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c/snapshot HTTP/1.1" 404 Not Found
+2026-04-09 18:05:05,531 [INFO] app.repository.session_repo: 会话已创建: 84e09353-1a61-49e1-ad7c-0495277c640c, 用户: 7c8e9bb4-7403-4826-8ead-9eb5e47523f5
+2026-04-09 18:05:05,534 [INFO] app.api.sessions: 创建新会话: 84e09353-1a61-49e1-ad7c-0495277c640c, 用户: 7c8e9bb4-7403-4826-8ead-9eb5e47523f5, 历史轮次: 0, 附件: 0
+2026-04-09 18:05:05,534 [INFO] app.api.sessions: 启动后台 Orchestrator 任务: 84e09353-1a61-49e1-ad7c-0495277c640c
+INFO:     127.0.0.1:56646 - "POST /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56641 - "POST /api/sessions HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 550, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/prepared_stmt.py", line 177, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/prepared_stmt.py", line 268, in __bind_execute
+    data, status, _ = await self.__do_execute(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/asyncpg/prepared_stmt.py", line 257, in __do_execute
+    return await executor(protocol)
+  File "asyncpg/protocol/protocol.pyx", line 205, in bind_execute
+asyncpg.exceptions.UniqueViolationError: duplicate key value violates unique constraint "sessions_pkey"
+DETAIL:  Key (id)=(84e09353-1a61-49e1-ad7c-0495277c640c) already exists.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.IntegrityError: <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "sessions_pkey"
+DETAIL:  Key (id)=(84e09353-1a61-49e1-ad7c-0495277c640c) already exists.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/protocols/http/httptools_impl.py", line 415, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/applications.py", line 1138, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 121, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 107, in app
+    response = await f(request)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 426, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/fastapi/routing.py", line 314, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 92, in create_session
+    await session_repo.create_session(
+  File "/Users/andy/Desktop/Branin AI/backend/app/repository/session_repo.py", line 54, in create_session
+    await db.commit()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/ext/asyncio/session.py", line 1000, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 4467, in _flush
+    transaction.rollback(_capture_exception=True)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.IntegrityError: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "sessions_pkey"
+DETAIL:  Key (id)=(84e09353-1a61-49e1-ad7c-0495277c640c) already exists.
+[SQL: INSERT INTO sessions (id, user_id, title, is_pinned, user_prompt, conversation_history, attachments, status, selected_agents, agent_outputs, agent_statuses, report, agent_media, strategy_clarification_answers, strategy_clarify_round) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::BOOLEAN, $5::VARCHAR, $6::JSONB, $7::JSONB, $8::VARCHAR, $9::JSONB, $10::JSONB, $11::JSONB, $12::VARCHAR, $13::JSONB, $14::VARCHAR, $15::INTEGER) RETURNING sessions.created_at, sessions.updated_at]
+[parameters: ('84e09353-1a61-49e1-ad7c-0495277c640c', '7c8e9bb4-7403-4826-8ead-9eb5e47523f5', '给新豪轩门窗做一个品牌定位，并升级logo设计', False, '给新豪轩门窗做一个品牌定位，并升级logo设计', '[]', '[]', 'pending', '[]', '{}', '{}', None, '{}', None, 0)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-04-09 18:05:05,764 [INFO] app.api.sessions: 广播器在线，接入监听: 84e09353-1a61-49e1-ad7c-0495277c640c (Last-Event-ID=None)
+INFO:     127.0.0.1:56646 - "GET /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c/stream HTTP/1.1" 200 OK
+2026-04-09 18:05:06,441 [INFO] app.service.agent_orchestrator: 品牌顾问 — 开始初步问候与需求诊断...
+2026-04-09 18:05:06,444 [INFO] app.service.prompt_loader: 加载共享铁律: _shared_rules.md
+2026-04-09 18:05:06,446 [INFO] app.service.prompt_loader: 加载 Agent 规则: consultant_plan.md
+2026-04-09 18:05:06,450 [INFO] app.service.llm_provider: 调用 LLM 模型（Tools）: deepseek/deepseek-chat, 启用Tools
+[92m18:05:06 - LiteLLM:INFO[0m: utils.py:4004 - 
+LiteLLM completion() model= deepseek-chat; provider = deepseek
+2026-04-09 18:05:06,559 [INFO] LiteLLM: 
+LiteLLM completion() model= deepseek-chat; provider = deepseek
+2026-04-09 18:05:07,820 [ERROR] app.api.sessions: 后台 Orchestrator 异常: 84e09353-1a61-49e1-ad7c-0495277c640c, 错误: litellm.BadRequestError: DeepseekException - {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 175, in _make_common_async_call
+    response = await async_httpx_client.post(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/logging_utils.py", line 297, in async_wrapper
+    result = await func(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/http_handler.py", line 513, in post
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/http_handler.py", line 469, in post
+    response.raise_for_status()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '402 Payment Required' for url 'https://api.deepseek.com/beta/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/main.py", line 620, in acompletion
+    response = await init_response
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 307, in async_completion
+    response = await self._make_common_async_call(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 200, in _make_common_async_call
+    raise self._handle_error(e=e, provider_config=provider_config)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 4720, in _handle_error
+    raise provider_config.get_error_class(
+litellm.llms.openai.common_utils.OpenAIError: {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 363, in _run_orchestrator_background
+    async for event in orchestrator.run_session(
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/agent_orchestrator.py", line 241, in run_session
+    decision = await decision_task
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/consultant_agent.py", line 192, in run_ogilvy_decision
+    content, tool_calls = await call_llm_with_tools(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 189, in async_wrapped
+    return await copy(fn, *args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 111, in __call__
+    do = await self.iter(retry_state=retry_state)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 153, in iter
+    result = await action(retry_state)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/_utils.py", line 99, in inner
+    return call(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 114, in __call__
+    result = await fn(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/llm_provider.py", line 149, in call_llm_with_tools
+    response = await litellm.acompletion(**kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/utils.py", line 2090, in wrapper_async
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/utils.py", line 1889, in wrapper_async
+    result = await original_function(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/main.py", line 639, in acompletion
+    raise exception_type(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2456, in exception_type
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 478, in exception_type
+    raise BadRequestError(
+litellm.exceptions.BadRequestError: litellm.BadRequestError: DeepseekException - {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+2026-04-09 18:05:08,124 [INFO] app.service.stream_broadcaster: 广播器关闭: 84e09353-1a61-49e1-ad7c-0495277c640c（共 2 条历史事件）
+2026-04-09 18:05:08,124 [INFO] app.service.stream_broadcaster: 广播器已释放: 84e09353-1a61-49e1-ad7c-0495277c640c
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+INFO:     127.0.0.1:56647 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56699 - "GET /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56647 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56647 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56647 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56647 - "OPTIONS /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "DELETE /api/sessions/84e09353-1a61-49e1-ad7c-0495277c640c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "GET /api/sessions/cd9e4a01-9375-41ae-9f74-3cbf3718fdce/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "GET /api/sessions/cd9e4a01-9375-41ae-9f74-3cbf3718fdce/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56700 - "GET /api/sessions?user_id=7c8e9bb4-7403-4826-8ead-9eb5e47523f5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56760 - "OPTIONS /api/sessions/b102b99a-9a4e-46d2-bf61-031224b5970b/continue HTTP/1.1" 200 OK
+2026-04-09 18:06:20,266 [INFO] app.api.sessions: 续写会话，启动新一轮 Orchestrator: b102b99a-9a4e-46d2-bf61-031224b5970b
+INFO:     127.0.0.1:56760 - "PATCH /api/sessions/b102b99a-9a4e-46d2-bf61-031224b5970b/continue HTTP/1.1" 200 OK
+2026-04-09 18:06:20,484 [INFO] app.api.sessions: 广播器在线，接入监听: b102b99a-9a4e-46d2-bf61-031224b5970b (Last-Event-ID=None)
+INFO:     127.0.0.1:56760 - "GET /api/sessions/b102b99a-9a4e-46d2-bf61-031224b5970b/stream HTTP/1.1" 200 OK
+2026-04-09 18:06:21,854 [INFO] app.service.agent_orchestrator: 品牌顾问 — 开始初步问候与需求诊断...
+2026-04-09 18:06:21,855 [INFO] app.service.llm_provider: 调用 LLM 模型（Tools）: deepseek/deepseek-chat, 启用Tools
+[92m18:06:21 - LiteLLM:INFO[0m: utils.py:4004 - 
+LiteLLM completion() model= deepseek-chat; provider = deepseek
+2026-04-09 18:06:21,866 [INFO] LiteLLM: 
+LiteLLM completion() model= deepseek-chat; provider = deepseek
+2026-04-09 18:06:23,284 [ERROR] app.api.sessions: 后台 Orchestrator 异常: b102b99a-9a4e-46d2-bf61-031224b5970b, 错误: litellm.BadRequestError: DeepseekException - {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 175, in _make_common_async_call
+    response = await async_httpx_client.post(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/logging_utils.py", line 297, in async_wrapper
+    result = await func(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/http_handler.py", line 513, in post
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/http_handler.py", line 469, in post
+    response.raise_for_status()
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '402 Payment Required' for url 'https://api.deepseek.com/beta/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/main.py", line 620, in acompletion
+    response = await init_response
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 307, in async_completion
+    response = await self._make_common_async_call(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 200, in _make_common_async_call
+    raise self._handle_error(e=e, provider_config=provider_config)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 4720, in _handle_error
+    raise provider_config.get_error_class(
+litellm.llms.openai.common_utils.OpenAIError: {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andy/Desktop/Branin AI/backend/app/api/sessions.py", line 363, in _run_orchestrator_background
+    async for event in orchestrator.run_session(
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/agent_orchestrator.py", line 241, in run_session
+    decision = await decision_task
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/consultant_agent.py", line 192, in run_ogilvy_decision
+    content, tool_calls = await call_llm_with_tools(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 189, in async_wrapped
+    return await copy(fn, *args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 111, in __call__
+    do = await self.iter(retry_state=retry_state)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 153, in iter
+    result = await action(retry_state)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/_utils.py", line 99, in inner
+    return call(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/__init__.py", line 400, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 438, in result
+    return self.__get_result()
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/concurrent/futures/_base.py", line 390, in __get_result
+    raise self._exception
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/tenacity/asyncio/__init__.py", line 114, in __call__
+    result = await fn(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/app/service/llm_provider.py", line 149, in call_llm_with_tools
+    response = await litellm.acompletion(**kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/utils.py", line 2090, in wrapper_async
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/utils.py", line 1889, in wrapper_async
+    result = await original_function(*args, **kwargs)
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/main.py", line 639, in acompletion
+    raise exception_type(
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2456, in exception_type
+    raise e
+  File "/Users/andy/Desktop/Branin AI/backend/.venv/lib/python3.9/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 478, in exception_type
+    raise BadRequestError(
+litellm.exceptions.BadRequestError: litellm.BadRequestError: DeepseekException - {"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}
+2026-04-09 18:06:24,095 [INFO] app.service.stream_broadcaster: 广播器关闭: b102b99a-9a4e-46d2-bf61-031224b5970b（共 2 条历史事件）
+2026-04-09 18:06:24,096 [INFO] app.service.stream_broadcaster: 广播器已释放: b102b99a-9a4e-46d2-bf61-031224b5970b

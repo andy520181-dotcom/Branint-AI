@@ -225,61 +225,27 @@
   --prose-link-hover: var(--color-link-hover);
 }
 
-/* 深色主题（由 ThemeInit / 系统设置 写入 html[data-theme="dark"]） */
+/* NOTE: 全站强制浅色模式，data-theme="dark" 块仅作为兼容预留，token 与浅色一致 */
 [data-theme="dark"] {
-  --color-bg: #f5f4ed;
-  --color-surface: #faf9f5;
-  --color-surface-2: #e8e6dc;
-  --color-border: #f0eee6;
-  --color-border-accent: #e8e6dc;
-
-  --color-gold:       #AAAAAA;
-  --color-gold-dim:   rgba(170, 170, 170, 0.12);
-  --color-gold-glow:  rgba(170, 170, 170, 0.15);
-
-  --text-primary: #141413;
-  --text-secondary: #4d4c48;
-  --text-muted: #87867f;
-
-  --shadow-card: rgba(0, 0, 0, 0.05) 0px 4px 24px;
-  --shadow-hero-input: rgba(0, 0, 0, 0.05) 0px 4px 24px;
-  --shadow-hero-input-focus: 0 4px 24px rgba(0, 0, 0, 0.45);
-  --shadow-agent-pill-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --shadow-agent-avatar: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-feed-bubble: 0 1px 8px rgba(0, 0, 0, 0.55);
-
-  --color-error: #f87171;
-  --color-error-bg-subtle: rgba(248, 113, 113, 0.1);
-  --color-error-border: rgba(248, 113, 113, 0.28);
-  --color-error-bg-medium: rgba(248, 113, 113, 0.14);
-  --color-error-soft: rgba(248, 113, 113, 0.18);
-  --color-control-disabled: #4a4a4c;
-  --color-spinner-ring-on-inverse: rgba(255, 255, 255, 0.28);
-  --color-border-hover: rgba(255, 255, 255, 0.18);
-  --overlay-scrim: rgba(0, 0, 0, 0.5);
-  --overlay-modal: rgba(0, 0, 0, 0.55);
-  --overlay-dialog: rgba(0, 0, 0, 0.45);
+  /* 遮罩层深度保持 */
+  --overlay-scrim: rgba(0, 0, 0, 0.35);
+  --overlay-modal: rgba(0, 0, 0, 0.45);
+  --overlay-dialog: rgba(0, 0, 0, 0.35);
   --color-link: #d97757;
   --color-link-hover: #c96442;
-
   --color-landing-page-fallback: #f5f4ed;
-  --gradient-landing-page: none;
+  --gradient-landing-page: #f5f4ed;
   --color-user-message-bubble: var(--color-surface);
-
   --hero-glow-neutral: none;
   --hero-glow-accent: none;
-
-  --skeleton-shimmer-low: rgba(255, 255, 255, 0.06);
-  --skeleton-shimmer-mid: rgba(255, 255, 255, 0.12);
-
-  --color-btn-primary-start: #0071e3;
-  --color-btn-primary-end: #0071e3;
-  --gradient-btn-primary: linear-gradient(135deg, var(--color-btn-primary-start) 0%, var(--color-btn-primary-end) 100%);
-
-  --nav-bg: rgba(26, 26, 28, 0.85);
-  --nav-link-hover-bg: rgba(255, 255, 255, 0.08);
+  /* NOTE: 按钮和导航与浅色主题一致，不使用 Apple Blue 或深色毛玻璃 */
+  --color-btn-primary-start: #c96442;
+  --color-btn-primary-end: #c96442;
+  --gradient-btn-primary: #c96442;
+  --nav-bg: #f5f4ed;
+  --nav-link-hover-bg: #e8e6dc;
 }
-[data-theme="dark"] .btn-ghost:hover { text-decoration: none; background: #d1cfc5; }
+[data-theme="dark"] .btn-ghost:hover { background: #d1cfc5; }
 
 @media (max-width: 768px) {
   :root {
@@ -318,12 +284,7 @@ input, textarea { font-family: inherit; outline: none; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: var(--radius-xs); }
 [data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
-.glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
-}
+/* NOTE: .glass 已废弃，Claude 规范不使用毛玻璃效果 */
 
 .btn-primary {
   display: inline-flex;
