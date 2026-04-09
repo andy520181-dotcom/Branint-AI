@@ -599,7 +599,7 @@ input, textarea { font-family: inherit; outline: none; }
   z-index: var(--app-nav-z);
   box-sizing: border-box;
   background: #f5f4ed;
-  border-bottom: 1px solid #f0eee6;
+  /* NOTE: 删除底部分隔线 */
 }
 .site-nav-logo {
   display: flex;

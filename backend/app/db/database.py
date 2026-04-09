@@ -25,16 +25,25 @@ def _build_async_url(url: str) -> str:
 _async_url = _build_async_url(settings.database_url)
 
 # NOTE: pool_size=5 适合 MVP 阶段单机部署；生产可按实例规格调高
+# NOTE: pool_recycle=600 — 阿里云 SLB 默认空闲连接超时为 900s，
+#       主动在 600s (10min) 回收连接，防止长时间生成期间被中间网络层静默断开。
 engine = create_async_engine(
     _async_url,
     pool_size=5,
     max_overflow=10,
-    pool_pre_ping=True,  # 自动检测断开的连接，防止 idle 连接失效
-    echo=False,          # 生产环境关闭 SQL 日志，调试时可改为 True
+    pool_pre_ping=True,    # 每次从池中取出连接前做一次存活检测
+    pool_recycle=600,      # 10min 主动回收，低于阿里云 SLB 900s idle timeout
+    echo=False,
     connect_args={
-        "ssl": False, 
-        "command_timeout": 60.0,  # 增加超时阈值，防止 create_all 在公网环境下超时
-        "server_settings": {"tcp_keepalives_idle": "60"}
+        "ssl": False,
+        "command_timeout": 120.0,  # 单条 SQL 最长等待 2 分钟
+        "server_settings": {
+            # NOTE: 通过 TCP keepalive 定期发送探活包，防止阿里云 SLB 因无流量切断连接
+            "tcp_keepalives_idle": "60",      # 60s 无数据后开始发 keepalive
+            "tcp_keepalives_interval": "10",  # 每 10s 发一次
+            "tcp_keepalives_count": "5",       # 连续 5 次无响应才判定断开
+            "application_name": "branin_ai",
+        },
     },
 )
 

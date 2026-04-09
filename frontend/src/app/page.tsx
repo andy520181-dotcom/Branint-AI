@@ -257,15 +257,24 @@ export default function LandingPage() {
                   <span className={styles.agentPillCharName}>{a.charName}</span>
                 </div>
               </div>
-              {/* 下方：描述文字，· 分隔，每段不断行 */}
+              {/* 下方：描述文字，每行 2 个标签，居中对齐 */}
               <p className={styles.agentPillTags}>
-                {t(`agent.${a.id}.desc`)
-                  .split('·')
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                  .map((tag, j) => (
-                  <span key={j} style={{ whiteSpace: 'nowrap' }}>{j > 0 ? '·' : ''}{tag}</span>
-                ))}
+                {(() => {
+                  const tags = t(`agent.${a.id}.desc`)
+                    .split('·')
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  // NOTE: 每 2 个标签为一行，用 · 连接后居中显示
+                  const rows: string[][] = [];
+                  for (let i = 0; i < tags.length; i += 2) {
+                    rows.push(tags.slice(i, i + 2));
+                  }
+                  return rows.map((row, i) => (
+                    <span key={i} style={{ display: 'block', whiteSpace: 'nowrap' }}>
+                      {row.join('·')}
+                    </span>
+                  ));
+                })()}
               </p>
             </div>
           ))}

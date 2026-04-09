@@ -4,6 +4,8 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* NOTE: 不用 align-items:stretch（默认），hero 自然高度，不撑满整屏 */
+  align-items: stretch;
   background-color: #f5f4ed;
 }
 
@@ -12,15 +14,13 @@
 
 /* Hero / 大输入区样式见 components/landing/landingHero.module.css */
 
-/* NOTE: Agent 展示区采用 Ivory (#faf9f5) 微切灰，与 Parchment 产生"浮平台"层次感 */
+/* NOTE: Agent 展示区与 hero 同色，不产生色块分界 */
 .agentsSection {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #faf9f5;
-  border-top: 1px solid #f0eee6;
-  padding: 64px 24px 80px;
+  padding: 0 24px 48px;
 }
 
 .agentsSectionTitle {
@@ -76,7 +76,8 @@
   flex-wrap: nowrap;
   justify-content: center;
   width: 100%;
-  max-width: 900px;
+  /* NOTE: 与 inputWrapper 同为 860px，左右两边精准对齐 */
+  max-width: 860px;
 }
 
 /* NOTE: Claude 风格卡片 — Ivory 底 + 细 Border Cream 边 + 幽灵阴影，无大投影 */
@@ -147,15 +148,16 @@
   text-overflow: ellipsis;
 }
 
-/* 下方：描述文字 */
+/* 下方：描述文字，每行 2 个，居中对齐 */
 .agentPillTags {
   font-size: var(--font-size-2xs);
   color: #5e5d59;
   line-height: 1.6;
   margin: 0;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 0;
 }
 
