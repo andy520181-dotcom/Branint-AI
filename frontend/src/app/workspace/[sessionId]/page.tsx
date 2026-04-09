@@ -276,6 +276,7 @@ export default function WorkspacePage() {
       setRestored(true);
       setTimeout(() => {
         try { sessionStorage.removeItem(blankKey); } catch { /* ignore */ }
+        textareaRef.current?.focus();
       }, 0);
       return;
     }

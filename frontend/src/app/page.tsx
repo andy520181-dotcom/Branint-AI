@@ -58,8 +58,7 @@ export default function LandingPage() {
   const [toast, setToast] = useState('');
   /** 启动页：首帧与 SSR 一致为 false，避免 hydration 不匹配；再在 layoutEffect 里同步 sessionStorage */
   const [splashDone, setSplashDone] = useState(false);
-  /** 与 SSR 首屏一致为 #hero，挂载后再读 localStorage，避免 Nav Link hydration mismatch */
-  const [workspaceHref, setWorkspaceHref] = useState('#hero');
+  const [hasHistory, setHasHistory] = useState<boolean | null>(null);
 
   useLayoutEffect(() => {
     if (shouldSkipSplash()) setSplashDone(true);
@@ -68,8 +67,13 @@ export default function LandingPage() {
   useEffect(() => {
     if (user?.id) {
        fetchSessions(user.id).then(res => {
-         if (res.length > 0) setWorkspaceHref(`/workspace/${res[0].session_id}`);
-       }).catch(err => console.error(err));
+         setHasHistory(res.length > 0);
+       }).catch(err => {
+         console.error(err);
+         setHasHistory(false);
+       });
+    } else {
+       setHasHistory(null);
     }
   }, [user?.id]);
 
@@ -174,13 +178,20 @@ export default function LandingPage() {
             <a href="#features" className="site-nav-link">{t('nav.features')}</a>
             <a href="#pricing" className="site-nav-link">{t('nav.pricing')}</a>
             <a 
-              href={workspaceHref}
+              href="#"
               className="site-nav-link"
               onClick={(e) => {
-                if (workspaceHref !== '#hero') {
-                  e.preventDefault();
-                  router.push(workspaceHref);
+                e.preventDefault();
+                if (!user) {
+                  setShowAuth(true);
+                  return;
                 }
+
+                // 无论是新老用户，直接跳转到独立工作台的空壳
+                // 左侧记录栏会在工作台内部异步拉取历史记录
+                const newId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+                sessionStorage.setItem(`workspace_blank_${newId}`, '1');
+                router.push(`/workspace/${newId}`);
               }}
             >
               {t('nav.workspace')}
