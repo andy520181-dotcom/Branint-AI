@@ -398,8 +398,7 @@ input, textarea { font-family: inherit; outline: none; }
 .markdown-body strong { color: var(--prose-heading-color); font-weight: var(--prose-strong-weight); }
 .markdown-body a {
   color: var(--prose-link-color);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration: none;
 }
 .markdown-body a:hover { color: var(--prose-link-hover); }
 .markdown-body blockquote {
@@ -412,72 +411,70 @@ input, textarea { font-family: inherit; outline: none; }
 .markdown-body table {
   width: 100%;
   border-collapse: collapse;
+  /* NOTE: 隐藏表格最外围的线，避免与外层 prose-table-wrap 的线重叠导致看起来变粗 */
+  border-style: hidden;
   margin: var(--space-4) 0;
-  font-size: var(--font-size-md);
-  /* NOTE: 宽表格（如用户旅程地图）通过外层 .prose-table-wrap 实现横向滚动 */
+  /* NOTE: 降至 12px 让所有列内容在可视范围内完整显示 */
+  font-size: 12px;
+  /* NOTE: table-layout:fixed 配合 width:100% 将列宽均分，内容在单元格内换行 */
+  table-layout: fixed;
 }
+/* NOTE: Claude 风格表头 — 去除背景色，改为极浅边框 */
 .markdown-body th {
-  background: var(--color-inverse-fill);
-  color: var(--color-on-inverse);
-  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  color: #141413;
+  padding: 7px 12px;
   text-align: left;
-  border: 1px solid rgba(255,255,255,0.12);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-caption);
-  letter-spacing: 0.02em;
-  /* NOTE: 不使用 white-space:nowrap，允许表头换行，防止宽表格溢出 */
-}
-.markdown-body td {
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  color: var(--prose-body-color);
-  vertical-align: top;
-  line-height: 1.55;
-  /* NOTE: 长文本在单元格内换行，防止宽内容撑破表格布局 */
+  border: 1px solid #f0f0f0;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  /* NOTE: 表头文字也允许换行 */
   word-break: break-word;
   overflow-wrap: break-word;
 }
-/* 首列加粗：维度标签行（如「触点」「情绪」「痛点」）
-   NOTE: 短标签列适合 nowrap，但设上限防止过宽 */
-.markdown-body td:first-child {
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  background: var(--color-surface-2);
-  white-space: nowrap;
-  min-width: 60px;
-  max-width: 120px;
+.markdown-body td {
+  padding: 7px 12px;
+  border: 1px solid #f0f0f0;
+  color: var(--prose-body-color);
+  vertical-align: top;
+  line-height: 1.55;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
-/* 偶数数据行浅背景 — 跳过首列因为首列独立处理 */
-.markdown-body tr:nth-child(even) td { background: #fafaf8; }
-.markdown-body tr:nth-child(even) td:first-child { background: var(--color-surface-2); }
-[data-theme="dark"] .markdown-body tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
-[data-theme="dark"] .markdown-body tr:nth-child(even) td:first-child { background: var(--color-surface-2); }
-/* 宽表格横向滚动容器（由 MarkdownRenderer sharedMarkdownComponents.table 注入） */
+/* NOTE: 首列加粗突出维度标签，但不再设背景色，全表只留表头有底色 */
+.markdown-body td:first-child {
+  font-weight: 600;
+  color: #141413;
+  min-width: 80px;
+}
+/* NOTE: 去除原有的所有斑马纹和首列高亮，全表统一纯底色（透明跟随容器） */
+/* 宽表格横向滚动容器 */
 .prose-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin: var(--space-4) 0;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: none;
 }
 .prose-table-wrap table {
   margin: 0;
   border-radius: 0;
-  /* NOTE: 宽度跟随内容自然撑开，不强制最小宽度，避免不必要的横滚 */
-  min-width: max-content;
+  /* NOTE: 改为 min-width: 100%，不再强制 max-content，使得 table-layout: fixed 可以强行把表格限制在屏幕宽度以内 */
+  min-width: 100%;
   width: 100%;
 }
-.prose-table-wrap th:first-child { border-radius: var(--radius-sm) 0 0 0; }
-.prose-table-wrap th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
-/* 深色模式：表头反色保持可读 */
+.prose-table-wrap th:first-child { border-radius: 8px 0 0 0; }
+.prose-table-wrap th:last-child  { border-radius: 0 8px 0 0; }
 [data-theme="dark"] .markdown-body th {
-  background: var(--color-surface-2);
-  color: var(--text-primary);
-  border-color: var(--color-border);
+  background: transparent;
+  color: #141413;
+  border-color: #f0f0f0;
 }
 [data-theme="dark"] .prose-table-wrap {
-  border-color: var(--color-border);
+  border-color: #f0f0f0;
 }
 .markdown-body code {
   background: var(--color-surface-2);
@@ -536,10 +533,9 @@ input, textarea { font-family: inherit; outline: none; }
   width: 100%;
   min-height: var(--prose-chart-min-height);
   margin: var(--prose-chart-margin);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--prose-chart-padding);
-  background: var(--color-surface);
+  /* NOTE: 去除原有的白色底色块，使图表完全无背景融入聊天流的底层颜色空间 */
+  border: none;
+  background: transparent;
   box-sizing: border-box;
 }
 .markdown-body .prose-chart-placeholder {

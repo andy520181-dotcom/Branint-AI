@@ -9,9 +9,9 @@
   top: 0;
   z-index: var(--app-nav-z);
   box-sizing: border-box;
-  /* NOTE: 生成页统一浅色，去掉毛玻璃，使用 Ivory 背景 + 细底边 */
-  background: #faf9f5;
-  border-bottom: 1px solid #f0eee6;
+  /* NOTE: 去除原有的实色背景和边框，完全融入当前页面的打底环境（图片或统一底色） */
+  background: transparent;
+  border-bottom: none;
 }
 .topBarBrand {
   display: flex;

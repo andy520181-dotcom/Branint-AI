@@ -3,7 +3,43 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 import { EChartsRenderer } from './EChartsRenderer';
+import { JourneyMapRender } from './JourneyMapRender';
 import styles from '../WorkspaceFeed.module.css';
+
+// Helper to extract 2D text array from react-markdown rehype ast table node
+function extractTableData(node: any): string[][] {
+  const data: string[][] = [];
+  if (!node || !node.children) return data;
+
+  for (const child of node.children) {
+    if (child.tagName === 'thead' || child.tagName === 'tbody') {
+      for (const row of child.children) {
+        if (row.tagName === 'tr') {
+          const rowData: string[] = [];
+          for (const cell of row.children) {
+            if (cell.tagName === 'th' || cell.tagName === 'td') {
+              let cellText = '';
+              const extractText = (n: any) => {
+                if (n.type === 'text' && n.value) {
+                  cellText += n.value;
+                }
+                if (n.children) {
+                  n.children.forEach(extractText);
+                }
+              };
+              extractText(cell);
+              rowData.push(cellText.trim());
+            }
+          }
+          if (rowData.length > 0) {
+            data.push(rowData);
+          }
+        }
+      }
+    }
+  }
+  return data;
+}
 
 export const sharedMarkdownComponents: Components = {
   /**
@@ -12,6 +48,19 @@ export const sharedMarkdownComponents: Components = {
    */
   table(props: any) {
     const { children, node, ...rest } = props;
+    
+    // 如果是匹配特定格式的表格（如用户旅程地图），使用卡片网格渲染
+    if (node) {
+      try {
+        const tableData = extractTableData(node);
+        if (tableData.length > 1 && tableData[0].length > 1 && tableData[0][0] === '阶段') {
+          return <JourneyMapRender data={tableData} />;
+        }
+      } catch (e) {
+        console.error("Error extracting table data for Journey Map:", e);
+      }
+    }
+
     return (
       <div className="prose-table-wrap">
         <table {...rest}>{children}</table>
