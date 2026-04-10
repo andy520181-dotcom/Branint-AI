@@ -54,9 +54,9 @@ export function AgentLayoutWrapper({
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      alert('🔗 分享链接已生成并复制到剪贴板！\n\n您可以直接将此链接发送给团队成员，他们打开后即可共享查看这份品牌战略（目前系统具备持久化存储，凭链接即可访问历史数据）。');
+      alert('🔗 链接已复制');
     }).catch(() => {
-      alert('复制失败，请直接复制浏览器地址栏的链接进行分享。');
+      alert('复制失败，请手动复制地址栏');
     });
   };
 
