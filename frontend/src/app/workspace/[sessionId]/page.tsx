@@ -568,6 +568,7 @@ export default function WorkspacePage() {
               agentVideos={agentVideos}
               handoffMsg={handoffMsg}
               error={error}
+              isClarifying={!!strategyClarify?.isPaused}
               onToast={showFeedToast}
               t={t}
             />

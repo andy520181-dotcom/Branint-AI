@@ -191,6 +191,8 @@ export function useWorkspaceStream(sessionId: string | null) {
         store().setAgentStatus(agentId, 'completed');
       });
 
+
+
       // 全部完成，最终报告由顾问审核输出
       es.addEventListener('session_complete', (e) => {
         try {
@@ -218,8 +220,8 @@ export function useWorkspaceStream(sessionId: string | null) {
         }
       });
 
-      // NOTE: Trout 战略追问信号——展示追问气泡并挂起会话，等待用户回答
-      es.addEventListener('strategy_clarify', (e) => {
+      // NOTE: Universal Agent 追问信号——展示追问气泡并挂起会话，等待用户回答
+      es.addEventListener('agent_clarify', (e) => {
         try {
           const { questions } = JSON.parse(e.data) as { id: string; questions: string };
           const { sessionId: sid, strategyClarify } = store();

@@ -41,9 +41,11 @@ export function RendererFactory({
   ) ?? EMPTY_PROGRESS;
 
   // 过滤掉后端用于结构化处理的修补标签，避免暴露给用户
+  // 响应【90/10法则】的 90% 严谨区：全局强制剃毛，剥离所有 emoji 确保商务高层汇报视觉基调
   const displayOutput = output
     .replace(/<PATCH_BLOCK>/g, '')
-    .replace(/<\/PATCH_BLOCK>/g, '');
+    .replace(/<\/PATCH_BLOCK>/g, '')
+    .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
 
   // 当还未生成内容且在 "thinking" 时统一使用点点点动画
   // NOTE: market 和 visual 有自己的等待态，这里排除

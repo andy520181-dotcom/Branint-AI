@@ -196,6 +196,16 @@
   border-right-color: color-mix(in srgb, var(--agent-color) 40%, transparent);
 }
 
+.aiDisclaimer {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.65;
+  text-align: left;
+  padding: 0 22px 4px 22px;
+  margin-top: -6px;
+  user-select: none;
+}
+
 .feedActions {
   display: flex;
   gap: 8px;

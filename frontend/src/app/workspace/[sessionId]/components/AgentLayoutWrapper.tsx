@@ -151,6 +151,10 @@ export function AgentLayoutWrapper({
           >
             {children}
 
+            <div className={styles.aiDisclaimer}>
+              本回答由 AI 生成，内容仅供参考
+            </div>
+
             {/* 智能体操作底栏：任务完成且不处于首轮打底时显示 */}
             {isDone && !plainBubble && (
               <div className={styles.feedActions}>

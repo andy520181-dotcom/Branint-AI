@@ -130,6 +130,27 @@ OGILVY_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "conduct_brand_diligence",
+            "description": "当用户的需求中提到了真实存在的成熟品牌、或者是正在市面上运作的新创立品牌，且当前会话中尚未查寻过该品牌时调用。系统将去全网抽调该品牌的底层商业结构、客群和近况，生成《核心参谋部·品牌背调档案》供你和全组使用。调研结束后，你仍需继续规划下一步动作。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "search_query": {
+                        "type": "string",
+                        "description": "为了充分摸底该品牌而在搜索引擎上使用的精确关键字。例如：'茶颜悦色 品牌定位 核心受众'"
+                    },
+                    "intent_statement": {
+                        "type": "string",
+                        "description": "严格遵照【90/10法则】，用一句极具高管顾问气场的从容开场白（可带些许点评或幽默幽默感），告诉客户你正在去全网摸底该品牌的基本盘。例如：'这个品牌的打法有点意思。给我几秒钟，我先去各大平台扫一眼它目前的声量底盘... 🔎'"
+                    }
+                },
+                "required": ["search_query", "intent_statement"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "lightweight_web_search",
             "description": "当回答需要新鲜、时效性强的外部数据支撑（如最新政策、特斯拉下月发布会、近期竞品动态）时调用。会动用后端的 Tavily 搜索引擎抓取内容后再回答。",
             "parameters": {

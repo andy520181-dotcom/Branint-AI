@@ -17,7 +17,7 @@ from app.service.consultant_agent import (
     _build_history_context,
 )
 from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
-from app.service.strategy_agent import run_strategy_agent_stream, TROUT_CLARIFY_MARKER
+from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
 from app.service.visual_agent import run_visual_agent_stream
 from app.service.skills.wacksman_skills import execute_tavily_search
@@ -26,54 +26,9 @@ logger = logging.getLogger(__name__)
 
 AgentId = Literal["consultant_plan", "market", "strategy", "content", "visual", "consultant_review"]
 
-# ── 依赖声明表（方案 C · 依赖声明式路由）─────────────────────────────────────
-# 每个 Agent 声明自己正常工作所需的上游 handoff 来源。
-# Orchestrator 在执行前自动解析此表，将缺失的上游 Agent 插入队列前。
-# 新增/修改 Agent 时只需维护这张表，无需改动调度主流程。
-AGENT_DEPENDENCIES: dict[str, list[str]] = {
-    "market":   [],             # 无依赖，随时可独立运行
-    "strategy": ["market"],     # 需要市场研究提供竞争格局底数
-    "content":  ["strategy"],   # 需要战略 handoff 定内容方向
-    "visual":   ["strategy"],   # 需要战略 handoff 定视觉基调
-}
+AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 
 
-def _resolve_dependencies(
-    selected_agents: list[str],
-    project_context: dict,
-) -> list[str]:
-    """
-    依赖声明式路由解析器（方案 C）。
-
-    遍历 selected_agents，对每个 Agent 检查其声明的上游依赖：
-    - 若依赖的 handoff 已存在于 project_context（上轮已运行）→ 跳过，直接复用
-    - 若依赖的 handoff 不存在 且 尚未在队列中 → 自动将其插入队列前
-
-    NOTE: 仅插入一级直接依赖（market → strategy），
-    不做递归深度解析，避免隐式链路过长。
-    若未来需要多级依赖（如 market → strategy → content），
-    可改为拓扑排序实现，见 TODO 注释。
-    """
-    handoffs = project_context.get("handoffs", {})
-    resolved: list[str] = []
-
-    for agent in selected_agents:
-        deps = AGENT_DEPENDENCIES.get(agent, [])
-        for dep in deps:
-            # NOTE: 已有 handoff 说明上游在之前轮次跑过，直接复用不重跑
-            if dep not in handoffs and dep not in resolved:
-                logger.info(
-                    "[依赖解析] %s 依赖 %s，handoff 不存在 → 自动插入执行队列",
-                    agent, dep,
-                )
-                resolved.append(dep)
-        if agent not in resolved:
-            resolved.append(agent)
-
-    if resolved != selected_agents:
-        logger.info("[依赖解析] 路由重排：%s → %s", selected_agents, resolved)
-
-    return resolved
 
 
 def _sse(event: str, data: str) -> str:
@@ -251,9 +206,8 @@ class AgentOrchestrator:
             # 场景 A：战略追问作答（直达路线）
             logger.info("检测到战略追问交互，跳过前期顾问路由，直通 Strategy Agent 续写")
             selected_agents = ["strategy"]
-            # NOTE: 战略追问续写也做依赖解析——market 若在上轮已运行则直接复用，
-            # 若本轮因 Ogilvy 路由遗漏而缺失，则自动补充。
-            selected_agents = _resolve_dependencies(selected_agents, project_context)
+            # NOTE: 已取消强制依赖解析，直接由核心顾问 Ogilvy 路由。
+
             yield _sse("routing_decided", json.dumps(selected_agents))
             # 我们故意不下发 agent_start consultant_plan，这样前端就会把它隐藏，从而只显示 Trout
         elif _is_completed("consultant_plan"):
@@ -276,218 +230,238 @@ class AgentOrchestrator:
             logger.info("品牌顾问 — 开始初步问候与需求诊断...")
 
             # NOTE: 将高耗时的 JSON 路由决策放进无阻塞的后台 task
-            decision_task = asyncio.create_task(run_ogilvy_decision(effective_prompt, conversation_history))
-
-            # 等待真实的高耗时路由决策
             plan_accumulated = ""
             
-            # 问候语结束后，我们从容迎接真正的决策结果
-            decision = await decision_task
-            action = decision.get("action", "none")
-            args = decision.get("args", {})
+            while True:
+                decision_task = asyncio.create_task(run_ogilvy_decision(effective_prompt, conversation_history))
+                decision = await decision_task
+                action = decision.get("action", "none")
+                args = decision.get("args", {})
 
-            if action == "direct_response":
-                # NOTE: 轻量咋询直接回复模式：品牌顾问做主语直接流式作答，跳过全部专业 Agent
-                response_prompt = args.get("response_prompt", "以首席品牌顾问身份回答用户咋询。")
-                logger.info("品牌顾问 — Direct Response 模式，跳过专业 Agent 流水线")
-
-                async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-                    )
-
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                # NOTE: 直接回复完成后直接结束会话，无需 review 历程
-                yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
-                logger.info("品牌顾问 Direct Response 完成，输出: %d 字", len(plan_accumulated))
-                return
-
-            elif action == "lightweight_web_search":
-                # NOTE: 轻量级网页搜索
-                query = args.get("query", "品牌 最新资讯")
-                logger.info("品牌顾问 — 触发 Lightweight Web Search: %s", query)
-                yield _sse_raw(
-                    "agent_chunk",
-                    json.dumps({"id": "consultant_plan", "chunk": f"🔍 正在检索最新资讯：{query}...\n\n"}, ensure_ascii=False),
-                )
-                
-                try:
-                    search_result = await execute_tavily_search(query)
-                except Exception as e:
-                    logger.error("Tavily 搜索失败: %s", e)
-                    search_result = "抱歉，由于网络检索服务异常，未能获取最新资讯。"
-                
-                response_prompt = f"针对用户的问题，基于以下最新互联网检索结果进行解答：\\n\\n【检索结果】\\n{search_result}"
-                plan_accumulated += f"\n> 已为您检索最新资讯：**{query}**\n\n"
-                
-                # 先把新增的前缀推送显示
-                yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": f"\n> 已为您检索最新资讯：**{query}**\n\n"}, ensure_ascii=False))
-
-                async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-                    )
-
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
-                return
-
-            elif action == "export_final_deliverable":
-                doc_title = args.get("document_title", "Brand_Consultant_Report")
-                logger.info("品牌顾问 — 触发 Export 动作: %s", doc_title)
-                
-                export_msg = (
-                    f"✅ **{doc_title}**\\n\\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
-                    "物理文件生成目前处于开发阶段，您可以稍后在系统的【下载面板】查收结果。"
-                )
-                
-                async for chunk in run_planning_phase_stream(export_msg):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-                    )
-
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                yield _sse("routing_decided", json.dumps([]))
-                
-                # 推送导出完成伪信号
-                yield _sse("export_ready", json.dumps({"title": doc_title, "url": f"/api/exports/{doc_title}.pdf"}, ensure_ascii=False))
-                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
-                return
-
-            elif action == "revert_to_checkpoint":
-                target_round = args.get("target_round", 1)
-                explanation = args.get("explanation", f"好的，系统上下文即将为您回退到历史第 {target_round} 轮的干净状态...")
-                logger.info("品牌顾问 — 触发 Revert 动作: 到 Round %s", target_round)
-                
-                async for chunk in run_planning_phase_stream(explanation):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
-                    )
+                if action == "conduct_brand_diligence":
+                    search_query = args.get("search_query", "品牌全景研究")
+                    logger.info("品牌顾问 — 触发前置初调: %s", search_query)
+                    diligence_text = args.get("intent_statement", "🔎 收到，让我先快速扫一眼这个品牌的基本面...")
+                    if not diligence_text.endswith("..."):
+                        diligence_text += "..."
+                    diligence_text = f"\n> {diligence_text}\n\n"
                     
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                yield _sse("routing_decided", json.dumps([]))
-                
-                # 给前端发出清空历史的数据指令
-                yield _sse("session_revert", json.dumps({"target_round": target_round}, ensure_ascii=False))
-                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
-                return
+                    plan_accumulated += diligence_text
+                    yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": diligence_text}, ensure_ascii=False))
+                    try:
+                        search_result = await execute_tavily_search(search_query)
+                    except Exception as e:
+                        logger.error("初调搜索失败: %s", e)
+                        search_result = "搜索暂无确切开源结果或网络异常。"
+                    dossier = f"\n[核心参谋部·品牌背调档案]\n全网搜索关键词：{search_query}\n情报摘要：\n{search_result}\n\n"
+                    project_context["brand_dossier"] = dossier
+                    effective_prompt += f"\n\n{dossier}\n(以上为搜集的最新背景资料，请基于此立刻下发路由或流转)"
+                    plan_accumulated += "> 📊 基本盘已摸清。\n\n"
+                    yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": "> 📊 基本盘已摸清。\n\n"}, ensure_ascii=False))
+                    continue
 
-            elif action == "analyze_uploaded_asset":
-                asset_focus = args.get("asset_focus", "多模态素材")
-                logger.info("品牌顾问 — 触发 Analyze Uploaded Asset 动作: 重点 %s", asset_focus)
-                
-                explanation = f"⚠️ [系统截阻：目前前端暂未开放上传通道，但系统已正确识别您意图解析的侧重点 `{asset_focus}`。请尝试用纯文字再次描述。]"
-                async for chunk in run_planning_phase_stream(explanation):
-                    plan_accumulated += chunk
+                args = decision.get("args", {})
+
+                if action == "direct_response":
+                    # NOTE: 轻量咋询直接回复模式：品牌顾问做主语直接流式作答，跳过全部专业 Agent
+                    response_prompt = args.get("response_prompt", "以首席品牌顾问身份回答用户咋询。")
+                    logger.info("品牌顾问 — Direct Response 模式，跳过专业 Agent 流水线")
+
+                    async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    # NOTE: 直接回复完成后直接结束会话，无需 review 历程
+                    yield _sse("routing_decided", json.dumps([]))
+                    yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                    logger.info("品牌顾问 Direct Response 完成，输出: %d 字", len(plan_accumulated))
+                    return
+
+                elif action == "lightweight_web_search":
+                    # NOTE: 轻量级网页搜索
+                    query = args.get("query", "品牌 最新资讯")
+                    logger.info("品牌顾问 — 触发 Lightweight Web Search: %s", query)
                     yield _sse_raw(
                         "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        json.dumps({"id": "consultant_plan", "chunk": f"🔍 正在检索最新资讯：{query}...\n\n"}, ensure_ascii=False),
                     )
+                
+                    try:
+                        search_result = await execute_tavily_search(query)
+                    except Exception as e:
+                        logger.error("Tavily 搜索失败: %s", e)
+                        search_result = "抱歉，由于网络检索服务异常，未能获取最新资讯。"
+                
+                    response_prompt = f"针对用户的问题，基于以下最新互联网检索结果进行解答：\\n\\n【检索结果】\\n{search_result}"
+                    plan_accumulated += f"\n> 已为您检索最新资讯：**{query}**\n\n"
+                
+                    # 先把新增的前缀推送显示
+                    yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": f"\n> 已为您检索最新资讯：**{query}**\n\n"}, ensure_ascii=False))
+
+                    async for chunk in run_direct_response_stream(user_prompt, response_prompt, conversation_history):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    yield _sse("routing_decided", json.dumps([]))
+                    yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                    return
+
+                elif action == "export_final_deliverable":
+                    doc_title = args.get("document_title", "Brand_Consultant_Report")
+                    logger.info("品牌顾问 — 触发 Export 动作: %s", doc_title)
+                
+                    export_msg = (
+                        f"✅ **{doc_title}**\\n\\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
+                        "物理文件生成目前处于开发阶段，您可以稍后在系统的【下载面板】查收结果。"
+                    )
+                
+                    async for chunk in run_planning_phase_stream(export_msg):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    yield _sse("routing_decided", json.dumps([]))
+                
+                    # 推送导出完成伪信号
+                    yield _sse("export_ready", json.dumps({"title": doc_title, "url": f"/api/exports/{doc_title}.pdf"}, ensure_ascii=False))
+                    yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                    return
+
+                elif action == "revert_to_checkpoint":
+                    target_round = args.get("target_round", 1)
+                    explanation = args.get("explanation", f"好的，系统上下文即将为您回退到历史第 {target_round} 轮的干净状态...")
+                    logger.info("品牌顾问 — 触发 Revert 动作: 到 Round %s", target_round)
+                
+                    async for chunk in run_planning_phase_stream(explanation):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
                     
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                yield _sse("routing_decided", json.dumps([]))
-                yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
-                return
-
-            elif action == "clarify_requirement" or action == "request_human_approval":
-                # 走到此处则说明需要阻断当前流水线，向用户发问
-                question_text = args.get("question", "您好，为了更好地为您提供服务，请问您能提供更多具体的背景信息吗？")
-                logger.info("Ogilvy 中断流水线，发起 %s 动作，发问内容: %s", action, question_text)
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    yield _sse("routing_decided", json.dumps([]))
                 
-                async for chunk in run_planning_phase_stream(question_text):
-                    plan_accumulated += chunk
+                    # 给前端发出清空历史的数据指令
+                    yield _sse("session_revert", json.dumps({"target_round": target_round}, ensure_ascii=False))
+                    yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                    return
+
+                elif action == "analyze_uploaded_asset":
+                    asset_focus = args.get("asset_focus", "多模态素材")
+                    logger.info("品牌顾问 — 触发 Analyze Uploaded Asset 动作: 重点 %s", asset_focus)
+                
+                    explanation = f"⚠️ [系统截阻：目前前端暂未开放上传通道，但系统已正确识别您意图解析的侧重点 `{asset_focus}`。请尝试用纯文字再次描述。]"
+                    async for chunk in run_planning_phase_stream(explanation):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+                    
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    yield _sse("routing_decided", json.dumps([]))
+                    yield _sse("session_complete", json.dumps({"report": plan_accumulated}, ensure_ascii=False))
+                    return
+
+                elif action == "clarify_requirement" or action == "request_human_approval":
+                    # 走到此处则说明需要阻断当前流水线，向用户发问
+                    question_text = args.get("question", "您好，为了更好地为您提供服务，请问您能提供更多具体的背景信息吗？")
+                    logger.info("Ogilvy 中断流水线，发起 %s 动作，发问内容: %s", action, question_text)
+                
+                    async for chunk in run_planning_phase_stream(question_text):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+                
+                    yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+                    yield _sse("agent_complete", "consultant_plan")
+                    # NOTE: 中断执行，等待用户回答
+                    yield _sse("session_pause", json.dumps({"reason": action}))
+                    logger.info("工作流已挂起，等待用户输入...")
+                    return
+
+                elif action == "delegate_agent_patch":
+                    target_agent = args.get("agent", "strategy")
+                    task_instruction = args.get("task", "")
+                    logger.info(f"Ogilvy 隐形路由至 {target_agent} 执行局部热更新任务: {task_instruction}")
+                
+                    # 设置上下文中的 patch 指令，后续供该 agent 识别
+                    project_context["patch_instruction"] = task_instruction
+                    selected_agents = [target_agent]
+                
+                    # 隐形无感转接：Ogilvy 用极短话术交代，不占用过多视觉
+                    plan_accumulated = f"没问题，这就为您进行针对性的调整..."
                     yield _sse_raw(
                         "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
                     )
-                
-                yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
-                yield _sse("agent_complete", "consultant_plan")
-                # NOTE: 中断执行，等待用户回答
-                yield _sse("session_pause", json.dumps({"reason": action}))
-                logger.info("工作流已挂起，等待用户输入...")
-                return
+                    plan_handoff = plan_accumulated
 
-            elif action == "delegate_agent_patch":
-                target_agent = args.get("agent", "strategy")
-                task_instruction = args.get("task", "")
-                logger.info(f"Ogilvy 隐形路由至 {target_agent} 执行局部热更新任务: {task_instruction}")
-                
-                # 设置上下文中的 patch 指令，后续供该 agent 识别
-                project_context["patch_instruction"] = task_instruction
-                selected_agents = [target_agent]
-                
-                # 隐形无感转接：Ogilvy 用极短话术交代，不占用过多视觉
-                plan_accumulated = f"没问题，这就为您进行针对性的调整..."
-                yield _sse_raw(
-                    "agent_chunk",
-                    json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
-                )
-                plan_handoff = plan_accumulated
+                elif action == "generate_workflow_dag":
+                    # 得到了完整的 DAG 路由规划
+                    selected_agents = args.get("routing_sequence", [])
+                    logger.info("Ogilvy 输出 DAG: %s", selected_agents)
 
-            elif action == "generate_workflow_dag":
-                # 得到了完整的 DAG 路由规划
-                selected_agents = args.get("routing_sequence", [])
-                logger.info("Ogilvy 输出 DAG: %s", selected_agents)
-
-                # 将选中的 agent 转换成中文名称给大模型参考
-                agent_names = "、".join(
-                    {"market": "市场研究", "strategy": "品牌战略",
-                     "content": "内容策划", "visual": "视觉设计"}.get(a, a)
-                    for a in selected_agents if a in ["market", "strategy", "content", "visual"]
-                )
-
-                prompt_explain = (
-                    f"你决定启动以下智能体团队处理该需求：{agent_names}。\\n"
-                    f"要求：严格遵循【90/10 法则】与【非武断调性】。用高级客户总监的口吻，【不要说任何打招呼的话，直接开门见山】给出一句对该赛道或需求的犀利/幽默洞察作为破冰，然后极其从容自信地交代这几个智能体的分工。这段话就是你作为品牌顾问本次服务的最开场白。"
-                )
-
-                # 使用真实的流式生成，让大模型一边思考一边吐出解释
-                async for chunk in run_direct_response_stream(user_prompt, prompt_explain, conversation_history):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                    # 将选中的 agent 转换成中文名称给大模型参考
+                    agent_names = "、".join(
+                        {"market": "市场研究", "strategy": "品牌战略",
+                         "content": "内容策划", "visual": "视觉设计"}.get(a, a)
+                        for a in selected_agents if a in ["market", "strategy", "content", "visual"]
                     )
-                # NOTE: generate_workflow_dag 分支没有独立的 plan_text，
-                # 直接使用 plan_accumulated 作为 handoff 上下文
-                plan_handoff = plan_accumulated
-            else:
-                # Fallback 降级：走纯旧式的文本输出解析
-                content = decision.get("content", "")
-                logger.info("Ogilvy 回退至文本解析模式。")
 
-                async for chunk in run_planning_phase_stream(content):
-                    plan_accumulated += chunk
-                    yield _sse_raw(
-                        "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                    prompt_explain = (
+                        f"你决定启动以下智能体团队处理该需求：{agent_names}。\\n"
+                        f"要求：严格遵循【90/10 法则】与【非武断调性】。用高级客户总监的口吻，【不要说任何打招呼的话，直接开门见山】给出一句对该赛道或需求的犀利/幽默洞察作为破冰，然后极其从容自信地交代这几个智能体的分工。这段话就是你作为品牌顾问本次服务的最开场白。"
                     )
-                selected_agents_from_text, plan_text = _parse_routing_response(plan_accumulated)
-                # NOTE: fallback 解析出的路由优先级低于工具调用，仅在 selected_agents 未赋值时生效
-                if not selected_agents:  # type: ignore[name-defined]
-                    selected_agents = selected_agents_from_text
-                plan_handoff = plan_text
 
-            # ── 方案 C：依赖解析（所有新对话路径统一在此触发）────────────
-            # NOTE: 必须在 routing_decided 发出之前完成，这样前端渲染的卡片列表
-            # 就是依赖解析后的最终列表，用户看到的卡片顺序天然正确。
-            selected_agents = _resolve_dependencies(selected_agents, project_context)
+                    # 使用真实的流式生成，让大模型一边思考一边吐出解释
+                    async for chunk in run_direct_response_stream(user_prompt, prompt_explain, conversation_history):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+                    # NOTE: generate_workflow_dag 分支没有独立的 plan_text，
+                    # 直接使用 plan_accumulated 作为 handoff 上下文
+                    plan_handoff = plan_accumulated
+                else:
+                    # Fallback 降级：走纯旧式的文本输出解析
+                    content = decision.get("content", "")
+                    logger.info("Ogilvy 回退至文本解析模式。")
+
+                    async for chunk in run_planning_phase_stream(content):
+                        plan_accumulated += chunk
+                        yield _sse_raw(
+                            "agent_chunk",
+                            json.dumps({"id": "consultant_plan", "chunk": chunk}, ensure_ascii=False),
+                        )
+                    selected_agents_from_text, plan_text = _parse_routing_response(plan_accumulated)
+                    # NOTE: fallback 解析出的路由优先级低于工具调用，仅在 selected_agents 未赋值时生效
+                    if not selected_agents:  # type: ignore[name-defined]
+                        selected_agents = selected_agents_from_text
+                    plan_handoff = plan_text
+                break
+
+            # ── 路由执行（完全遵循 Ogilvy 的决定，不再强制爬树）────────────
 
             yield _sse("routing_decided", json.dumps(selected_agents))
             yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
@@ -506,8 +480,12 @@ class AgentOrchestrator:
         # 确保所有下游 Agent 能看到前几轮原始需求（特别是本轮输入仅有“继续”时）
         history_text = _build_history_context(conversation_history or [])
         enriched_user_prompt = user_prompt
-        if history_text:
-            enriched_user_prompt = f"【历史多轮对话上下文】\n{history_text}\n\n====== 本轮用户输入 ======\n{user_prompt}"
+        brand_dossier = project_context.get("brand_dossier", "")
+        if history_text or brand_dossier:
+            enriched_user_prompt = f"【历史多轮对话上下文】\n{history_text}\n\n"
+            if brand_dossier:
+                enriched_user_prompt += f"{brand_dossier}\n\n"
+            enriched_user_prompt += f"====== 本轮用户输入 ======\n{user_prompt}"
 
         # ─── 动态执行选定的专业 Agent（结构化交接）────────────
         for agent_key in selected_agents:
@@ -572,30 +550,29 @@ class AgentOrchestrator:
                         "agent_research_progress",
                         json.dumps({"id": agent_key, "progress": progress_data}, ensure_ascii=False),
                     )
-                # NOTE: Trout 自适应反问信号 — 发出追问 SSE + 挂起会话
-                elif chunk.startswith(TROUT_CLARIFY_MARKER) and agent_key == "strategy":
-                    questions_text = chunk[len(TROUT_CLARIFY_MARKER):]
-                    logger.info("Trout 发起战略追问，会话挂起...")
+                # NOTE: 通用自适应反问信号 — 发出追问 SSE + 挂起会话
+                elif chunk.startswith(AGENT_CLARIFY_MARKER):
+                    questions_text = chunk[len(AGENT_CLARIFY_MARKER):]
+                    logger.info(f"{agent_key} 发起追问，会话挂起...")
                     # 以打字机效果推送追问文本
                     async for q_chunk in _stream_text_as_chunks(questions_text):
                         yield _sse_raw(
                             "agent_chunk",
-                            json.dumps({"id": "strategy", "chunk": q_chunk}, ensure_ascii=False),
+                            json.dumps({"id": agent_key, "chunk": q_chunk}, ensure_ascii=False),
                         )
                     # NOTE: 必须在 session_pause 之前发 agent_output，让 sessions.py 的
-                    # 持久化逻辑把追问内容写入 DB。否则广播器关闭后追问文本丢失，
-                    # 用户刷新后 strategy 卡片内容为空。
+                    # 持久化逻辑把追问内容写入 DB。否则广播器关闭后追问文本丢失。
                     yield _sse(
                         "agent_output",
-                        json.dumps({"id": "strategy", "content": questions_text}, ensure_ascii=False),
+                        json.dumps({"id": agent_key, "content": questions_text}, ensure_ascii=False),
                     )
                     yield _sse(
-                        "strategy_clarify",
-                        json.dumps({"id": "strategy", "questions": questions_text}, ensure_ascii=False),
+                        "agent_clarify",
+                        json.dumps({"id": agent_key, "questions": questions_text}, ensure_ascii=False),
                     )
                     yield _sse("agent_complete", agent_key)
-                    yield _sse("session_pause", json.dumps({"reason": "strategy_clarification"}))
-                    logger.info("Trout 战略追问已推送，等待用户回答...")
+                    yield _sse("session_pause", json.dumps({"reason": f"{agent_key}_clarification"}))
+                    logger.info(f"{agent_key} 追问已推送，等待用户回答...")
                     return
                 else:
                     accumulated += chunk

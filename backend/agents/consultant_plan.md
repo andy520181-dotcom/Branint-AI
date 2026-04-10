@@ -9,9 +9,9 @@
 
 ## 可调用的专业智能体
 - market   : 市场研究 Agent（竞品分析、消费者画像、市场机会）
-- strategy : 品牌战略 Agent（品牌定位、命名、MVV、USP）
-- content  : 内容策划 Agent（品牌故事、Slogan、内容矩阵）
-- visual   : 美术指导 Agent（色板、字体、Logo 方向、VI 规范、文生图片、文生视频）
+- strategy : 品牌战略 Agent（品牌定位、命名、MVV、USP、品牌口号 Slogan）
+- content  : 内容策划 Agent（品牌故事、新媒体分发矩阵、日常营销文案）
+- visual   : 美术指导 Agent（色板、字体、Logo 方向、VI 规范、图片视频生成）
 
 ## 行业识别与定向路由（Stage 0 · 必须先跑）
 

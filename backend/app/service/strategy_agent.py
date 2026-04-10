@@ -35,81 +35,10 @@ MAX_CLARIFY_ROUNDS = 3           # 自适应反问最多轮数
 SYNTHESIS_TRIGGER = "synthesize_strategy_report"
 FRAMEWORK_SELECTOR = "select_applicable_frameworks"
 
-# NOTE: 与 agent_orchestrator.py 约定的信号前缀
 # orchestrator 捕获此前缀后，emit strategy_clarify SSE + session_pause SSE
-TROUT_CLARIFY_MARKER = "__TROUT_CLARIFY__:"
-
-# 5个关键信息维度（缺少任何一个都需要追问）
-_CLARIFY_DIMENSIONS = [
-    ("competitive_landscape", "竞争格局认知（主要竞品/差异认知）"),
-    ("target_audience",       "目标人群画像（谁是核心用户/购买频次）"),
-    ("brand_maturity",        "品牌成熟阶段（全新/已有基础/多品牌整合）"),
-    ("strategic_focus",       "当前战略重心（开市场/抢用户/提溢价/调性升级）"),
-    ("market_scope",          "市场地理范围（中国/出海/区域性）"),
-]
+AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 
 
-# ══════════════════════════════════════════════════════════════
-# Phase -1：自适应反问机制
-# ══════════════════════════════════════════════════════════════
-
-async def _assess_and_clarify(
-    user_prompt: str,
-    handoff_context: str,
-    existing_answers: str,
-    clarify_round: int,
-) -> str | None:
-    """
-    评估当前已有信息是否覆盖5个关键维度。
-    返回：
-      - str：需要追问时，返回追问文本（将被 strategy_agent 加上 MARKER yield 出去）
-      - None：信息充足，无需追问，直接放行
-    """
-    # 构建评估上下文
-    info_context = f"用户品牌需求：{user_prompt}"
-    if handoff_context:
-        info_context += f"\n\n市场研究情报（Wacksman）：{handoff_context}"
-    if existing_answers:
-        info_context += f"\n\n用户补充回答：{existing_answers}"
-
-    dimensions_desc = "\n".join(
-        f"  [{key}] {label}" for key, label in _CLARIFY_DIMENSIONS
-    )
-
-    assessment_prompt = (
-        f"你是一位品牌战略总架构师（Trout），正在亲自评估以下信息是否足够完成深度的品牌战略分析。\n\n"
-        f"当前掌握的信息：\n{info_context}\n\n"
-        f"需要覆盖的5个战略关键维度：\n{dimensions_desc}\n\n"
-        f"请评估哪些维度信息明显缺失或模糊（无法支撑定位分析）。\n\n"
-        f"如果所有维度信息充足，或者已进行了 {clarify_round} 轮追问（上限），"
-        f"请回复：SUFFICIENT\n\n"
-        f"如果有明显缺失的维度，请回复：QUESTIONS\n[一段连贯的话术]。\n\n"
-        f"【追问话术要求——极其核心】：\n"
-        f"1. 承接过渡：绝对不能一上来直接生硬提问！开头第一段必须用 1-2 句话点评、总结你刚收到的信息（尤其是 Wacksman 整理的市场研究情报及其核心挑战）。让用户感受到你已经充分理解了前面的市场调研数据。\n"
-        f"2. 自然引出：随后使用类似“不过，要为您制定一套更扎实的品牌战略，仅仅看宏观市场还不够，我们还需要针对几个关键内部背景进行探讨……”的口吻引出缺失项。\n"
-        f"3. 精准追问：只把重点放在明显缺失的那 1-3 个维度进行提问，语言要像资深商业顾问般亲切专业，不要像机器做问卷般死板。"
-    )
-
-    messages = [
-        {"role": "system", "content": "你是品牌战略顾问助理，负责评估信息完整度并生成精准追问。"},
-        {"role": "user", "content": assessment_prompt},
-    ]
-
-    response = await call_llm(messages)
-    response = response.strip()
-
-    if response.startswith("SUFFICIENT") or clarify_round >= MAX_CLARIFY_ROUNDS:
-        logger.info("Trout 反问评估：信息充足或达到追问上限，放行继续")
-        return None
-
-    if response.startswith("QUESTIONS"):
-        questions_text = response[len("QUESTIONS"):].strip().lstrip("\n")
-        logger.info("Trout 反问 Round %d：发现信息缺口，生成追问", clarify_round + 1)
-        return questions_text
-
-    # 兜底：无法识别格式时放行
-    logger.warning("Trout 反问评估：无法识别 LLM 响应格式，放行继续")
-    return None
 
 
 def _make_progress(step: str, label: str = "", detail: str = "") -> str:
@@ -141,21 +70,9 @@ async def run_strategy_agent_stream(
         clarify_round:           当前是第几轮反问（由 orchestrator 传入）
 
     Yields:
-        str: 流式输出的文本 chunk，或以 TROUT_CLARIFY_MARKER 开头的追问信号
+        str: 流式输出的文本 chunk，或以 AGENT_CLARIFY_MARKER 开头的追问信号
     """
-    # ─── Phase -1：自适应反问 ────────────────────────────────
-    # NOTE: 当 skip_clarify=True (如用户要求重新生成)，或者已有 clarification_answers 时，跳过此阶段
-    if not skip_clarify and clarification_answers is None:
-        questions = await _assess_and_clarify(
-            user_prompt=user_prompt,
-            handoff_context=handoff_context,
-            existing_answers="",
-            clarify_round=clarify_round,
-        )
-        if questions:
-            # NOTE: 发出追问信号，orchestrator 捕获后 emit strategy_clarify SSE + session_pause
-            yield f"{TROUT_CLARIFY_MARKER}{questions}"
-            return
+
 
     # ─── Chat/Patch Mode ────────────────────────────────────
     if patch_instruction:
