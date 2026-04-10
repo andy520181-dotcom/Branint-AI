@@ -146,6 +146,7 @@ export interface SessionListItem {
 
 /** 获取当前用户的会话列表 */
 export async function fetchSessions(userId: string): Promise<SessionListItem[]> {
+  const params = new URLSearchParams({ user_id: userId });
   const res = await fetch(`${API_BASE}/api/sessions?${params.toString()}`, {
     cache: 'no-store',
   });
