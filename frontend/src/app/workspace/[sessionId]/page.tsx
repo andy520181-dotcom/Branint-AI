@@ -386,7 +386,12 @@ export default function WorkspacePage() {
         if (treatAsCompleted) {
           // 已完成（包含崩溃卡住的 running）：直接还原展示，绝不触发 SSE
           if (snap.status === 'error' && !hasAnyOutput) {
-            useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
+            const hasHistory = (snap.conversation_history || []).length > 0;
+            if (!hasHistory) {
+              useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
+            } else {
+              useWorkspaceStore.setState({ error: 'workspace.error.streamInterrupted', isStreaming: false });
+            }
           }
           setRestored(true);
         } else if (liveSession) {
