@@ -29,6 +29,22 @@ interface BrandHouseRenderProps {
 export function BrandHouseRender({ data }: BrandHouseRenderProps) {
   if (!data) return null;
 
+  // 兼容逻辑：如果数据中没有顶层的 slogan，但 items 里面有“品牌口号”，则把他提出来
+  let extractedSlogan = data.slogan;
+  if (!extractedSlogan && data.modules) {
+    for (const mod of data.modules) {
+      for (const row of mod.rows) {
+        if (!row.items) continue;
+        const sloganItem = row.items.find(item => item.title === '品牌口号');
+        if (sloganItem) {
+          extractedSlogan = sloganItem.desc;
+          break; // 提取后即跳出
+        }
+      }
+      if (extractedSlogan) break;
+    }
+  }
+
   return (
     <div className={styles.container}>
       {/* 纯屋顶层 - 几何顶帽 */}
@@ -75,10 +91,10 @@ export function BrandHouseRender({ data }: BrandHouseRenderProps) {
               )}
 
               {/* 品牌口号 */}
-              {data.slogan && (
+              {extractedSlogan && (
                 <div className={styles.positioningRow}>
                   <div className={styles.positioningLabel}>品牌口号</div>
-                  <div className={styles.positioningValue}>{data.slogan}</div>
+                  <div className={styles.positioningValue}>{extractedSlogan}</div>
                 </div>
               )}
             </div>
@@ -95,27 +111,37 @@ export function BrandHouseRender({ data }: BrandHouseRenderProps) {
       {/* 主体模块容器 */}
       {data.modules && data.modules.length > 0 && (
         <div className={styles.modulesContainer}>
-          {data.modules.map((mod, modIdx) => (
-            <div key={modIdx} className={styles.module}>
-              {/* 行群优先渲染，放在左边 */}
-              <div className={styles.rowsContainer}>
-                {mod.rows.map((row, rowIdx) => (
-                  <div key={rowIdx} className={styles.row}>
-                    {/* 左侧强调名称列 */}
-                    <div className={styles.rowName}>{row.name}</div>
-                    
-                    {/* 右侧具体内容格（网格） */}
-                    <div className={styles.itemsGrid}>
-                      {row.items.map((item, itemIdx) => (
-                        <div key={itemIdx} className={styles.itemCell}>
-                          <div className={styles.itemTitle}>{item.title}</div>
-                          <div className={styles.itemDesc}>{item.desc}</div>
+          {data.modules.map((mod, modIdx) => {
+            // 首先过滤出行
+            const validRows = mod.rows.filter(row => row.name !== '商业模式');
+            if (validRows.length === 0) return null;
+
+            return (
+              <div key={modIdx} className={styles.module}>
+                {/* 行群优先渲染，放在左边 */}
+                <div className={styles.rowsContainer}>
+                  {validRows.map((row, rowIdx) => {
+                    const validItems = row.items.filter(item => item.title !== '品牌口号');
+                    if (validItems.length === 0) return null;
+
+                    return (
+                      <div key={rowIdx} className={styles.row}>
+                        {/* 左侧强调名称列 */}
+                        <div className={styles.rowName}>{row.name}</div>
+                        
+                        {/* 右侧具体内容格（网格） */}
+                        <div className={styles.itemsGrid}>
+                          {validItems.map((item, itemIdx) => (
+                            <div key={itemIdx} className={styles.itemCell}>
+                              <div className={styles.itemTitle}>{item.title}</div>
+                              <div className={styles.itemDesc}>{item.desc}</div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
               {/* 左侧变右侧：垂直向文字标签与边界括号 */}
               <div className={styles.categoryCol}>
