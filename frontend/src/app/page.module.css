@@ -139,10 +139,9 @@
   line-height: 1.2;
 }
 .colRole {
-  font-size: 9px; /* 字号调到极小 */
-  transform: scale(0.9); /* 额外缩放因为很多浏览器默认最小字号是 12px */
+  font-size: 9px;
+  transform: scale(0.9);
   color: var(--color-gold);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
 }
