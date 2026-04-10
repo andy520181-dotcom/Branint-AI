@@ -52,7 +52,12 @@ export function AgentLayoutWrapper({
   };
 
   const handleShare = () => {
-    alert('【敬请期待】正在接入协同服务！未来点击此按钮将生成并复制专属短链接（如 branin.ai/s/...），方便您一键发送给团队共享这份战略！🔗');
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('🔗 分享链接已生成并复制到剪贴板！\n\n您可以直接将此链接发送给团队成员，他们打开后即可共享查看这份品牌战略（目前系统具备持久化存储，凭链接即可访问历史数据）。');
+    }).catch(() => {
+      alert('复制失败，请直接复制浏览器地址栏的链接进行分享。');
+    });
   };
 
   const lineClass = [
