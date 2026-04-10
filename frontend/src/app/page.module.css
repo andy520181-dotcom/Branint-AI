@@ -4,10 +4,11 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  /* NOTE: 不用 align-items:stretch（默认），hero 自然高度，不撑满整屏 */
   align-items: stretch;
   background-color: #f5f4ed;
-  overflow-x: hidden;
+  /* NOTE: clip 比 hidden 更强，不会创建新的 BFC，弹性滚动也无法触发溢出 */
+  overflow-x: clip;
+  max-width: 100vw;
 }
 
 .navUser { display: flex; align-items: center; gap: 12px; }
@@ -18,10 +19,12 @@
 /* NOTE: Agent 展示区与 hero 同色，不产生色块分界 */
 .agentsSection {
   width: 100%;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 24px 48px;
+  box-sizing: border-box;
 }
 
 .agentsSectionTitle {
@@ -158,16 +161,23 @@
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .agentsRow {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .agentsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
   .agentsSection { padding: 0 16px 48px; }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 380px) {
   .agentsRow {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: 1fr;
+    max-width: 200px;
   }
 }
