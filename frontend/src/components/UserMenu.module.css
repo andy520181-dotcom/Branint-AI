@@ -96,10 +96,26 @@
   width: 14px;
   height: 14px;
 }
-.emailText {
-  font-size: var(--font-size-caption);
+.userInfoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.usernameText {
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emailText {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

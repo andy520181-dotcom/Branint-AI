@@ -7,6 +7,8 @@ import { useLocale } from '@/hooks/useLocale';
 import SettingsModal from '@/components/settings/SettingsModal';
 import AvatarPlaceholderIcon from '@/components/AvatarPlaceholderIcon';
 import { useUserAvatar } from '@/hooks/useUserAvatar';
+import { maskEmail } from '@/lib/maskContact';
+import { getStoredDisplayName } from '@/lib/userProfile';
 import styles from './UserMenu.module.css';
 
 interface UserMenuProps {
@@ -19,6 +21,7 @@ export default function UserMenu({ userId, email }: UserMenuProps) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   // 点击外部关闭下拉
@@ -33,6 +36,15 @@ export default function UserMenu({ userId, email }: UserMenuProps) {
   }, [open]);
 
   const avatarUrl = useUserAvatar(userId);
+
+  useEffect(() => {
+    setDisplayName(getStoredDisplayName(userId));
+    const handleProfileUpdate = () => {
+      setDisplayName(getStoredDisplayName(userId));
+    };
+    window.addEventListener('woloong-profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('woloong-profile-updated', handleProfileUpdate);
+  }, [userId]);
 
   return (
     <div className={styles.wrap} ref={ref}>
@@ -63,7 +75,10 @@ export default function UserMenu({ userId, email }: UserMenuProps) {
                 </span>
               )}
             </span>
-            <span className={styles.emailText}>{email}</span>
+            <div className={styles.userInfoCol}>
+              <span className={styles.usernameText}>{displayName || t('settings.account.notSet')}</span>
+              <span className={styles.emailText}>{maskEmail(email)}</span>
+            </div>
           </div>
 
           <div className={styles.divider} />

@@ -53,5 +53,6 @@ export function setStoredDisplayName(userId: string, value: string): void {
     const v = value.trim();
     if (v === '') localStorage.removeItem(key(userId));
     else localStorage.setItem(key(userId), v);
+    dispatchProfileUpdated();
   } catch { /* ignore quota */ }
 }
