@@ -82,7 +82,7 @@
   gap: 1px;
   padding: 4px 10px;
   border: 1px solid #e0ded6;
-  border-radius: 8px;
+  border-radius: 9999px;
   background: transparent;
   cursor: pointer;
   transition: background 0.18s, border-color 0.18s, transform 0.15s;

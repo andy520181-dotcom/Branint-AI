@@ -94,23 +94,24 @@ export function SharedHeroInput({
 
   /**
    * 胶囊点击处理：切换 @中文名提及
-   * 点击 → 在输入框追加 @中文名（如 @品牌顾问）
+   * 点击 → 在输入框追加 @中文名 Agent（如 @品牌顾问 Agent）
    * 再次点击 → 移除该 @提及
    * 按点击顺序排列：第一个点击的排第一，第二个排第二
    */
   const handleCapsuleClick = (agentId: string) => {
     const label = CAPSULE_LABELS[agentId];
     if (!label) return;
-    const mention = `@${label.zh}`;
+    const mention = `@${label.zh} Agent`;
 
     // NOTE: 将输入内容拆为 「@提及前缀」 和 「用户正文」
-    const mentionRegex = /@[\u4e00-\u9fff]+\s*/g;
+    // 支持解析带 Agent 或不带 Agent 的旧格式
+    const mentionRegex = /@[\u4e00-\u9fff]+(?:\s*Agent)?\s*/gi;
     const existingMentions: string[] = [];
     let match: RegExpExecArray | null;
     while ((match = mentionRegex.exec(value)) !== null) {
       existingMentions.push(match[0].trim());
     }
-    const userText = value.replace(/@[\u4e00-\u9fff]+\s*/g, '').trim();
+    const userText = value.replace(/@[\u4e00-\u9fff]+(?:\s*Agent)?\s*/gi, '').trim();
 
     const isActive = existingMentions.includes(mention);
 
@@ -131,12 +132,12 @@ export function SharedHeroInput({
   };
 
   /**
-   * 判断某个胶囊是否处于选中状态（输入框中包含其 @中文名）
+   * 判断某个胶囊是否处于选中状态（输入框中包含其 @中文名 Agent）
    */
   const isCapsuleActive = (agentId: string): boolean => {
     const label = CAPSULE_LABELS[agentId];
     if (!label) return false;
-    return value.includes(`@${label.zh}`);
+    return value.includes(`@${label.zh} Agent`);
   };
 
   return (
