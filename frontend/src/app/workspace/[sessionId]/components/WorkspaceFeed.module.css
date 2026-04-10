@@ -208,10 +208,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 6px;
   color: var(--text-secondary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
@@ -219,17 +219,13 @@
 .actionBtn:hover {
   background: var(--color-surface-2);
   color: var(--text-primary);
-  border-color: var(--text-secondary);
 }
 
 .primaryActionBtn {
   color: var(--agent-color, var(--color-link));
-  border-color: color-mix(in srgb, var(--agent-color, var(--color-link)) 30%, transparent);
-  background: color-mix(in srgb, var(--agent-color, var(--color-link)) 5%, transparent);
 }
 .primaryActionBtn:hover {
-  background: color-mix(in srgb, var(--agent-color, var(--color-link)) 10%, transparent);
-  border-color: var(--agent-color, var(--color-link));
+  background: color-mix(in srgb, var(--agent-color, var(--color-link)) 8%, transparent);
 }
 
 /* 首轮品牌顾问（consultant_plan）：无描边、无左侧尖角，与其它 Agent 内容区视觉一致 */

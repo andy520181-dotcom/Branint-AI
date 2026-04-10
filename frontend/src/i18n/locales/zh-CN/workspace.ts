@@ -32,4 +32,23 @@ export const workspace: Record<string, string> = {
   'workspace.error.sessionExpired': '此会话记录已过期或不存在，请返回重新开始分析',
   'workspace.error.connectionLost': '与服务器的连接中断，请刷新页面重试',
   'workspace.error.streamInterrupted': '连接中断，请刷新重试',
+
+  // ── 品牌屋组件标签 ──
+  'brandHouse.roof.title': '品牌战略',
+  'brandHouse.field.vision': '愿景',
+  'brandHouse.field.mission': '使命',
+  'brandHouse.field.values': '价值观',
+  'brandHouse.field.positioning': '品牌定位',
+  'brandHouse.field.slogan': '品牌口号',
+  'brandHouse.layer.strategy': '战略层',
+  'brandHouse.slogan.extractKey': '品牌口号',
+
+  // ── 智能体操作按钮 Toast ──
+  'agent.action.share.copied': '🔗 链接已复制',
+  'agent.action.share.failed': '复制失败，请手动复制地址栏链接',
+  'agent.action.download.wip': '品牌套件打包功能即将上线 🚀',
+
+  // ── 市场研究/战略推演进度标题 ──
+  'market.engine.title': 'Wacksman 研究引擎运行中',
+  'strategy.engine.title': 'Trout 战略推演引擎运行中',
 };

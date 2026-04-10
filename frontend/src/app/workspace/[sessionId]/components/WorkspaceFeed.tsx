@@ -92,6 +92,7 @@ export function WorkspaceFeed({
                       agentId={cfg.id as AgentId}
                       output={output}
                       status={state?.status ?? 'waiting'}
+                      t={t}
                     />
                   </AgentLayoutWrapper>
                 );
@@ -125,6 +126,7 @@ export function WorkspaceFeed({
               agentId={isClarifying ? 'strategy' : 'consultant_plan'}
               output=""
               status="running"
+              t={t}
             />
           </AgentLayoutWrapper>
         )}
@@ -166,6 +168,7 @@ export function WorkspaceFeed({
                 status={status}
                 agentImages={agentImages}
                 agentVideos={agentVideos}
+                t={t}
               />
             </AgentLayoutWrapper>
           );

@@ -62,17 +62,17 @@ export function AgentLayoutWrapper({
 
   const handleDownload = () => {
     // TODO: 连接品牌套件一键导出功能（PPT/综合报告），后端接口就绪后替换此占位文案
-    onToast?.('品牌套件打包功能即将上线 🚀');
+    onToast?.(t('agent.action.download.wip'));
   };
 
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url)
       .then(() => {
-        onToast?.('🔗 链接已复制');
+        onToast?.(t('agent.action.share.copied'));
       })
       .catch(() => {
-        onToast?.('复制失败，请手动复制地址栏链接');
+        onToast?.(t('agent.action.share.failed'));
       });
   };
 

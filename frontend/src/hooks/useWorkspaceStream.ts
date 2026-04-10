@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { AgentId } from '@/types';
 import { useWorkspaceStore, ResearchProgressStep } from '@/store/workspaceStore';
 import { API_BASE as API_URL } from '@/lib/api';
+import { MIDDLE_AGENT_IDS } from '@/app/workspace/[sessionId]/workspaceUtils';
 
 /**
  * SSE 流连接 Hook
@@ -163,10 +164,10 @@ export function useWorkspaceStream(sessionId: string | null) {
       es.addEventListener('routing_decided', (e) => {
         try {
           const keys = JSON.parse(e.data) as string[];
-          // 首尾各加顾问节点，中间是决策出的专业 Agent
+          // NOTE: 使用统一常量 MIDDLE_AGENT_IDS，与 workspaceUtils 中的路由构建逻辑保持同步
           const fullRoute: AgentId[] = [
             'consultant_plan',
-            ...keys.filter((k): k is AgentId => ['market','strategy','content','visual'].includes(k)),
+            ...keys.filter((k): k is AgentId => MIDDLE_AGENT_IDS.has(k as AgentId)),
             'consultant_review',
           ];
           store().setSelectedAgents(fullRoute);

@@ -88,6 +88,7 @@ export const sharedMarkdownComponents: Components = {
     if (match && match[1] === 'jsonbrandhouse') {
       try {
         const data = JSON.parse(codeStr);
+        // NOTE: t 由外部通过 makeMarkdownComponents(t) 传入，此处是模块级默认版本（无 t）
         return <BrandHouseRender data={data} />;
       } catch (e) {
         console.error('Brand House JSON parse error:', e);
@@ -123,6 +124,47 @@ export const sharedMarkdownComponents: Components = {
 
 export interface MarkdownRendererProps {
   output: string;
+  /** 可选：传入 t 函数后品牌屋等子组件会使用 i18n 文案；缺省则回退到中文默认值 */
+  t?: (key: string) => string;
+}
+
+/**
+ * 创建携带 t 函数的 Markdown 组件集合。
+ * 仅当需要 i18n 支持时调用（如带 t 的 MarkdownRenderer）；
+ * MarketRenderer 等继续使用模块级 sharedMarkdownComponents 以保持向后兼容。
+ */
+export function makeMarkdownComponents(t: (key: string) => string): Components {
+  return {
+    ...sharedMarkdownComponents,
+    code(props: any) {
+      const { children, className, node, ...rest } = props;
+      const match = /language-(\w+)/.exec(className || '');
+
+      let codeStr = '';
+      if (typeof children === 'string') codeStr = children;
+      else if (Array.isArray(children)) codeStr = children.join('');
+      else if (children != null) codeStr = String(children);
+
+      if (match?.[1] === 'echarts') {
+        return <EChartsRenderer optionsJsonStr={codeStr.replace(/\n$/, '')} />;
+      }
+
+      if (match?.[1] === 'jsonbrandhouse') {
+        try {
+          const data = JSON.parse(codeStr);
+          return <BrandHouseRender data={data} t={t} />;
+        } catch (e) {
+          console.error('Brand House JSON parse error:', e);
+        }
+      }
+
+      return (
+        <code {...rest} className={className}>
+          {children}
+        </code>
+      );
+    },
+  };
 }
 
 /**
@@ -140,7 +182,10 @@ export function stripHandoff(text: string): string {
 /**
  * 纯 Markdown 渲染器，作为所有 Agent 的通用回退兜底组件
  */
-export function MarkdownRenderer({ output }: MarkdownRendererProps) {
+export function MarkdownRenderer({ output, t }: MarkdownRendererProps) {
+  // NOTE: 仅当 t 传入时才创建带 i18n 的组件集合，否则复用模块级常量避免重复对象创建
+  const components = t ? makeMarkdownComponents(t) : sharedMarkdownComponents;
+
   if (!output) {
     return (
       <div className={`${styles.cardOutput} markdown-body`}>
@@ -151,7 +196,7 @@ export function MarkdownRenderer({ output }: MarkdownRendererProps) {
 
   return (
     <div className={`${styles.cardOutput} markdown-body`}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={sharedMarkdownComponents}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {stripHandoff(output)}
       </ReactMarkdown>
     </div>

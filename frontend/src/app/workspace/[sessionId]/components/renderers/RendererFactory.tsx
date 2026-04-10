@@ -16,6 +16,8 @@ export interface RendererFactoryProps {
   status: string;
   agentImages?: AgentImage[];
   agentVideos?: AgentVideo[];
+  /** 传入 t 函数，供 MarkdownRenderer 内的品牌屋等子组件使用 i18n */
+  t?: (key: string) => string;
 }
 
 /**
@@ -29,6 +31,7 @@ export function RendererFactory({
   status,
   agentImages = [],
   agentVideos = [],
+  t,
 }: RendererFactoryProps) {
   const isRunning = status === 'running';
   // NOTE: 读取当前 agent 的实时进度
@@ -83,5 +86,5 @@ export function RendererFactory({
   }
 
   // 3. 默认兜底：常规的 Markdown
-  return <MarkdownRenderer output={displayOutput} />;
+  return <MarkdownRenderer output={displayOutput} t={t} />;
 }

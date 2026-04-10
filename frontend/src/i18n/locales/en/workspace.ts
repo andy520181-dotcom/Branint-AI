@@ -31,4 +31,23 @@ export const workspace: Record<string, string> = {
   'workspace.error.sessionExpired': 'This session is missing or expired. Go back and start again.',
   'workspace.error.connectionLost': 'Connection to the server was lost. Please refresh the page.',
   'workspace.error.streamInterrupted': 'Connection interrupted. Please refresh and try again.',
+
+  // ── Brand House component labels ──
+  'brandHouse.roof.title': 'Brand Strategy',
+  'brandHouse.field.vision': 'Vision',
+  'brandHouse.field.mission': 'Mission',
+  'brandHouse.field.values': 'Values',
+  'brandHouse.field.positioning': 'Brand Positioning',
+  'brandHouse.field.slogan': 'Brand Slogan',
+  'brandHouse.layer.strategy': 'Strategy',
+  'brandHouse.slogan.extractKey': 'Brand Slogan',
+
+  // ── Agent action button toasts ──
+  'agent.action.share.copied': '🔗 Link copied',
+  'agent.action.share.failed': 'Copy failed – please copy the URL manually',
+  'agent.action.download.wip': 'Brand kit export coming soon 🚀',
+
+  // ── Market / strategy progress header ──
+  'market.engine.title': 'Wacksman Research Engine running',
+  'strategy.engine.title': 'Trout Strategy Engine running',
 };

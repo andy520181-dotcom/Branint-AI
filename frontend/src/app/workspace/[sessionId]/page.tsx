@@ -54,13 +54,6 @@ export default function WorkspacePage() {
     setTimeout(() => setFeedToast(''), 2200);
   }, []);
 
-  const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
-  // NOTE: sessionId 来自 URL params，当侧边栏导航到不同会话时会变化，
-  // 必须同步更新 activeSessionId，否则 SSE 仍指向旧会话。
-  useEffect(() => {
-    setActiveSessionId(sessionId);
-  }, [sessionId]);
-
   const currentRoundRef = useRef<HTMLDivElement>(null);
   const avatarDataUrl = useUserAvatar(user?.id);
 
@@ -100,7 +93,7 @@ export default function WorkspacePage() {
   }, [bottomPrompt]);
 
   // ── SSE 流连接 ─────────────────────────────────────────────────────
-  const { cancel } = useWorkspaceStream(restored === false ? activeSessionId : null);
+  const { cancel } = useWorkspaceStream(restored === false ? sessionId : null);
 
   // ── 统一提交入口 ────────────────────────────────────────────────────
 
@@ -145,7 +138,7 @@ export default function WorkspacePage() {
         if (userPrompt) {
           const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
           const snapshot: RoundSnapshot = {
-            sessionId: activeSessionId,
+    sessionId: sessionId,
             userPrompt,
             agents: { ...currentAgents },
             selectedAgents: currentSelectedAgents,
@@ -161,9 +154,9 @@ export default function WorkspacePage() {
         setStrategyClarify(null);
         setBottomPrompt('');
 
-        // NOTE: 核心修复 — 追问回复不创建新会话，复用同一个 activeSessionId
+        // NOTE: 追问回复不创建新会话，复用同一个 sessionId
         // URL 保持不变，侧边栏历史记录依旧是同一条
-        initSession(activeSessionId, inputText);
+        initSession(sessionId, inputText);
         setRestored(null); // 挂起 SSE，等待后端续写
 
         setTimeout(() => {
@@ -173,7 +166,7 @@ export default function WorkspacePage() {
         // 后台调用 PATCH /continue，不创建新历史记录
         try {
           await continueSession(
-            activeSessionId,
+            sessionId,
             inputText,
             history,
             [],
@@ -204,7 +197,7 @@ export default function WorkspacePage() {
       // 将当前轮次快照存入 previousRounds 用于 UI 展示
       if (userPrompt) {
         const snapshot: RoundSnapshot = {
-          sessionId: activeSessionId,
+          sessionId: sessionId,
           userPrompt,
           agents: { ...currentAgents },
           selectedAgents: useWorkspaceStore.getState().selectedAgents,
@@ -236,10 +229,10 @@ export default function WorkspacePage() {
       // 检测是否属于完全空白的新建会话（首次提交）
       const isFirstTurn = previousRounds.length === 0 && !userPrompt;
 
-      // NOTE: 核心修复 — 多轮对话不创建新 session，复用 activeSessionId
+      // NOTE: 多轮对话不创建新 session，复用 sessionId
       // URL 保持不变，用户在侧边栏只会看到一条历史记录
       setBottomPrompt('');
-      initSession(activeSessionId, promptText);
+      initSession(sessionId, promptText);
       setRestored(null); // 挂起 SSE 连接，等待后端续写完成
 
       setTimeout(() => {
@@ -249,10 +242,10 @@ export default function WorkspacePage() {
       try {
         if (isFirstTurn) {
           // 真正的首轮对话，必须全量创建数据库记录
-          await createSession(user.id, promptText, activeSessionId, promptText.slice(0, 40), undefined, uploadedUrls);
+          await createSession(user.id, promptText, sessionId, promptText.slice(0, 40), undefined, uploadedUrls);
         } else {
           // 附加历史记录的多轮追问，调用 PATCH
-          await continueSession(activeSessionId, promptText, history, uploadedUrls);
+          await continueSession(sessionId, promptText, history, uploadedUrls);
         }
       } catch (err) {
         console.error('Failed to continue session on multi-turn reply:', err);
@@ -492,11 +485,12 @@ export default function WorkspacePage() {
     sessionStorage.setItem(`workspace_blank_${newId}`, '1');
     setPreviousRounds([]);
     setBottomPrompt('');
-    setActiveSessionId(newId);
     setOutlinePanelOpen(false);
     setHistoryOpen(false);
     setHandoffMsg(null);
     prevAgentIdRef.current = null;
+    // NOTE: router.replace 会更新 useParams().sessionId，
+    // 无需额外维护 activeSessionId 状态
     router.replace(`/workspace/${newId}`);
   }, [cancel, router, setHistoryOpen, setOutlinePanelOpen]);
 

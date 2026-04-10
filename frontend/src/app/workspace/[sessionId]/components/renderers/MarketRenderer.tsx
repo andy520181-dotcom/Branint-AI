@@ -24,6 +24,8 @@ export interface MarketRendererProps {
   researchProgress?: ResearchProgressStep[];
   /** 可选：透传 Agent ID 以复用时间轴 UI（market 或 strategy） */
   agentId?: 'market' | 'strategy';
+  /** 当前语言 t 函数，缺省回退到中文默认值 */
+  t?: (key: string) => string;
 }
 
 const BAD_EXTENSIONS = ['.txt', '.pdf', '.csv', '.zip', '.json', '.xml', '.rss', '.atom'];
@@ -59,7 +61,7 @@ function parseMarketOutput(raw: string): { content: string; citations: SearchCit
  * 静默期：显示实时进度时间轴
  * 生成后：显示 Markdown 报告 + 来源引用卡片
  */
-export function MarketRenderer({ output, isRunning, researchProgress = [], agentId = 'market' }: MarketRendererProps) {
+export function MarketRenderer({ output, isRunning, researchProgress = [], agentId = 'market', t }: MarketRendererProps) {
   const { content, citations } = useMemo(() => parseMarketOutput(output), [output]);
 
   const marketCitations = citations.filter((c) => c.type === 'market_data');
@@ -96,7 +98,10 @@ export function MarketRenderer({ output, isRunning, researchProgress = [], agent
           <div className={marketStyles.progressHeader}>
             <div className={marketStyles.searchSpinner} />
             <span className={marketStyles.progressTitle}>
-              {agentId === 'strategy' ? 'Trout 战略推演引擎运行中' : 'Wacksman 研究引擎运行中'}
+              {agentId === 'strategy'
+                ? (t?.('strategy.engine.title') ?? 'Trout 战略推演引擎运行中')
+                : (t?.('market.engine.title') ?? 'Wacksman 研究引擎运行中')
+              }
             </span>
             <span className={marketStyles.progressHint}>
               {agentId === 'strategy' ? '战略定位分析 · 约 30-50 秒' : '中型检索模式 · 约 20-40 秒'}
