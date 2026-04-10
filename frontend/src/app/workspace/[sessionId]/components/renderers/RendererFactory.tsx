@@ -37,9 +37,14 @@ export function RendererFactory({
     (s) => s.agents[agentId]?.researchProgress
   ) ?? EMPTY_PROGRESS;
 
+  // 过滤掉后端用于结构化处理的修补标签，避免暴露给用户
+  const displayOutput = output
+    .replace(/<PATCH_BLOCK>/g, '')
+    .replace(/<\/PATCH_BLOCK>/g, '');
+
   // 当还未生成内容且在 "thinking" 时统一使用点点点动画
   // NOTE: market 和 visual 有自己的等待态，这里排除
-  if (!output && isRunning && agentId !== 'visual' && agentId !== 'market' && agentId !== 'strategy') {
+  if (!displayOutput && isRunning && agentId !== 'visual' && agentId !== 'market' && agentId !== 'strategy') {
     return (
       <div className={`${styles.cardOutput} markdown-body`}>
         <div className={styles.thinking}>
@@ -53,14 +58,14 @@ export function RendererFactory({
 
   // 1. 市场研究 Agent：带来源引用卡片 + 实时进度时间轴的专属渲染器
   if (agentId === 'market') {
-    return <MarketRenderer output={output} isRunning={isRunning} researchProgress={researchProgress} />;
+    return <MarketRenderer output={displayOutput} isRunning={isRunning} researchProgress={researchProgress} />;
   }
   
   // 1.5 战略推演 Agent：利用 MarketRenderer 的时间轴结构展示分析进度
   if (agentId === 'strategy') {
-    if (!output && isRunning) {
+    if (!displayOutput && isRunning) {
       // 在生成具体文本前，调用 MarketRenderer 仅展示推演进度
-      return <MarketRenderer output={output} isRunning={isRunning} researchProgress={researchProgress} agentId="strategy" />;
+      return <MarketRenderer output={displayOutput} isRunning={isRunning} researchProgress={researchProgress} agentId="strategy" />;
     }
   }
 
@@ -69,7 +74,7 @@ export function RendererFactory({
     return (
       <VisualRenderer
         agentId={agentId}
-        output={output}
+        output={displayOutput}
         agentImages={agentImages}
         agentVideos={agentVideos}
         isRunning={isRunning}
@@ -78,5 +83,5 @@ export function RendererFactory({
   }
 
   // 3. 默认兜底：常规的 Markdown
-  return <MarkdownRenderer output={output} />;
+  return <MarkdownRenderer output={displayOutput} />;
 }
