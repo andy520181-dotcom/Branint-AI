@@ -420,8 +420,8 @@ input, textarea { font-family: inherit; outline: none; }
   margin: var(--space-4) 0;
   /* NOTE: 统一表格正文和表头字号到 13px，保证清晰的同时控制列宽溢出 */
   font-size: 13px;
-  /* NOTE: table-layout:fixed 配合 width:100% 将列宽均分，内容在单元格内换行 */
-  table-layout: fixed;
+  /* NOTE: 以前强制使用 fixed 会导致内容长短不一的两列平分宽度，现改用 auto 搭配 break-word 让浏览器智能排版 */
+  table-layout: auto;
 }
 /* NOTE: Claude 风格表头 — 去除背景色，改为极浅边框 */
 .markdown-body th {
