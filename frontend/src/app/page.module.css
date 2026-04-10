@@ -7,6 +7,7 @@
   /* NOTE: 不用 align-items:stretch（默认），hero 自然高度，不撑满整屏 */
   align-items: stretch;
   background-color: #f5f4ed;
+  overflow-x: hidden;
 }
 
 .navUser { display: flex; align-items: center; gap: 12px; }
@@ -74,22 +75,26 @@
 .agentsRow {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px; /* 间距变小 */
+  gap: 10px;
   width: 100%;
-  max-width: 780px; /* 从 860px 缩窄，让列被迫变小 */
+  max-width: 780px;
   margin: 0 auto;
+  /* NOTE: 防止 grid 子项内容撑破容器导致水平溢出 */
+  min-width: 0;
 }
 
 .agentCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 8px; /* 减小内边距，使整体卡片变小 */
+  padding: 16px 8px;
   background: transparent;
-  /* 恢复全包围矩形线框（无底色和投影的极简感） */
   border: 1px solid #e8e6dc;
   border-radius: var(--radius-md);
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  /* NOTE: 防止文本内容撑破 grid 单元格 */
+  min-width: 0;
+  overflow: hidden;
 }
 .agentCol:hover {
   transform: translateY(-2px);
@@ -154,7 +159,15 @@
 }
 
 @media (max-width: 640px) {
-  .agentsRow { flex-wrap: wrap; }
-  .agentPill { min-width: 160px; }
-  .agentsSection { padding: 48px 16px 64px; }
+  .agentsRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .agentsSection { padding: 0 16px 48px; }
+}
+
+@media (max-width: 420px) {
+  .agentsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 }
