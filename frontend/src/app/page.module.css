@@ -139,8 +139,7 @@
   line-height: 1.2;
 }
 .colRole {
-  font-size: 9px;
-  transform: scale(0.9);
+  font-size: 11px;
   color: var(--color-gold);
   letter-spacing: 0.05em;
   font-weight: 500;
