@@ -46,6 +46,13 @@ export default function WorkspacePage() {
   const [heroFocused, setHeroFocused] = useState(false);
   // 附件状态：存储待上传的本地文件列表
   const [attachments, setAttachments] = useState<Array<{ file: File; previewUrl: string }>>([]);
+  // NOTE: feedToast 供 Agent 卡片操作按钮（复制、分享、下载）展示轻量通知，
+  // 替代原来阻塞主线程的 alert()，复用全局 historyToast 的样式
+  const [feedToast, setFeedToast] = useState('');
+  const showFeedToast = useCallback((msg: string) => {
+    setFeedToast(msg);
+    setTimeout(() => setFeedToast(''), 2200);
+  }, []);
 
   const [activeSessionId, setActiveSessionId] = useState<string>(sessionId);
   // NOTE: sessionId 来自 URL params，当侧边栏导航到不同会话时会变化，
@@ -96,6 +103,32 @@ export default function WorkspacePage() {
   const { cancel } = useWorkspaceStream(restored === false ? activeSessionId : null);
 
   // ── 统一提交入口 ────────────────────────────────────────────────────
+
+  /**
+   * 构建多轮对话历史负载。
+   * 收集 previousRounds + 当前轮的 agent 输出，供后端理解上下文。
+   * NOTE: 两条提交分支（追问/普通）逻辑完全一致，提取为函数消除重复。
+   */
+  const buildHistory = useCallback(() => {
+    const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
+    for (const r of previousRounds) {
+      const outputs: Record<string, string> = {};
+      for (const a of Object.values(r.agents)) {
+        if (a.output) outputs[a.id] = a.output;
+      }
+      history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
+    }
+    const currentAgents = useWorkspaceStore.getState().agents;
+    const currentOutputs: Record<string, string> = {};
+    for (const a of Object.values(currentAgents)) {
+      if (a.output) currentOutputs[a.id] = a.output;
+    }
+    if (userPrompt && Object.keys(currentOutputs).length > 0) {
+      history.push({ user_prompt: userPrompt, agent_outputs: currentOutputs });
+    }
+    return { history, currentAgents };
+  }, [previousRounds, userPrompt]);
+
   const handleSubmit = async () => {
     if (!bottomPrompt.trim() || !user || submitting) return;
     const inputText = bottomPrompt.trim();
@@ -105,27 +138,12 @@ export default function WorkspacePage() {
     if (strategyClarify?.isPaused) {
       try {
         const clarifyRound = strategyClarify.clarifyRound;
-        // 收集对话历史
-        const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
-        for (const r of previousRounds) {
-          const outputs: Record<string, string> = {};
-          for (const a of Object.values(r.agents)) {
-            if (a.output) outputs[a.id] = a.output;
-          }
-          history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
-        }
-        const currentAgents = useWorkspaceStore.getState().agents;
-        const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
-        const currentOutputs: Record<string, string> = {};
-        for (const a of Object.values(currentAgents)) {
-          if (a.output) currentOutputs[a.id] = a.output;
-        }
-        if (userPrompt && Object.keys(currentOutputs).length > 0) {
-          history.push({ user_prompt: userPrompt, agent_outputs: currentOutputs });
-        }
+        // 收集对话历史（追问分支）
+        const { history, currentAgents } = buildHistory();
 
         // NOTE: 将被中断的当前半成品轮次推入 previousRounds，防止刷新后消失
         if (userPrompt) {
+          const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
           const snapshot: RoundSnapshot = {
             sessionId: activeSessionId,
             userPrompt,
@@ -180,27 +198,8 @@ export default function WorkspacePage() {
     const promptText = inputText;
     setSubmitting(true);
     try {
-
-      // NOTE: 收集之前所有轮次的对话历史（用户输入 + Agent 输出），传给后端
-      // 使品牌顾问在后续轮次能理解之前的分析上下文
-      const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
-
-      for (const r of previousRounds) {
-        const outputs: Record<string, string> = {};
-        for (const a of Object.values(r.agents)) {
-          if (a.output) outputs[a.id] = a.output;
-        }
-        history.push({ user_prompt: r.userPrompt, agent_outputs: outputs });
-      }
-
-      const currentAgents = useWorkspaceStore.getState().agents;
-      const currentOutputs: Record<string, string> = {};
-      for (const a of Object.values(currentAgents)) {
-        if (a.output) currentOutputs[a.id] = a.output;
-      }
-      if (userPrompt && Object.keys(currentOutputs).length > 0) {
-        history.push({ user_prompt: userPrompt, agent_outputs: currentOutputs });
-      }
+      // NOTE: 收集对话历史（普通分支）复用 buildHistory()
+      const { history, currentAgents } = buildHistory();
 
       // 将当前轮次快照存入 previousRounds 用于 UI 展示
       if (userPrompt) {
@@ -581,6 +580,8 @@ export default function WorkspacePage() {
               agentVideos={agentVideos}
               handoffMsg={handoffMsg}
               error={error}
+              isClarifying={!!strategyClarify?.isPaused}
+              onToast={showFeedToast}
               t={t}
             />
             <WorkspaceBottomBar
@@ -613,6 +614,13 @@ export default function WorkspacePage() {
       {historyToast ? (
         <div className={styles.historyToast} role="status">
           {historyToast}
+        </div>
+      ) : null}
+
+      {/* Agent 卡片操作（复制/分享/下载）触发的 Toast，复用 historyToast 样式 */}
+      {feedToast ? (
+        <div className={styles.historyToast} role="status">
+          {feedToast}
         </div>
       ) : null}
     </div>

@@ -25,7 +25,10 @@ export interface WorkspaceFeedProps {
   agentVideos?: AgentVideo[];
   handoffMsg: { agentId: AgentId; text: string } | null;
   error: string | null;
+  /** Trout 追问等待状态，为 true 时预加载态显示 strategy agent 头像 */
   isClarifying?: boolean;
+  /** Toast 回调：由 page.tsx 传入，避免 AgentLayoutWrapper 使用 alert() */
+  onToast?: (msg: string) => void;
   t: TFn;
 }
 
@@ -43,6 +46,7 @@ export function WorkspaceFeed({
   handoffMsg,
   error,
   isClarifying,
+  onToast,
   t,
 }: WorkspaceFeedProps) {
   return (
@@ -81,6 +85,7 @@ export function WorkspaceFeed({
                     hasConnector={hasNext}
                     rawOutput={output}
                     plainBubble={false}
+                    onToast={onToast}
                     t={t}
                   >
                     <RendererFactory
@@ -113,6 +118,7 @@ export function WorkspaceFeed({
             hasConnector={false}
             isTransferring={false}
             plainBubble={false}
+            onToast={onToast}
             t={t}
           >
             <RendererFactory
@@ -151,6 +157,7 @@ export function WorkspaceFeed({
               handoffMsg={handoffMsg}
               rawOutput={output}
               plainBubble={false}
+              onToast={onToast}
               t={t}
             >
               <RendererFactory

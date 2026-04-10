@@ -10,9 +10,21 @@ export interface AgentLayoutWrapperProps {
   hasConnector?: boolean;
   isTransferring?: boolean;
   handoffMsg?: { agentId: AgentId; text: string } | null;
-  /** 首轮 consultant_plan：无边框气泡，与列表内其它 Agent 卡片风格对齐 */
-  /** 供操作底栏使用的原始数据 */
+  /**
+   * 供操作底栏使用的原始数据（Markdown 文本）
+   * 传入时复制按钮可用；缺省时操作栏整块隐藏
+   */
   rawOutput?: string;
+  /**
+   * 无边框纯气泡模式（首轮 consultant_plan 占位卡片）
+   * 为 true 时隐藏所有操作按钮
+   */
+  plainBubble?: boolean;
+  /**
+   * 操作按钮触发 Toast 的回调，由父级 page.tsx 统一管控
+   * 替代原来的 alert() 方案，不阻塞主线程
+   */
+  onToast?: (msg: string) => void;
   t: (key: string) => string;
   children: React.ReactNode;
 }
@@ -30,6 +42,7 @@ export function AgentLayoutWrapper({
   handoffMsg,
   rawOutput,
   plainBubble,
+  onToast,
   t,
   children,
 }: AgentLayoutWrapperProps) {
@@ -48,16 +61,19 @@ export function AgentLayoutWrapper({
   };
 
   const handleDownload = () => {
-    alert('【敬请期待】一键打包品牌套件（PPT大课件/综合报告）大模型排版功能火热开发中！🚀');
+    // TODO: 连接品牌套件一键导出功能（PPT/综合报告），后端接口就绪后替换此占位文案
+    onToast?.('品牌套件打包功能即将上线 🚀');
   };
 
   const handleShare = () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('🔗 链接已复制');
-    }).catch(() => {
-      alert('复制失败，请手动复制地址栏');
-    });
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        onToast?.('🔗 链接已复制');
+      })
+      .catch(() => {
+        onToast?.('复制失败，请手动复制地址栏链接');
+      });
   };
 
   const lineClass = [
@@ -134,7 +150,7 @@ export function AgentLayoutWrapper({
             style={{ '--agent-color': cfg.color } as React.CSSProperties}
           >
             {children}
-            
+
             {/* 智能体操作底栏：任务完成且不处于首轮打底时显示 */}
             {isDone && !plainBubble && (
               <div className={styles.feedActions}>
