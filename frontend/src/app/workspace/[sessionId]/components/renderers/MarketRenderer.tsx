@@ -99,7 +99,7 @@ export function MarketRenderer({ output, isRunning, researchProgress = [], agent
               {agentId === 'strategy' ? 'Trout 战略推演引擎运行中' : 'Wacksman 研究引擎运行中'}
             </span>
             <span className={marketStyles.progressHint}>
-              {agentId === 'strategy' ? '七维战略定位分析 · 约 30-50 秒' : '中型检索模式 · 约 20-40 秒'}
+              {agentId === 'strategy' ? '战略定位分析 · 约 30-50 秒' : '中型检索模式 · 约 20-40 秒'}
             </span>
           </div>
 

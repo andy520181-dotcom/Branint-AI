@@ -25,6 +25,7 @@ export interface WorkspaceFeedProps {
   agentVideos?: AgentVideo[];
   handoffMsg: { agentId: AgentId; text: string } | null;
   error: string | null;
+  isClarifying?: boolean;
   t: TFn;
 }
 
@@ -41,6 +42,7 @@ export function WorkspaceFeed({
   agentVideos = [],
   handoffMsg,
   error,
+  isClarifying,
   t,
 }: WorkspaceFeedProps) {
   return (
@@ -101,10 +103,23 @@ export function WorkspaceFeed({
         )}
 
         {isStreaming && !currentAgentId && (
-          <div className={styles.loadingState}>
-            <div className={styles.globalSpinner} />
-            <p>{t('workspace.connecting')}</p>
-          </div>
+          <AgentLayoutWrapper
+            key={isClarifying ? "pre-strategy" : "pre-consultant"}
+            cfg={isClarifying ? AGENT_CONFIGS.find(c => c.id === 'strategy')! : AGENT_CONFIGS[0]}
+            status="running"
+            isCurrent={true}
+            hasNext={false}
+            hasConnector={false}
+            isTransferring={false}
+            plainBubble={false}
+            t={t}
+          >
+            <RendererFactory
+              agentId={isClarifying ? 'strategy' : 'consultant_plan'}
+              output=""
+              status="running"
+            />
+          </AgentLayoutWrapper>
         )}
 
         {visibleConfigs.map((cfg, i) => {

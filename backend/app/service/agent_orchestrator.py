@@ -104,6 +104,38 @@ def _extract_handoff(output: str) -> str:
     return output[-500:] if len(output) > 500 else output
 
 
+def _merge_patch(old_output: str, accumulated: str) -> str:
+    """
+    解析积木化热更新补丁：从 accumulated 提取 <PATCH_BLOCK> 并合并进旧的文档中。
+    如果没匹配到结构化规则，则追加在末尾作为补充。
+    """
+    import re
+    patch_match = re.search(r"<PATCH_BLOCK>(.*?)</PATCH_BLOCK>", accumulated, re.DOTALL)
+    if not patch_match:
+        return old_output
+
+    patch_content = patch_match.group(1).strip()
+    
+    # 规则 1：如果补丁是完整的 jsonbrandhouse，替换旧的 jsonbrandhouse
+    if "```jsonbrandhouse" in patch_content:
+        new_json_block = re.search(r"```jsonbrandhouse[\s\S]*?```", patch_content)
+        if new_json_block:
+            old_output = re.sub(r"```jsonbrandhouse[\s\S]*?```", new_json_block.group(0), old_output)
+            return old_output
+
+    # 规则 2：如果补丁是某个标题块的整体修改 (例如 ## 三、核心定位)
+    header_match = re.search(r"^(#{2,4})\s+([^\n]+)", patch_content)
+    if header_match:
+        header_level = header_match.group(1)
+        header_title = header_match.group(2)
+        # 在旧文本中寻找相同标题
+        pattern = re.compile(rf"^({header_level})\s+{re.escape(header_title)}.*?(?=\n{header_level}\s|\Z)", re.DOTALL | re.MULTILINE)
+        if pattern.search(old_output):
+            return pattern.sub(patch_content, old_output, count=1)
+            
+    # Fallback：未知结构，追加说明
+    return old_output + "\n\n### 局部更新说明（系统自动合并）\n" + patch_content
+
 async def _stream_text_as_chunks(text: str, chunk_size: int = 8, delay: float = 0.01) -> AsyncGenerator[str, None]:
     """
     将已落盘或内置的文本以打字机效果流式推送。
@@ -201,15 +233,18 @@ class AgentOrchestrator:
             for round_data in conversation_history:
                 history_outputs = round_data.get("agent_outputs", {})
                 for aid, output in history_outputs.items():
-                    if output:
-                        project_context["full_outputs"][aid] = output
-                        project_context["handoffs"][aid] = _extract_handoff(output)
+                    if output and not aid.endswith("_merged"):
+                        # 如果存在该模块的合并版本（如 strategy_merged），则优先使用合并版本作为历史真实底稿
+                        real_output = history_outputs.get(f"{aid}_merged") or output
+                        project_context["full_outputs"][aid] = real_output
+                        project_context["handoffs"][aid] = _extract_handoff(real_output)
 
         # NOTE: 2. 再将本轮已落盘的完成输出填充（覆盖历史），支持当前轮次的断点续传
         for aid, output in ckpt_outputs.items():
-            if output:
-                project_context["full_outputs"][aid] = output
-                project_context["handoffs"][aid] = _extract_handoff(output)
+            if output and not aid.endswith("_merged"):
+                real_output = ckpt_outputs.get(f"{aid}_merged") or output
+                project_context["full_outputs"][aid] = real_output
+                project_context["handoffs"][aid] = _extract_handoff(real_output)
 
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
         if strategy_clarification_answers:
@@ -388,6 +423,23 @@ class AgentOrchestrator:
                 logger.info("工作流已挂起，等待用户输入...")
                 return
 
+            elif action == "delegate_agent_patch":
+                target_agent = args.get("agent", "strategy")
+                task_instruction = args.get("task", "")
+                logger.info(f"Ogilvy 隐形路由至 {target_agent} 执行局部热更新任务: {task_instruction}")
+                
+                # 设置上下文中的 patch 指令，后续供该 agent 识别
+                project_context["patch_instruction"] = task_instruction
+                selected_agents = [target_agent]
+                
+                # 隐形无感转接：Ogilvy 用极短话术交代，不占用过多视觉
+                plan_accumulated = f"没问题，正在让专业模型为您进行局部热更新..."
+                yield _sse_raw(
+                    "agent_chunk",
+                    json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
+                )
+                plan_handoff = plan_accumulated
+
             elif action == "generate_workflow_dag":
                 # 得到了完整的 DAG 路由规划
                 selected_agents = args.get("routing_sequence", [])
@@ -489,12 +541,18 @@ class AgentOrchestrator:
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
                 is_strategy_rerun = "strategy" in project_context["full_outputs"]
+                patch_instr = project_context.get("patch_instruction")
+                # 如果是 patch 模式，顺便把旧的 outputs 传给 Trout
+                old_strategy_output = project_context["full_outputs"].get("strategy", "") if patch_instr else ""
+                
                 stream = run_strategy_agent_stream(
                     enriched_user_prompt,
                     handoff_context,
                     clarification_answers=strategy_clarification_answers,
                     clarify_round=strategy_clarify_round,
                     skip_clarify=is_strategy_rerun,
+                    patch_instruction=patch_instr,
+                    old_output=old_strategy_output,
                 )
             elif agent_key == "content":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy"])
@@ -549,9 +607,23 @@ class AgentOrchestrator:
             # NOTE: 提取 handoff 交接摘要，存入共享上下文
             handoff = _extract_handoff(accumulated)
             project_context["handoffs"][agent_key] = handoff
-            project_context["full_outputs"][agent_key] = accumulated
+            
+            patch_instr = project_context.get("patch_instruction")
+            merged_output = None
+            if patch_instr and agent_key == "strategy":
+                old_strategy_output = project_context["full_outputs"].get(agent_key, "")
+                merged_output = _merge_patch(old_strategy_output, accumulated)
+                project_context["full_outputs"][agent_key] = merged_output
+                ckpt_outputs[agent_key] = merged_output
+            else:
+                project_context["full_outputs"][agent_key] = accumulated
+                ckpt_outputs[agent_key] = accumulated
 
-            yield _sse("agent_output", json.dumps({"id": agent_key, "content": accumulated}))
+            payload = {"id": agent_key, "content": accumulated}
+            if merged_output is not None:
+                payload["merged_content"] = merged_output
+
+            yield _sse("agent_output", json.dumps(payload, ensure_ascii=False))
             yield _sse("agent_complete", agent_key)
             logger.info(
                 "Agent %s 完成，输出: %d 字，handoff: %d 字",

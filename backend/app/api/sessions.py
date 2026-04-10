@@ -428,11 +428,18 @@ async def _run_orchestrator_background(
                                 payload = _json.loads(line[6:])
                                 aid = payload.get("id", "")
                                 content = payload.get("content", "")
+                                merged = payload.get("merged_content")
+                                
                                 if aid and content:
                                     _chunk_buffers[aid] = content
                                     await session_repo.update_agent_output(
                                         gen_db, session_id, aid, content, status="completed"
                                     )
+                                    if merged:
+                                        # 隐藏写入：后端树使用完整的文档，但不渲染给前端
+                                        await session_repo.update_agent_output(
+                                            gen_db, session_id, f"{aid}_merged", merged, status="completed"
+                                        )
                             except Exception:
                                 pass
 

@@ -128,6 +128,8 @@ async def run_strategy_agent_stream(
     clarification_answers: str | None = None,
     clarify_round: int = 0,
     skip_clarify: bool = False,
+    patch_instruction: str | None = None,
+    old_output: str = "",
 ) -> AsyncGenerator[str, None]:
     """
     品牌战略 Agent 主入口（流式输出）。
@@ -155,6 +157,13 @@ async def run_strategy_agent_stream(
             yield f"{TROUT_CLARIFY_MARKER}{questions}"
             return
 
+    # ─── Chat/Patch Mode ────────────────────────────────────
+    if patch_instruction:
+        yield _make_progress("start", label="Trout 开启闲聊模式，准备为您精修组件…")
+        async for chunk in run_strategy_patch_stream(patch_instruction, old_output):
+            yield chunk
+        return
+
     yield _make_progress("start", label="Trout 启动战略规划引擎，准备开始深度推演…")
 
     # ─── Phase 0：组装输入消息 ────────────────────────────────
@@ -180,6 +189,7 @@ async def run_strategy_agent_stream(
     # 执行状态追踪
     executed_frameworks: list[str] = []
     theory_combo: dict = {}
+    yielded_action_labels: set[str] = set()
 
     # ─── Phase 1：工具调用循环 ────────────────────────────────
     for round_idx in range(1, MAX_TOOL_ROUNDS + 1):
@@ -223,7 +233,9 @@ async def run_strategy_agent_stream(
                     "synthesize_strategy_report": "全维定鼎，正在整合战略报告",
                 }.get(tool_name, f"执行 {tool_name}")
                 
-                yield _make_progress(tool_name, label=action_label)
+                if action_label not in yielded_action_labels:
+                    yield _make_progress(tool_name, label=action_label)
+                    yielded_action_labels.add(action_label)
 
                 # 提取 theory_combo 供进度提示使用
                 if tool_name == FRAMEWORK_SELECTOR:
@@ -363,3 +375,35 @@ def _inject_progress_hint(
     )
     messages.append({"role": "user", "content": hint})
     logger.debug("Trout 进度提示注入: 下一步 = %s", next_tool)
+
+# ══════════════════════════════════════════════════════════════
+# Phase 3：局部热更新模式 (Patch Mode)
+# ══════════════════════════════════════════════════════════════
+
+async def run_strategy_patch_stream(
+    patch_instruction: str,
+    old_output: str
+) -> AsyncGenerator[str, None]:
+    """
+    Trout 专属的 Chat & Patch 模式：直接结合旧报告和用户指令，流式输出闲聊及热更新补丁。
+    """
+    prompt = (
+        "你是首席品牌战略架构师 Trout。目前处于【局部热更新 / 闲聊模式】。\n"
+        "用户对你之前出具的战略报告提出了新的修改要求或探讨。\n\n"
+        f"【用户的修改要求】：\n{patch_instruction}\n\n"
+        f"【你之前生成的完整报告底稿】：\n{old_output}\n\n"
+        "【回复要求——极其重要】：\n"
+        "1. 首段闲聊：用极其简练、亲切高级的合伙人口吻（切勿打招呼，单刀直入）以普通文本形式回复用户的诉求。例如“已收到，我把愿景部分修饰得更具攻击性了：”。\n"
+        "2. 补丁输出：把你修改后的具体内容，使用 `<PATCH_BLOCK>` 和 `</PATCH_BLOCK>` 标签紧接在回复中输出。\n"
+        "   - 注意：如果用户要求修改品牌屋，请直接在补丁标签内输出完整的最新 ```jsonbrandhouse ... ``` 卡片。\n"
+        "   - 注意：如果修改的是某个Markdown模块（例如口号），请在补丁内输出该完整段落。\n"
+        "   - 注意：不在标签里的内容会被视为陪聊文字展示给用户，标签内部的内容将在后台被精调合并进总档。\n"
+    )
+    
+    messages = [
+        {"role": "system", "content": "你是资深品牌战略专家 Trout，当前处于直接对话与积木化热更新模式。"},
+        {"role": "user", "content": prompt}
+    ]
+    
+    async for chunk in call_llm_stream(messages):
+        yield chunk

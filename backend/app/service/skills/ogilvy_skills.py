@@ -181,6 +181,28 @@ OGILVY_TOOLS = [
                 "required": ["target_round", "explanation"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delegate_agent_patch",
+            "description": "当用户基于历史生成的跑通了的专业报告（例如品牌屋、分析图），给出非常明确细微的【局部热更新】要求时调用（例如：把品牌屋的口号换了、第二点改年轻点）。这会启动隐形无感流转。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "agent": {
+                        "type": "string",
+                        "enum": ["market", "strategy", "content", "visual"],
+                        "description": "要委托去进行局部修改的专业模型。例如如果是针对战略屋、Slogan的修改，填 strategy。"
+                    },
+                    "task": {
+                        "type": "string",
+                        "description": "具体要求专业模型执行的局部修改任务指令（例如：'将品牌屋的 Roof 愿景改为更加激进的口号'）。"
+                    }
+                },
+                "required": ["agent", "task"]
+            }
+        }
     }
 ]
 

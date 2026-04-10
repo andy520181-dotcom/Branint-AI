@@ -418,29 +418,30 @@ input, textarea { font-family: inherit; outline: none; }
   /* NOTE: 隐藏表格最外围的线，避免与外层 prose-table-wrap 的线重叠导致看起来变粗 */
   border-style: hidden;
   margin: var(--space-4) 0;
-  /* NOTE: 降至 12px 让所有列内容在可视范围内完整显示 */
-  font-size: 12px;
+  /* NOTE: 统一表格正文和表头字号到 13px，保证清晰的同时控制列宽溢出 */
+  font-size: 13px;
   /* NOTE: table-layout:fixed 配合 width:100% 将列宽均分，内容在单元格内换行 */
   table-layout: fixed;
 }
 /* NOTE: Claude 风格表头 — 去除背景色，改为极浅边框 */
 .markdown-body th {
   background: transparent;
-  color: #141413;
-  padding: 7px 12px;
+  color: var(--text-primary);
+  padding: 8px 12px;
   text-align: left;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.01em;
   /* NOTE: 表头文字也允许换行 */
   word-break: break-word;
   overflow-wrap: break-word;
 }
 .markdown-body td {
-  padding: 7px 12px;
-  border: 1px solid #f0f0f0;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
   color: var(--prose-body-color);
+  font-size: 13px;
   vertical-align: top;
   line-height: 1.55;
   word-break: break-word;
@@ -450,7 +451,7 @@ input, textarea { font-family: inherit; outline: none; }
 /* NOTE: 首列加粗突出维度标签，但不再设背景色，全表只留表头有底色 */
 .markdown-body td:first-child {
   font-weight: 600;
-  color: #141413;
+  color: var(--text-primary);
   min-width: 80px;
 }
 /* NOTE: 去除原有的所有斑马纹和首列高亮，全表统一纯底色（透明跟随容器） */
