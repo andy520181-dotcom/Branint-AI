@@ -319,7 +319,7 @@ input, textarea { font-family: inherit; outline: none; }
   padding: 8px 16px;
   color: #4d4c48;
   border: none;
-  border-radius: 8px;
+  border-radius: 9999px;
   font-size: 16px;
   font-weight: 500;
   background: #e8e6dc;
