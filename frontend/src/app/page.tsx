@@ -248,7 +248,7 @@ export default function LandingPage() {
           {LANDING_AGENTS.map((a) => (
             <div key={a.id} className={styles.agentCol} style={{ '--agent-color': a.color } as React.CSSProperties}>
               <div className={styles.colAvatarWrap} data-component="agent-avatar">
-                <img src={a.avatar} alt={a.charName} width={52} height={52} fetchPriority="high" decoding="sync" />
+                <img src={a.avatar} alt={a.charName} width={40} height={40} fetchPriority="high" decoding="sync" />
               </div>
               <div className={styles.colHeader}>
                 <span className={styles.colCharName}>{a.charName}</span>

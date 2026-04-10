@@ -74,9 +74,9 @@
 .agentsRow {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px; /* 增加独立卡片间的间距 */
+  gap: 10px; /* 间距变小 */
   width: 100%;
-  max-width: 860px;
+  max-width: 780px; /* 从 860px 缩窄，让列被迫变小 */
   margin: 0 auto;
 }
 
@@ -84,7 +84,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 12px;
+  padding: 16px 8px; /* 减小内边距，使整体卡片变小 */
   background: transparent;
   /* 恢复全包围矩形线框（无底色和投影的极简感） */
   border: 1px solid #e8e6dc;
@@ -99,8 +99,8 @@
 
 /* 顶部：完全圆形大头像 */
 .colAvatarWrap {
-  width: 52px;
-  height: 52px;
+  width: 40px; /* 进一步减小头像 */
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   margin-bottom: 12px;
@@ -125,13 +125,14 @@
 }
 .colCharName {
   font-family: var(--font-serif);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm); /* 字号调小为 14px */
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.2;
 }
 .colRole {
-  font-size: var(--font-size-2xs);
+  font-size: 9px; /* 字号调到极小 */
+  transform: scale(0.9); /* 额外缩放因为很多浏览器默认最小字号是 12px */
   color: var(--color-gold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -140,7 +141,8 @@
 
 /* 底部：极度凝练的描述，用“/”间隔，弱化对比度 */
 .colDesc {
-  font-size: 11px;
+  font-size: 10px; /* 整体字号变小 */
+  transform: scale(0.95);
   line-height: 1.4;
   color: #87867f;
   text-align: center;
