@@ -69,8 +69,8 @@
   gap: 6px;
   flex: 1 1 0;
   min-width: 0;
-  /* NOTE: 超出的胶囊直接裁切，不产生横向滚动条 */
-  overflow: hidden;
+  /* NOTE: 留 2px 给 hover translateY(-1px) 动画，不裁切上边框 */
+  padding-top: 2px;
 }
 
 /* NOTE: 单个胶囊——中英文上下两行，紧凑圆角方块 */

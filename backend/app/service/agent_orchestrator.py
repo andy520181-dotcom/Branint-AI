@@ -38,7 +38,9 @@ _AT_MENTION_MAP: dict[str, str] = {
     "lois": "content",
     "scher": "visual",
     "ogilvy": "consultant_plan",
-    # 中文职能名
+    # 中文角色名（即职能名）
+    "品牌顾问": "consultant_plan",
+    "顾问": "consultant_plan",
     "市场研究": "market",
     "市场": "market",
     "品牌战略": "strategy",
@@ -57,7 +59,7 @@ _AT_MENTION_MAP: dict[str, str] = {
 
 # NOTE: 编译正则——匹配 @xxx 格式的显式指令（支持中英文角色名）
 _AT_MENTION_RE = re.compile(
-    r"@(" + "|".join(re.escape(k) for k in _AT_MENTION_MAP.keys()) + r")\b",
+    r"@(" + "|".join(re.escape(k) for k in _AT_MENTION_MAP.keys()) + r")(?:\b|\s|$)",
     re.IGNORECASE,
 )
 

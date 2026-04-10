@@ -93,38 +93,50 @@ export function SharedHeroInput({
   const canSubmit = (value.trim().length > 0 || attachments.length > 0) && !submitting && !disabled;
 
   /**
-   * 胶囊点击处理：切换 @提及
-   * 点击 → 在输入框前缀插入 @角色名
+   * 胶囊点击处理：切换 @中文名提及
+   * 点击 → 在输入框追加 @中文名（如 @品牌顾问）
    * 再次点击 → 移除该 @提及
-   * 支持多选
+   * 按点击顺序排列：第一个点击的排第一，第二个排第二
    */
   const handleCapsuleClick = (agentId: string) => {
     const label = CAPSULE_LABELS[agentId];
     if (!label) return;
-    const mention = `@${label.mention}`;
-    const mentionWithSpace = `${mention} `;
+    const mention = `@${label.zh}`;
 
-    // NOTE: 检查当前输入中是否已包含该 @提及
-    if (value.includes(mention)) {
-      // 移除 @提及（含可能的尾随空格）
-      const cleaned = value.replace(mentionWithSpace, '').replace(mention, '').trimStart();
-      onChange(cleaned);
-    } else {
-      // 在输入框内容最前面追加 @提及
-      const prefix = value.startsWith('@') ? mentionWithSpace : mentionWithSpace;
-      onChange(prefix + value);
+    // NOTE: 将输入内容拆为 「@提及前缀」 和 「用户正文」
+    const mentionRegex = /@[\u4e00-\u9fff]+\s*/g;
+    const existingMentions: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = mentionRegex.exec(value)) !== null) {
+      existingMentions.push(match[0].trim());
     }
-    // 聚焦到输入框
+    const userText = value.replace(/@[\u4e00-\u9fff]+\s*/g, '').trim();
+
+    const isActive = existingMentions.includes(mention);
+
+    let newMentions: string[];
+    if (isActive) {
+      // 取消选中：从列表中移除
+      newMentions = existingMentions.filter((m) => m !== mention);
+    } else {
+      // 新增选中：追加到列表末尾（保持点击顺序）
+      newMentions = [...existingMentions, mention];
+    }
+
+    // 重新拼接：@提及 + 用户正文
+    const mentionStr = newMentions.length > 0 ? newMentions.join(' ') + ' ' : '';
+    onChange(mentionStr + userText);
+
     textareaRef.current?.focus();
   };
 
   /**
-   * 判断某个胶囊是否处于选中状态（输入框中包含其 @提及）
+   * 判断某个胶囊是否处于选中状态（输入框中包含其 @中文名）
    */
   const isCapsuleActive = (agentId: string): boolean => {
     const label = CAPSULE_LABELS[agentId];
     if (!label) return false;
-    return value.includes(`@${label.mention}`);
+    return value.includes(`@${label.zh}`);
   };
 
   return (
