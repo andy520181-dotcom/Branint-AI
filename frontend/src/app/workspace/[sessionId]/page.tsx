@@ -451,11 +451,13 @@ export default function WorkspacePage() {
             useWorkspaceStore.setState({ strategyClarify: saved.strategyClarify });
           }
         } else {
+          // 如果后端快照 404 且本地也没有暂存（比如刷新全新建的页面，或者访问了过期的分享链接），
+          // 不要抛出致命错误阻断 UI，而是平滑降级为一个新的空白对话页，让用户可以直接打字。
           useWorkspaceStore.setState({
             sessionId,
             isStreaming: false,
             isComplete: false,
-            error: 'workspace.error.sessionExpired',
+            error: null,
           });
         }
         setRestored(true);
