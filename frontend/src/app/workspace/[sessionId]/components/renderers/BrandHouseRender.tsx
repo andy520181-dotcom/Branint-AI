@@ -149,8 +149,8 @@ export function BrandHouseRender({ data }: BrandHouseRenderProps) {
                 {/* 仅当提供 category 且不为空时渲染 */}
                 {mod.category && <span className={styles.categoryText}>{mod.category}</span>}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
