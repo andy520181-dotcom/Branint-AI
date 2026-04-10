@@ -67,8 +67,8 @@
   padding: 10px 10px 12px;
 }
 .avatarSm {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -93,8 +93,8 @@
   color: var(--text-muted);
 }
 .avatarPlaceholderSvgSm {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 .userInfoCol {
   display: flex;
