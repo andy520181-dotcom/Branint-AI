@@ -196,6 +196,44 @@
   border-right-color: color-mix(in srgb, var(--agent-color) 40%, transparent);
 }
 
+.feedActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding: 12px 16px 16px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.actionBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.primaryActionBtn {
+  color: var(--agent-color, var(--color-link));
+  border-color: color-mix(in srgb, var(--agent-color, var(--color-link)) 30%, transparent);
+  background: color-mix(in srgb, var(--agent-color, var(--color-link)) 5%, transparent);
+}
+.primaryActionBtn:hover {
+  background: color-mix(in srgb, var(--agent-color, var(--color-link)) 10%, transparent);
+  border-color: var(--agent-color, var(--color-link));
+}
+
 /* 首轮品牌顾问（consultant_plan）：无描边、无左侧尖角，与其它 Agent 内容区视觉一致 */
 .feedBubblePlain {
   border: none;

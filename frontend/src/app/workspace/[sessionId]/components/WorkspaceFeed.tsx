@@ -148,6 +148,7 @@ export function WorkspaceFeed({
               hasConnector={hasConnector}
               isTransferring={isTransferring}
               handoffMsg={handoffMsg}
+              rawOutput={output}
               plainBubble={false}
               t={t}
             >

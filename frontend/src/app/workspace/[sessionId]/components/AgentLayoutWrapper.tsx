@@ -11,7 +11,8 @@ export interface AgentLayoutWrapperProps {
   isTransferring?: boolean;
   handoffMsg?: { agentId: AgentId; text: string } | null;
   /** 首轮 consultant_plan：无边框气泡，与列表内其它 Agent 卡片风格对齐 */
-  plainBubble?: boolean;
+  /** 供操作底栏使用的原始数据 */
+  rawOutput?: string;
   t: (key: string) => string;
   children: React.ReactNode;
 }
@@ -27,14 +28,28 @@ export function AgentLayoutWrapper({
   hasConnector,
   isTransferring,
   handoffMsg,
+  rawOutput,
   plainBubble,
   t,
   children,
 }: AgentLayoutWrapperProps) {
+  const [copied, setCopied] = React.useState(false);
+
   if (status === 'waiting') return null;
 
   const isRunning = status === 'running';
   const isDone = status === 'completed';
+
+  const handleCopy = () => {
+    if (!rawOutput) return;
+    navigator.clipboard.writeText(rawOutput);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    alert('【敬请期待】一键打包品牌套件（PPT大课件/综合报告）大模型排版功能火热开发中！🚀');
+  };
 
   const lineClass = [
     styles.feedLeftLine,
@@ -110,6 +125,33 @@ export function AgentLayoutWrapper({
             style={{ '--agent-color': cfg.color } as React.CSSProperties}
           >
             {children}
+            
+            {/* 智能体操作底栏：任务完成且不处于首轮打底时显示 */}
+            {isDone && !plainBubble && (
+              <div className={styles.feedActions}>
+                <button className={styles.actionBtn} onClick={handleCopy} title="复制生成内容">
+                  {copied ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                  {copied ? '已复制' : '复制'}
+                </button>
+                <button className={`${styles.actionBtn} ${styles.primaryActionBtn}`} onClick={handleDownload} title="获取综合排版报告">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  生成最终报告
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

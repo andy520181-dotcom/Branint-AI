@@ -659,32 +659,6 @@ class AgentOrchestrator:
                     except Exception as e:
                         logger.error("排队即梦视频任务失败: %s", e)
 
-        # ─── 品牌顾问：质量审核 & 最终综合报告（流式） ─────────
-        if _is_completed("consultant_review"):
-            # 断点续传：consultant_review 已落盘，直接重放
-            review_accumulated = ckpt_outputs["consultant_review"]
-            logger.info("[RESUME] consultant_review 已完成，重放存档（%d 字）", len(review_accumulated))
-            yield _sse("agent_start", "consultant_review")
-            yield _sse("agent_output", json.dumps({"id": "consultant_review", "content": review_accumulated}))
-        else:
-            yield _sse("agent_start", "consultant_review")
-            logger.info("品牌顾问 — 开始质量审核，生成最终报告")
-
-            review_accumulated = ""
-            async for chunk in run_quality_review_stream(
-                user_prompt=user_prompt,
-                selected_agents=selected_agents,
-                project_context=project_context,
-            ):
-                review_accumulated += chunk
-                yield _sse_raw(
-                    "agent_chunk",
-                    json.dumps({"id": "consultant_review", "chunk": chunk}, ensure_ascii=False),
-                )
-
-            yield _sse("agent_output", json.dumps({"id": "consultant_review", "content": review_accumulated}))
-            project_context["full_outputs"]["consultant_review"] = review_accumulated
-
         # NOTE: 拦截等待视频生成完成（如果尚未完成）
         if video_task:
             try:
@@ -704,6 +678,6 @@ class AgentOrchestrator:
                 logger.error(f"即梦视频生成失败: {e}")
 
         # 最终通知前端：全程结束
-        yield _sse("agent_complete", "consultant_review")
-        yield _sse("session_complete", json.dumps({"report": review_accumulated}, ensure_ascii=False))
-        logger.info("品牌咨询全流程完成，共执行 Agent: %s", selected_agents)
+        # 移除自动触发 consultant_review (综合报告)，将最终收尾交给用户手动或后续交互
+        yield _sse("session_complete", json.dumps({"report": "策略执行完毕，等待人工打磨或生成终稿"}, ensure_ascii=False))
+        logger.info("品牌咨询核心流程完成（暂不生成综合报告），共执行 Agent: %s", selected_agents)
