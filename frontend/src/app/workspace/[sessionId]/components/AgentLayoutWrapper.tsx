@@ -52,7 +52,7 @@ export function AgentLayoutWrapper({
   };
 
   const handleShare = () => {
-    alert('【敬请期待】社交分享功能正在研发，未来将一键截取生成精美的卡片长图用于朋友圈或团队分享！📸');
+    alert('【敬请期待】正在接入协同服务！未来点击此按钮将生成并复制专属短链接（如 branin.ai/s/...），方便您一键发送给团队共享这份战略！🔗');
   };
 
   const lineClass = [
@@ -145,7 +145,7 @@ export function AgentLayoutWrapper({
                     </svg>
                   )}
                 </button>
-                <button className={styles.actionBtn} onClick={handleShare} title="生成分享长图">
+                <button className={styles.actionBtn} onClick={handleShare} title="生成分享链接">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3"></circle>
                     <circle cx="6" cy="12" r="3"></circle>
