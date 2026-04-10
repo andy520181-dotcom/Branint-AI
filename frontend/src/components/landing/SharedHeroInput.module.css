@@ -97,6 +97,22 @@
 .capsule:active {
   transform: translateY(0);
 }
+/* NOTE: 选中态 — 用户点击后变为浅蓝底 + 蓝边，表示已 @提及 */
+.capsuleActive {
+  background: #eef6fd;
+  border-color: #3898ec;
+  color: #2a7dd4;
+}
+.capsuleActive:hover {
+  background: #e0effa;
+  border-color: #2a7dd4;
+}
+.capsuleActive .capsuleZh {
+  color: #2a7dd4;
+}
+.capsuleActive .capsuleEn {
+  color: #5ba8e6;
+}
 
 /* 中文名（上行） */
 .capsuleZh {

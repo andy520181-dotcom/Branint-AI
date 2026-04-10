@@ -89,9 +89,7 @@
   transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
   margin-bottom: 12px;
   position: relative;
-  /* NOTE: 防止内部胶囊行撑破容器 */
   box-sizing: border-box;
-  overflow: hidden;
 }
 .inputWrapper:focus-within {
   border-color: #3898ec;
@@ -156,9 +154,7 @@
   justify-content: space-between;
   margin-top: 12px;
   gap: 8px;
-  /* NOTE: 防止内容溢出输入框 */
   max-width: 100%;
-  overflow: hidden;
 }
 
 .submitBtn:disabled {

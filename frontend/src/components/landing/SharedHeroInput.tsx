@@ -18,13 +18,13 @@ const CAPSULE_AGENTS = AGENT_CONFIGS
   .filter((a) => a.id !== 'consultant_review')
   .sort((a, b) => a.index - b.index);
 
-/** 胶囊所需的中英文映射 */
-const CAPSULE_LABELS: Record<string, { zh: string; en: string }> = {
-  consultant_plan: { zh: '品牌顾问', en: 'Agent' },
-  market:          { zh: '市场研究', en: 'Agent' },
-  strategy:        { zh: '品牌战略', en: 'Agent' },
-  content:         { zh: '内容策划', en: 'Agent' },
-  visual:          { zh: '美术指导', en: 'Agent' },
+/** 胶囊所需的中英文映射 + @提及名 */
+const CAPSULE_LABELS: Record<string, { zh: string; en: string; mention: string }> = {
+  consultant_plan: { zh: '品牌顾问', en: 'Agent', mention: 'Ogilvy' },
+  market:          { zh: '市场研究', en: 'Agent', mention: 'Wacksman' },
+  strategy:        { zh: '品牌战略', en: 'Agent', mention: 'Trout' },
+  content:         { zh: '内容策划', en: 'Agent', mention: 'Lois' },
+  visual:          { zh: '美术指导', en: 'Agent', mention: 'Scher' },
 };
 
 export interface AttachmentItem {
@@ -91,6 +91,41 @@ export function SharedHeroInput({
   };
 
   const canSubmit = (value.trim().length > 0 || attachments.length > 0) && !submitting && !disabled;
+
+  /**
+   * 胶囊点击处理：切换 @提及
+   * 点击 → 在输入框前缀插入 @角色名
+   * 再次点击 → 移除该 @提及
+   * 支持多选
+   */
+  const handleCapsuleClick = (agentId: string) => {
+    const label = CAPSULE_LABELS[agentId];
+    if (!label) return;
+    const mention = `@${label.mention}`;
+    const mentionWithSpace = `${mention} `;
+
+    // NOTE: 检查当前输入中是否已包含该 @提及
+    if (value.includes(mention)) {
+      // 移除 @提及（含可能的尾随空格）
+      const cleaned = value.replace(mentionWithSpace, '').replace(mention, '').trimStart();
+      onChange(cleaned);
+    } else {
+      // 在输入框内容最前面追加 @提及
+      const prefix = value.startsWith('@') ? mentionWithSpace : mentionWithSpace;
+      onChange(prefix + value);
+    }
+    // 聚焦到输入框
+    textareaRef.current?.focus();
+  };
+
+  /**
+   * 判断某个胶囊是否处于选中状态（输入框中包含其 @提及）
+   */
+  const isCapsuleActive = (agentId: string): boolean => {
+    const label = CAPSULE_LABELS[agentId];
+    if (!label) return false;
+    return value.includes(`@${label.mention}`);
+  };
 
   return (
     <div className={heroStyles.inputWrapper}>
@@ -164,12 +199,14 @@ export function SharedHeroInput({
         <div className={styles.capsuleRow}>
           {CAPSULE_AGENTS.map((agent) => {
             const label = CAPSULE_LABELS[agent.id];
+            const active = isCapsuleActive(agent.id);
             return (
               <button
                 key={agent.id}
                 type="button"
-                className={styles.capsule}
+                className={`${styles.capsule} ${active ? styles.capsuleActive : ''}`}
                 title={label?.zh ?? agent.name}
+                onClick={() => handleCapsuleClick(agent.id)}
               >
                 <span className={styles.capsuleZh}>{label?.zh ?? agent.name}</span>
                 <span className={styles.capsuleEn}>{label?.en ?? agent.charName}</span>
