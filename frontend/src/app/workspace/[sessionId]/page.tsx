@@ -234,6 +234,9 @@ export default function WorkspacePage() {
         setAttachments([]);
       }
 
+      // 检测是否属于完全空白的新建会话（首次提交）
+      const isFirstTurn = previousRounds.length === 0 && !userPrompt;
+
       // NOTE: 核心修复 — 多轮对话不创建新 session，复用 activeSessionId
       // URL 保持不变，用户在侧边栏只会看到一条历史记录
       setBottomPrompt('');
@@ -244,9 +247,14 @@ export default function WorkspacePage() {
         currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
 
-      // 后台调用 PATCH /continue，不创建新历史记录
       try {
-        await continueSession(activeSessionId, promptText, history, uploadedUrls);
+        if (isFirstTurn) {
+          // 真正的首轮对话，必须全量创建数据库记录
+          await createSession(user.id, promptText, activeSessionId, promptText.slice(0, 40), undefined, uploadedUrls);
+        } else {
+          // 附加历史记录的多轮追问，调用 PATCH
+          await continueSession(activeSessionId, promptText, history, uploadedUrls);
+        }
       } catch (err) {
         console.error('Failed to continue session on multi-turn reply:', err);
       } finally {
