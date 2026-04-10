@@ -112,7 +112,7 @@ export function WorkspaceBottomBar({
           <textarea
             ref={textareaRef}
             className={styles.bottomTextarea}
-            placeholder={t('workspace.bottom.placeholder')}
+            placeholder={isClarifying ? '战略顾问正在为您梳理策略脉络，请补充以上问题的答案...' : t('workspace.bottom.placeholder')}
             value={bottomPrompt}
             onChange={(e) => setBottomPrompt(e.target.value)}
             rows={1}

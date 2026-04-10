@@ -98,9 +98,30 @@ export default function WorkspacePage() {
   // ── 统一提交入口 ────────────────────────────────────────────────────
 
   /**
+   * 将当前正在进行的半轮对话快照（包含未完全结束的 agents 状态）存入历史记录
+   * 用于页面跳转或刷新时的容错兜底
+   */
+  const commitCurrentRoundToHistory = useCallback((currentAgents: Record<string, AgentState>) => {
+    if (userPrompt) {
+      const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
+      const snapshot: RoundSnapshot = {
+        sessionId: sessionId,
+        userPrompt,
+        agents: { ...currentAgents },
+        selectedAgents: currentSelectedAgents,
+      };
+      setPreviousRounds((prev) => {
+        const nextRounds = [...prev, snapshot];
+        // 同步写入 store 供其他组件读取
+        useWorkspaceStore.setState({ previousRounds: nextRounds });
+        return nextRounds;
+      });
+    }
+  }, [sessionId, userPrompt, setPreviousRounds]);
+
+  /**
    * 构建多轮对话历史负载。
    * 收集 previousRounds + 当前轮的 agent 输出，供后端理解上下文。
-   * NOTE: 两条提交分支（追问/普通）逻辑完全一致，提取为函数消除重复。
    */
   const buildHistory = useCallback(() => {
     const history: { user_prompt: string; agent_outputs: Record<string, string> }[] = [];
@@ -134,22 +155,8 @@ export default function WorkspacePage() {
         // 收集对话历史（追问分支）
         const { history, currentAgents } = buildHistory();
 
-        // NOTE: 将被中断的当前半成品轮次推入 previousRounds，防止刷新后消失
-        if (userPrompt) {
-          const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
-          const snapshot: RoundSnapshot = {
-    sessionId: sessionId,
-            userPrompt,
-            agents: { ...currentAgents },
-            selectedAgents: currentSelectedAgents,
-          };
-          setPreviousRounds((prev) => {
-            const nextRounds = [...prev, snapshot];
-            // 同步写入 store 和 localStorage 兜底
-            useWorkspaceStore.setState({ previousRounds: nextRounds });
-            return nextRounds;
-          });
-        }
+        // C. 将当前半成品轮次合并入本地快照
+        commitCurrentRoundToHistory(currentAgents);
 
         setStrategyClarify(null);
         setBottomPrompt('');
@@ -194,20 +201,8 @@ export default function WorkspacePage() {
       // NOTE: 收集对话历史（普通分支）复用 buildHistory()
       const { history, currentAgents } = buildHistory();
 
-      // 将当前轮次快照存入 previousRounds 用于 UI 展示
-      if (userPrompt) {
-        const snapshot: RoundSnapshot = {
-          sessionId: sessionId,
-          userPrompt,
-          agents: { ...currentAgents },
-          selectedAgents: useWorkspaceStore.getState().selectedAgents,
-        };
-        setPreviousRounds((prev) => {
-          const nextRounds = [...prev, snapshot];
-          useWorkspaceStore.setState({ previousRounds: nextRounds });
-          return nextRounds;
-        });
-      }
+      // 2. 将当前轮次存入 previousRounds 用于 UI 固定展示
+      commitCurrentRoundToHistory(currentAgents);
 
       // 先上传附件，拿到服务器上的 URL 列表
       const uploadedUrls: string[] = [];
@@ -483,7 +478,6 @@ export default function WorkspacePage() {
     cancel();
     const newId = crypto.randomUUID();
     sessionStorage.setItem(`workspace_blank_${newId}`, '1');
-    setPreviousRounds([]);
     setBottomPrompt('');
     setOutlinePanelOpen(false);
     setHistoryOpen(false);
@@ -574,7 +568,6 @@ export default function WorkspacePage() {
               agentVideos={agentVideos}
               handoffMsg={handoffMsg}
               error={error}
-              isClarifying={!!strategyClarify?.isPaused}
               onToast={showFeedToast}
               t={t}
             />

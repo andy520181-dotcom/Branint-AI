@@ -25,8 +25,6 @@ export interface WorkspaceFeedProps {
   agentVideos?: AgentVideo[];
   handoffMsg: { agentId: AgentId; text: string } | null;
   error: string | null;
-  /** Trout 追问等待状态，为 true 时预加载态显示 strategy agent 头像 */
-  isClarifying?: boolean;
   /** Toast 回调：由 page.tsx 传入，避免 AgentLayoutWrapper 使用 alert() */
   onToast?: (msg: string) => void;
   t: TFn;
@@ -45,7 +43,6 @@ export function WorkspaceFeed({
   agentVideos = [],
   handoffMsg,
   error,
-  isClarifying,
   onToast,
   t,
 }: WorkspaceFeedProps) {

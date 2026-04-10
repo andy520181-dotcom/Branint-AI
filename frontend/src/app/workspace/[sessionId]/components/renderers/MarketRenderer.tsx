@@ -83,7 +83,7 @@ export function MarketRenderer({ output, isRunning, researchProgress = [], agent
   const socialByPlatform = useMemo(() => {
     const map: Record<string, SearchCitation[]> = {};
     socialCitations.forEach((c) => {
-      const key = (c as any).platform ?? 'cross_platform';
+      const key = c.platform ?? 'cross_platform';
       if (!map[key]) map[key] = [];
       map[key].push(c);
     });
