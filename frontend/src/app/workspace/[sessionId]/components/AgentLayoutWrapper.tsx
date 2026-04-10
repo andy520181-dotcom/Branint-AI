@@ -138,7 +138,7 @@ export function AgentLayoutWrapper({
             {/* 智能体操作底栏：任务完成且不处于首轮打底时显示 */}
             {isDone && !plainBubble && (
               <div className={styles.feedActions}>
-                <button className={styles.actionBtn} onClick={handleCopy} title="复制生成内容">
+                <button className={styles.actionBtn} onClick={handleCopy} title="复制">
                   {copied ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 6L9 17l-5-5" />
@@ -150,7 +150,7 @@ export function AgentLayoutWrapper({
                     </svg>
                   )}
                 </button>
-                <button className={styles.actionBtn} onClick={handleShare} title="生成分享链接">
+                <button className={styles.actionBtn} onClick={handleShare} title="分享">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3"></circle>
                     <circle cx="6" cy="12" r="3"></circle>
@@ -159,7 +159,7 @@ export function AgentLayoutWrapper({
                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                   </svg>
                 </button>
-                <button className={`${styles.actionBtn} ${styles.primaryActionBtn}`} onClick={handleDownload} title="获取综合排版报告">
+                <button className={`${styles.actionBtn} ${styles.primaryActionBtn}`} onClick={handleDownload} title="下载">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
