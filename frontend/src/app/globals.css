@@ -605,7 +605,7 @@ input, textarea { font-family: inherit; outline: none; }
   /* NOTE: 锁死视口宽度，防止被子元素撑破 */
   width: 100vw;
   max-width: 100vw;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .site-nav-logo {
   display: flex;
