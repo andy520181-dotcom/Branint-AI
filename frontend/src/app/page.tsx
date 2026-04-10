@@ -261,8 +261,15 @@ export default function LandingPage() {
                     .split('·')
                     .map((s) => s.trim())
                     .filter(Boolean);
-                  // 用斜杠连接，形成类似 "/" 的轻盈分割，不使用换行
-                  return tags.join(' / ');
+                  // NOTE: 每行 2 条标签用「·」分隔，上下两行显示
+                  const line1 = tags.slice(0, 2).join(' · ');
+                  const line2 = tags.slice(2).join(' · ');
+                  return (
+                    <>
+                      {line1}
+                      {line2 && <><br />{line2}</>}
+                    </>
+                  );
                 })()}
               </div>
             </div>

@@ -320,7 +320,7 @@ input, textarea { font-family: inherit; outline: none; }
   color: #4d4c48;
   border: none;
   border-radius: 9999px;
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   background: #e8e6dc;
   transition: all var(--transition-fast);
