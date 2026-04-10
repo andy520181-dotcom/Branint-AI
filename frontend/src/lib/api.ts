@@ -129,7 +129,9 @@ export interface SessionSnapshot {
  * 前端刷新后优先调用此接口，而不依赖 localStorage。
  */
 export async function fetchSnapshot(sessionId: string): Promise<SessionSnapshot> {
-  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/snapshot`);
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/snapshot`, {
+    cache: 'no-store',
+  });
   if (!res.ok) throw new Error(`获取快照失败 (${res.status})`);
   return res.json() as Promise<SessionSnapshot>;
 }
@@ -144,8 +146,9 @@ export interface SessionListItem {
 
 /** 获取当前用户的会话列表 */
 export async function fetchSessions(userId: string): Promise<SessionListItem[]> {
-  const params = new URLSearchParams({ user_id: userId });
-  const res = await fetch(`${API_BASE}/api/sessions?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/api/sessions?${params.toString()}`, {
+    cache: 'no-store',
+  });
   if (!res.ok) throw new Error(`获取会话列表失败 (${res.status})`);
   return res.json() as Promise<SessionListItem[]>;
 }
