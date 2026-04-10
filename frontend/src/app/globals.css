@@ -602,7 +602,10 @@ input, textarea { font-family: inherit; outline: none; }
   z-index: var(--app-nav-z);
   box-sizing: border-box;
   background: #f5f4ed;
-  /* NOTE: 删除底部分隔线 */
+  /* NOTE: 锁死视口宽度，防止被子元素撑破 */
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
 }
 .site-nav-logo {
   display: flex;
@@ -628,6 +631,7 @@ input, textarea { font-family: inherit; outline: none; }
   gap: 24px;
   min-width: 0;
   min-height: var(--app-nav-brand-row-min-height);
+  overflow: hidden;
 }
 .site-nav-links {
   display: flex;
@@ -657,6 +661,7 @@ input, textarea { font-family: inherit; outline: none; }
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 /* 顶栏：从 localStorage 恢复登录态前占位（与 UserMenu 头像 36px 一致，避免刷新先闪「登录」） */

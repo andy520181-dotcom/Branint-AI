@@ -67,13 +67,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 1;
+  flex: 1 1 0;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.capsuleRow::-webkit-scrollbar {
-  display: none;
+  /* NOTE: 超出的胶囊直接裁切，不产生横向滚动条 */
+  overflow: hidden;
 }
 
 /* NOTE: 单个胶囊——中英文上下两行，紧凑圆角方块 */
