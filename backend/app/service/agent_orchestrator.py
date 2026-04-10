@@ -433,7 +433,7 @@ class AgentOrchestrator:
                 selected_agents = [target_agent]
                 
                 # 隐形无感转接：Ogilvy 用极短话术交代，不占用过多视觉
-                plan_accumulated = f"没问题，正在让专业模型为您进行局部热更新..."
+                plan_accumulated = f"没问题，这就为您进行针对性的调整..."
                 yield _sse_raw(
                     "agent_chunk",
                     json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
