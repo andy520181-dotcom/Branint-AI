@@ -20,11 +20,11 @@ const CAPSULE_AGENTS = AGENT_CONFIGS
 
 /** 胶囊所需的中英文映射 */
 const CAPSULE_LABELS: Record<string, { zh: string; en: string }> = {
-  consultant_plan: { zh: '品牌顾问', en: 'Consultant' },
-  market:          { zh: '市场研究', en: 'Research' },
-  strategy:        { zh: '品牌战略', en: 'Strategy' },
-  content:         { zh: '内容策划', en: 'Content' },
-  visual:          { zh: '美术指导', en: 'Art Dir.' },
+  consultant_plan: { zh: '品牌顾问', en: 'Agent' },
+  market:          { zh: '市场研究', en: 'Agent' },
+  strategy:        { zh: '品牌战略', en: 'Agent' },
+  content:         { zh: '内容策划', en: 'Agent' },
+  visual:          { zh: '美术指导', en: 'Agent' },
 };
 
 export interface AttachmentItem {
