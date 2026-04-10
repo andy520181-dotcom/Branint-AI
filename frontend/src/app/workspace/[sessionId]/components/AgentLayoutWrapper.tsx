@@ -51,6 +51,10 @@ export function AgentLayoutWrapper({
     alert('【敬请期待】一键打包品牌套件（PPT大课件/综合报告）大模型排版功能火热开发中！🚀');
   };
 
+  const handleShare = () => {
+    alert('【敬请期待】社交分享功能正在研发，未来将一键截取生成精美的卡片长图用于朋友圈或团队分享！📸');
+  };
+
   const lineClass = [
     styles.feedLeftLine,
     isTransferring ? styles.connectorActive : '',
@@ -140,6 +144,15 @@ export function AgentLayoutWrapper({
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                   )}
+                </button>
+                <button className={styles.actionBtn} onClick={handleShare} title="生成分享长图">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
                 </button>
                 <button className={`${styles.actionBtn} ${styles.primaryActionBtn}`} onClick={handleDownload} title="获取综合排版报告">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
