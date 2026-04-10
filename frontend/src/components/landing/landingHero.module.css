@@ -152,8 +152,9 @@
 .inputFooter {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-top: 12px;
+  gap: 8px;
 }
 
 .submitBtn:disabled {

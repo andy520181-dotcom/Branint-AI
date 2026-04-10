@@ -28,6 +28,68 @@ AgentId = Literal["consultant_plan", "market", "strategy", "content", "visual", 
 
 AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 
+# ── 防线 1：@提及 显式路由拦截映射表 ──────────────────────────────────────
+# NOTE: 用户在输入中使用 @角色名 时，系统跳过 Ogilvy 的推理判断，
+# 直接锁死路由到指定 Agent，并强制开启 Micro-Task Lock
+_AT_MENTION_MAP: dict[str, str] = {
+    # 英文角色名
+    "wacksman": "market",
+    "trout": "strategy",
+    "lois": "content",
+    "scher": "visual",
+    "ogilvy": "consultant_plan",
+    # 中文职能名
+    "市场研究": "market",
+    "市场": "market",
+    "品牌战略": "strategy",
+    "战略": "strategy",
+    "内容策划": "content",
+    "内容": "content",
+    "美术指导": "visual",
+    "视觉": "visual",
+    "美术": "visual",
+    # 英文职能名
+    "market": "market",
+    "strategy": "strategy",
+    "content": "content",
+    "visual": "visual",
+}
+
+# NOTE: 编译正则——匹配 @xxx 格式的显式指令（支持中英文角色名）
+_AT_MENTION_RE = re.compile(
+    r"@(" + "|".join(re.escape(k) for k in _AT_MENTION_MAP.keys()) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _parse_at_mentions(prompt: str) -> list[str]:
+    """
+    从用户输入中提取 @提及 的 Agent ID 列表（去重、保序）。
+    如果没有 @提及则返回空列表。
+    """
+    matches = _AT_MENTION_RE.findall(prompt)
+    seen: set[str] = set()
+    result: list[str] = []
+    for m in matches:
+        agent_id = _AT_MENTION_MAP.get(m.lower(), "")
+        if agent_id and agent_id not in seen and agent_id != "consultant_plan":
+            seen.add(agent_id)
+            result.append(agent_id)
+    return result
+
+
+# ── 防线 2：Micro-Task Lock 降维封条 ──────────────────────────────────────
+# NOTE: 当 is_micro_task=True 时，此指令被强制注入下游所有 Agent 的系统提示词首段，
+# 彻底压制长文报告模板，逼迫 Agent 只做精准的单点输出
+MICRO_TASK_LOCK = (
+    "【⚠️ SYSTEM OVERRIDE: MICRO-TASK LOCK ACTIVATED】\n"
+    "长官（系统）在此强制褫夺你的所有默认长文输出模板与宏大叙事习惯！\n"
+    "当前你正在执行单点微缩任务（Micro-Task），请以绝对的克制，"
+    "【仅针对】用户下面本轮输入中的具体诉求作答！ "
+    "能少写绝不多写。\n"
+    "不管你的默认职责有多全面，现在必须关闭漫长的铺垫、分析和报告格式，"
+    "只准就事论事地给出精简、硬核的结果。\n"
+)
 
 
 
@@ -201,8 +263,36 @@ class AgentOrchestrator:
                 project_context["full_outputs"][aid] = real_output
                 project_context["handoffs"][aid] = _extract_handoff(real_output)
 
+        # ── 防线 1：@提及 显式拦截（优先级最高，直接跳过 Ogilvy 推理）──────
+        explicit_agents = _parse_at_mentions(user_prompt)
+        is_micro_task = False  # NOTE: 全局降维标记，贯穿整个流水线
+
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────
-        if strategy_clarification_answers:
+        if explicit_agents:
+            # 场景 0：用户使用 @提及 显式指定 Agent，跳过 Ogilvy 大脑
+            selected_agents = explicit_agents
+            is_micro_task = True  # NOTE: 显式指定 = 默认强制降维
+            logger.info("检测到 @提及 显式路由: %s，强制 is_micro_task=True", selected_agents)
+
+            # 生成极简的过渡话术
+            agent_names = "、".join(
+                {"market": "Wacksman", "strategy": "Trout",
+                 "content": "Lois", "visual": "Scher"}.get(a, a)
+                for a in selected_agents
+            )
+            plan_accumulated = f"收到，直接为您接通 {agent_names}。\n\n"
+            yield _sse("agent_start", "consultant_plan")
+            yield _sse_raw(
+                "agent_chunk",
+                json.dumps({"id": "consultant_plan", "chunk": plan_accumulated}, ensure_ascii=False),
+            )
+            yield _sse("agent_output", json.dumps({"id": "consultant_plan", "content": plan_accumulated}))
+            yield _sse("routing_decided", json.dumps(selected_agents))
+            yield _sse("agent_complete", "consultant_plan")
+            project_context["handoffs"]["consultant_plan"] = plan_accumulated
+            project_context["full_outputs"]["consultant_plan"] = plan_accumulated
+
+        elif strategy_clarification_answers:
             # 场景 A：战略追问作答（直达路线）
             logger.info("检测到战略追问交互，跳过前期顾问路由，直通 Strategy Agent 续写")
             selected_agents = ["strategy"]
@@ -419,7 +509,9 @@ class AgentOrchestrator:
                 elif action == "generate_workflow_dag":
                     # 得到了完整的 DAG 路由规划
                     selected_agents = args.get("routing_sequence", [])
-                    logger.info("Ogilvy 输出 DAG: %s", selected_agents)
+                    # NOTE: 防线 2 — Ogilvy 自主判断是否为微型任务
+                    is_micro_task = args.get("is_micro_task", False)
+                    logger.info("Ogilvy 输出 DAG: %s, is_micro_task=%s", selected_agents, is_micro_task)
 
                     # 将选中的 agent 转换成中文名称给大模型参考
                     agent_names = "、".join(
@@ -486,6 +578,14 @@ class AgentOrchestrator:
             if brand_dossier:
                 enriched_user_prompt += f"{brand_dossier}\n\n"
             enriched_user_prompt += f"====== 本轮用户输入 ======\n{user_prompt}"
+
+        # ── 防线 2：Micro-Task Lock 降维封条注入 ──────────────────────
+        # NOTE: 如果当前 DAG 被标记为微型任务，在所有下游 Agent 的用户输入前
+        # 强行拼接降维指令，压制长文输出模板
+        micro_task_prefix = MICRO_TASK_LOCK if is_micro_task else ""
+        if is_micro_task:
+            logger.info("🔒 Micro-Task Lock 已激活，下游所有 Agent 将进入精简输出模式")
+            enriched_user_prompt = micro_task_prefix + enriched_user_prompt
 
         # ─── 动态执行选定的专业 Agent（结构化交接）────────────
         for agent_key in selected_agents:

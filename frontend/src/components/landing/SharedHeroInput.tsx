@@ -3,14 +3,29 @@
 /**
  * SharedHeroInput — 共享的 Hero 大输入框组件
  * 同时被 落地页 (app/page.tsx) 和 工作台空白态 (WorkspaceHeroEmpty.tsx) 引用。
- * 只负责 UI 呈现：附件预览 + LED 占位 + 回形针 + 发送按钮；业务逻辑保留在父级。
+ * 只负责 UI 呈现：附件预览 + LED 占位 + 回形针 + 发送按钮 + 智能体胶囊；业务逻辑保留在父级。
  */
 
 import { useRef, type RefObject } from 'react';
 import heroStyles from '@/components/landing/landingHero.module.css';
 import styles from './SharedHeroInput.module.css';
+import { AGENT_CONFIGS } from '@/data/agentConfigs';
 
 type TFn = (key: string) => string;
+
+/** NOTE: 输入框内展示的 5 个智能体胶囊（排除 consultant_review） */
+const CAPSULE_AGENTS = AGENT_CONFIGS
+  .filter((a) => a.id !== 'consultant_review')
+  .sort((a, b) => a.index - b.index);
+
+/** 胶囊所需的中英文映射 */
+const CAPSULE_LABELS: Record<string, { zh: string; en: string }> = {
+  consultant_plan: { zh: '品牌顾问', en: 'Consultant' },
+  market:          { zh: '市场研究', en: 'Research' },
+  strategy:        { zh: '品牌战略', en: 'Strategy' },
+  content:         { zh: '内容策划', en: 'Content' },
+  visual:          { zh: '美术指导', en: 'Art Dir.' },
+};
 
 export interface AttachmentItem {
   file: File;
@@ -143,54 +158,75 @@ export function SharedHeroInput({
         />
       </div>
 
-      {/* ── 底部操作栏：回形针 + 发送 ─────────────────────── */}
+      {/* ── 底部操作栏：智能体胶囊 + 回形针 + 发送 ─────────────── */}
       <div className={heroStyles.inputFooter}>
-        {/* 回形针上传按钮 */}
-        <button
-          type="button"
-          className={styles.attachBtn}
-          onClick={handleAttachClick}
-          title="上传图片或文件"
-          disabled={submitting || disabled}
-        >
-          <svg width="18" height="18" viewBox="0 0 17 17" fill="none">
-            <path
-              d="M14.5 8.5L8 15a4.243 4.243 0 01-6-6L9.5 1.5a2.828 2.828 0 014 4L6 13a1.414 1.414 0 01-2-2l6.5-6.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        {/* 5 个智能体胶囊 */}
+        <div className={styles.capsuleRow}>
+          {CAPSULE_AGENTS.map((agent) => {
+            const label = CAPSULE_LABELS[agent.id];
+            return (
+              <button
+                key={agent.id}
+                type="button"
+                className={styles.capsule}
+                title={label?.zh ?? agent.name}
+              >
+                <span className={styles.capsuleZh}>{label?.zh ?? agent.name}</span>
+                <span className={styles.capsuleEn}>{label?.en ?? agent.charName}</span>
+              </button>
+            );
+          })}
+        </div>
 
-        {/* 隐藏的原生 file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,.pdf,.doc,.docx,.txt"
-          multiple
-          className={styles.hiddenFileInput}
-          onChange={handleFileChange}
-        />
-
-        {/* 发送按钮 */}
-        <button
-          id="start-analysis-btn"
-          type="button"
-          className={`icon-btn-circle ${heroStyles.submitBtn}`}
-          onClick={() => void onSubmit()}
-          disabled={!canSubmit}
-          title={t('workspace.send.title')}
-        >
-          {submitting ? (
-            <span className={heroStyles.spinner} />
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* 右侧操作区 */}
+        <div className={styles.footerActions}>
+          {/* 回形针上传按钮 */}
+          <button
+            type="button"
+            className={styles.attachBtn}
+            onClick={handleAttachClick}
+            title="上传图片或文件"
+            disabled={submitting || disabled}
+          >
+            <svg width="18" height="18" viewBox="0 0 17 17" fill="none">
+              <path
+                d="M14.5 8.5L8 15a4.243 4.243 0 01-6-6L9.5 1.5a2.828 2.828 0 014 4L6 13a1.414 1.414 0 01-2-2l6.5-6.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
-          )}
-        </button>
+          </button>
+
+          {/* 隐藏的原生 file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.doc,.docx,.txt"
+            multiple
+            className={styles.hiddenFileInput}
+            onChange={handleFileChange}
+          />
+
+          {/* 发送按钮 */}
+          <button
+            id="start-analysis-btn"
+            type="button"
+            className={`icon-btn-circle ${heroStyles.submitBtn}`}
+            onClick={() => void onSubmit()}
+            disabled={!canSubmit}
+            title={t('workspace.send.title')}
+          >
+            {submitting ? (
+              <span className={heroStyles.spinner} />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

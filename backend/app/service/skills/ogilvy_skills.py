@@ -67,6 +67,19 @@ OGILVY_TOOLS = [
                             "你只需根据用户需求判断哪些 Agent 应该被调用即可。"
                         )
                     },
+                    "is_micro_task": {
+                        "type": "boolean",
+                        "description": (
+                            "判断本次用户需求是否属于「微型单点任务」。"
+                            "设为 true 的典型场景：起名字、写一条 Slogan、改一句文案、"
+                            "画一张海报、查一个竞品、出一条创意——这些都是单点微操，绝非全案。"
+                            "设为 false 的典型场景：从零打造一个完整品牌、做一整套品牌战略、"
+                            "完整的市场调研+定位+视觉全案——这些属于宏大叙事的庞大全案。"
+                            "当 is_micro_task=true 时，系统会强制下游 Agent 关闭长文报告模板，"
+                            "直接给出简练干脆的结果；当 false 时，Agent 可以火力全开。"
+                        ),
+                        "default": False
+                    },
                     "plan_explanation": {
                         "type": "string",
                         "description": (

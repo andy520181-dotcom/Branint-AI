@@ -1,4 +1,4 @@
-/* SharedHeroInput — 附件预览条 + 回形针按钮样式 */
+/* SharedHeroInput — 附件预览条 + 回形针按钮 + 智能体胶囊样式 */
 
 /* ── 附件预览条 ────────────────────────────────── */
 .attachmentsRow {
@@ -61,6 +61,73 @@
   color: var(--text-primary);
 }
 
+/* ── 智能体胶囊行 ───────────────────────────────── */
+/* NOTE: 胶囊行放在底部操作栏左侧，与回形针/发送按钮 space-between */
+.capsuleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.capsuleRow::-webkit-scrollbar {
+  display: none;
+}
+
+/* NOTE: 单个胶囊——中英文上下两行，紧凑圆角方块 */
+.capsule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border: 1px solid #e0ded6;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.capsule:hover {
+  background: #f0efe8;
+  border-color: #cccac0;
+  transform: translateY(-1px);
+}
+.capsule:active {
+  transform: translateY(0);
+}
+
+/* 中文名（上行） */
+.capsuleZh {
+  font-size: 11px;
+  font-weight: 500;
+  color: #3d3d3a;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* 英文名（下行），更小、更淡 */
+.capsuleEn {
+  font-size: 9px;
+  font-weight: 400;
+  color: #9e9d97;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* ── 底部右侧操作按钮容器 ──────────────────────── */
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 /* ── 上传按钮（回形针）────────────────────────── */
 .attachBtn {
   display: flex;
@@ -75,7 +142,7 @@
   border-radius: 50%;
   transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
-  margin-right: 6px;
+  margin-right: 2px;
 }
 .attachBtn:hover {
   background: var(--color-surface-2);
@@ -89,3 +156,14 @@
 .hiddenFileInput {
   display: none;
 }
+
+/* ── 响应式：小屏隐藏英文行 ─────────────────────── */
+@media (max-width: 520px) {
+  .capsule {
+    padding: 3px 8px;
+  }
+  .capsuleEn {
+    display: none;
+  }
+}
+
