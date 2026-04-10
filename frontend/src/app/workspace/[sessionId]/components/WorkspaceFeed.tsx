@@ -79,6 +79,7 @@ export function WorkspaceFeed({
                     status={state?.status ?? 'waiting'}
                     hasNext={hasNext}
                     hasConnector={hasNext}
+                    rawOutput={output}
                     plainBubble={false}
                     t={t}
                   >
