@@ -511,7 +511,8 @@ export default function WorkspacePage() {
     return false;
   }, [previousRounds.length, userPrompt, isStreaming, finalReport, agents]);
 
-  const showHeroInput = restored !== null && !error && !hasFeedContent;
+  const isLoading = restored === null;
+  const showHeroInput = !isLoading && !error && !hasFeedContent;
 
   const visibleConfigs = selectedAgents
     ? AGENT_CONFIGS.filter((c) => selectedAgents.includes(c.id))
@@ -543,11 +544,15 @@ export default function WorkspacePage() {
         isComplete={isComplete}
         error={error}
         showHeroInput={showHeroInput}
+        isLoading={isLoading}
         t={t}
       />
 
       <main className={`${styles.main} ${showHeroInput ? styles.mainHeroShell : ''}`}>
-        {showHeroInput ? (
+        {isLoading ? (
+          /* 加载过渡态：彻底不渲染具体内容避免底框乱闪 */
+          <div style={{ flex: 1 }} />
+        ) : showHeroInput ? (
           <WorkspaceHeroEmpty
             textareaRef={textareaRef}
             bottomPrompt={bottomPrompt}

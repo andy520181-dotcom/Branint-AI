@@ -12,6 +12,7 @@ export interface WorkspaceTopBarProps {
   isComplete: boolean;
   error: string | null;
   showHeroInput: boolean;
+  isLoading?: boolean;
   t: TFn;
 }
 
@@ -22,6 +23,7 @@ export function WorkspaceTopBar({
   isComplete,
   error,
   showHeroInput,
+  isLoading,
   t,
 }: WorkspaceTopBarProps) {
   return (
@@ -56,7 +58,7 @@ export function WorkspaceTopBar({
         </button>
       </div>
       <div className={styles.statusBadge}>
-        {isComplete ? (
+        {isLoading ? null : isComplete ? (
           <>
             <span className={styles.dotDone} /> {t('workspace.status.done')}
           </>
