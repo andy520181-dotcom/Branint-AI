@@ -11,13 +11,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: none;
   padding: 0;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--color-surface);
-  /* NOTE: 与 Agent 头像、系统设置头像统一的轻阴影参数 */
-  box-shadow: var(--shadow-agent-avatar);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05); /* 加一圈极淡边线凸显圆形轮廓 */
+  /* NOTE: 使用比系统预设更明显一点的独立轻阴影，避免在 f5 浅灰色底上隐形 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: opacity 150ms ease, transform 150ms ease;
 }
 .avatar:hover { opacity: 0.88; transform: scale(1.05); }
@@ -75,7 +75,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface);
+  background: var(--color-bg); /* 与弹窗纯白相区分 */
+  box-shadow: var(--shadow-agent-avatar);
 }
 .avatarImgSm {
   width: 100%;
