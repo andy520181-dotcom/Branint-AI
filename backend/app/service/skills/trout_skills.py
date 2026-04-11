@@ -45,6 +45,16 @@ TROUT_TOOLS: list[dict] = [
             "parameters": {
                 "type": "object",
                 "properties": {
+                    "task_mode": {
+                        "type": "string",
+                        "enum": ["full_strategy", "name_only", "slogan_only", "positioning_only", "patch"],
+                        "description": "识别任务意图，决定走哪条执行路径",
+                    },
+                    "patch_target_tools": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "仅在 task_mode='patch' 时填写。指出需要被热更新/调用的具体底层工具名称。",
+                    },
                     "brand_scenario": {
                         "type": "string",
                         "enum": [
@@ -68,7 +78,7 @@ TROUT_TOOLS: list[dict] = [
                             "enum": ["jwt_4questions", "porter_competitive", "blue_ocean", "ansoff_matrix"],
                         },
                         "description": (
-                            "Layer 0 竞争战略分析框架，jwt_4questions 始终必选，"
+                            "【针对 full_strategy 模式】Layer 0 竞争战略分析框架，jwt_4questions 始终必选，"
                             "按场景再选1-2个其他框架（竞争激烈→porter；"
                             "需找蓝海→blue_ocean；增长方向不明→ansoff_matrix）"
                         ),
@@ -77,7 +87,7 @@ TROUT_TOOLS: list[dict] = [
                         "type": "string",
                         "enum": ["trout_positioning", "ries_positioning", "stp_positioning"],
                         "description": (
-                            "Layer 1 核心定位主理论，必须且只能选1个。"
+                            "【针对 full_strategy 模式】Layer 1 核心定位主理论，必须且只能选1个。"
                             "竞争激烈找差异化→trout_positioning；"
                             "需创造新品类→ries_positioning；"
                             "新市场细分→stp_positioning"
@@ -109,7 +119,7 @@ TROUT_TOOLS: list[dict] = [
                             },
                             "required": ["driver_type", "framework_name", "rationale"],
                         },
-                        "description": "Layer 2 驱动力框架，按需选 0-2 个，超过2个会导致分析失焦",
+                        "description": "【针对 full_strategy 模式】Layer 2 驱动力框架，按需选 0-2 个，超过2个会导致分析失焦",
                     },
                     "optional_tools": {
                         "type": "array",
@@ -125,9 +135,7 @@ TROUT_TOOLS: list[dict] = [
                     },
                 },
                 "required": [
-                    "brand_scenario", "scenario_diagnosis",
-                    "layer0_frameworks", "layer1_theory", "layer1_rationale",
-                    "layer2_drivers", "optional_tools", "priority_emphasis",
+                    "task_mode", "brand_scenario", "scenario_diagnosis", "priority_emphasis"
                 ],
             },
         },
@@ -585,39 +593,55 @@ TROUT_TOOLS: list[dict] = [
 def execute_select_frameworks(args: dict[str, Any]) -> str:
     """
     解析全局规划结果，构建执行序列摘要。
-    NOTE: Python 层强制保障：build_brand_house 和 synthesize_strategy_report 必须在执行计划中。
+    根据 task_mode 动态分发路由。
     """
+    task_mode = args.get("task_mode", "full_strategy")
     scenario = args.get("brand_scenario", "unknown")
-    layer0 = args.get("layer0_frameworks", ["jwt_4questions"])
-    layer1 = args.get("layer1_theory", "trout_positioning")
-    layer2 = args.get("layer2_drivers", [])
-    optional = args.get("optional_tools", [])
     emphasis = args.get("priority_emphasis", "")
 
-    # NOTE: 强制确保 jwt_4questions 在 Layer 0 中
-    if "jwt_4questions" not in layer0:
-        layer0 = ["jwt_4questions"] + layer0
-        logger.warning("⚠️ JWT品牌四问被强制加入 Layer 0（必跑项）")
+    # 根据不同的 task_mode 编排执行计划
+    if task_mode == "name_only":
+        execution_plan = ["generate_naming_candidates"]
+    elif task_mode == "slogan_only":
+        execution_plan = []  # 由模型直接补全文字输出，或最多通过 positioning 提供支撑
+    elif task_mode == "positioning_only":
+        execution_plan = ["apply_positioning_theory"]
+    elif task_mode == "patch":
+        execution_plan = args.get("patch_target_tools", [])
+    else:
+        # 默认：full_strategy
+        layer0 = args.get("layer0_frameworks", ["jwt_4questions"])
+        layer1 = args.get("layer1_theory", "trout_positioning")
+        layer2 = args.get("layer2_drivers", [])
+        optional = args.get("optional_tools", [])
 
-    # 构建执行序列
-    execution_plan = ["analyze_competitive_landscape", "apply_positioning_theory"]
-    for driver in layer2:
-        execution_plan.append(f"apply_brand_driver({driver.get('framework_name', '')})")
-    execution_plan.append("build_brand_house")
-    execution_plan.extend(optional)
-    execution_plan.append("synthesize_strategy_report")
+        # NOTE: 强制确保 jwt_4questions 在 Layer 0 中
+        if "jwt_4questions" not in layer0:
+            layer0 = ["jwt_4questions"] + layer0
+            logger.warning("⚠️ JWT品牌四问被强制加入 Layer 0（必跑项）")
+            
+        execution_plan = ["analyze_competitive_landscape", "apply_positioning_theory"]
+        for driver in layer2: # type: ignore
+            execution_plan.append(f"apply_brand_driver({driver.get('framework_name', '')})")
+        execution_plan.append("build_brand_house")
+        execution_plan.extend(optional)
+        execution_plan.append("synthesize_strategy_report")
 
-    layer2_names = [d.get("framework_name", "") for d in layer2] if layer2 else ["无"]
+    layer2_names = [d.get("framework_name", "") for d in args.get("layer2_drivers", [])] if args.get("layer2_drivers") else ["无"]
 
     summary = (
-        f"✅ 全局规划完成\n"
+        f"✅ 任务意图解析完成：当前模式 `{task_mode}`\n"
         f"场景：{scenario} | 战略重心：{emphasis}\n"
-        f"Layer 0（竞争分析）：{', '.join(layer0)}\n"
-        f"Layer 1（核心定位）：{layer1}\n"
-        f"Layer 2（驱动力）：{', '.join(layer2_names)}\n"
-        f"可选工具：{', '.join(optional) if optional else '无'}\n"
-        f"执行顺序：{' → '.join(execution_plan)}"
+        f"执行顺序：{' → '.join(execution_plan) if execution_plan else '无工具调用，准备直接回复'}"
     )
+    if task_mode == "full_strategy":
+        summary += (
+            f"\n--- full_strategy 理论分配 ---\n"
+            f"Layer 0（竞争分析）：{', '.join(args.get('layer0_frameworks', []))}\n"
+            f"Layer 1（核心定位）：{args.get('layer1_theory', '')}\n"
+            f"Layer 2（驱动力）：{', '.join(layer2_names)}\n"
+            f"可选工具：{', '.join(args.get('optional_tools', [])) if args.get('optional_tools') else '无'}"
+        )
     logger.info("Trout 全局规划：%s", summary)
     return summary
 

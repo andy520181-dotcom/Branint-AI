@@ -265,8 +265,20 @@ class AgentOrchestrator:
                 project_context["full_outputs"][aid] = real_output
                 project_context["handoffs"][aid] = _extract_handoff(real_output)
 
+        # ── 防线 0：快捷键意图识别 (1/2/3 菜单) ──────────────────────────
+        input_stripped = user_prompt.strip()
+        if input_stripped in ["1", "1.", "【1】", "[1]", "(1)"]:
+            logger.info("捕获快捷菜单指令 [1] -> 转换为全案执行")
+            effective_prompt = "@lois @scher 战略已定稿。请基于现在的 Handoff 上下文，同步生成商业文案与视觉指导。"
+        elif input_stripped in ["2", "2.", "【2】", "[2]", "(2)"]:
+            logger.info("捕获快捷菜单指令 [2] -> 转换为内容策划")
+            effective_prompt = "@lois 战略已定稿。请基于现在的 Handoff 上下文，仅生成商业文案。"
+        elif input_stripped in ["3", "3.", "【3】", "[3]", "(3)"]:
+            logger.info("捕获快捷菜单指令 [3] -> 转换为美术指导")
+            effective_prompt = "@scher 战略已定稿。请基于现在的 Handoff 上下文，仅生成美术指导与视觉素材。"
+
         # ── 防线 1：@提及 显式拦截（优先级最高，直接跳过 Ogilvy 推理）──────
-        explicit_agents = _parse_at_mentions(user_prompt)
+        explicit_agents = _parse_at_mentions(effective_prompt)
         is_micro_task = False  # NOTE: 全局降维标记，贯穿整个流水线
 
         # ─── 品牌顾问：需求分析 & 路由诊断（工具先行） ──────────────

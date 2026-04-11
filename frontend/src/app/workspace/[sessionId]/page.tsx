@@ -143,9 +143,9 @@ export default function WorkspacePage() {
     return { history, currentAgents };
   }, [previousRounds, userPrompt]);
 
-  const handleSubmit = async () => {
-    if (!bottomPrompt.trim() || !user || submitting) return;
-    const inputText = bottomPrompt.trim();
+  const handleSubmit = async (overridePrompt?: string) => {
+    const inputText = (overridePrompt ?? bottomPrompt).trim();
+    if (!inputText || !user || submitting) return;
     setSubmitting(true);
 
     // NOTE: 如果 Trout 正在等待追问回答，把用户输入作为答案而非新 prompt
@@ -386,20 +386,11 @@ export default function WorkspacePage() {
         if (treatAsCompleted) {
           // 已完成（包含崩溃卡住的 running）：直接还原展示，绝不触发 SSE
           if (snap.status === 'error' && !hasAnyOutput) {
-            const hasHistory = (snap.conversation_history || []).length > 0;
-            if (!hasHistory) {
-              // 无历史记录：全新会话就已失败，展示阻断型错误（无法恢复）
-              useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
-            } else {
-              // NOTE: 有历史记录说明只是本轮生成失败（如服务端 LLM API 异常）。
-              // 不设阻断型 error，改为轻量 Toast 提醒，立即放开输入框让用户重新发送。
-              // 这样避免了"刷新 → 仍报错 → 再刷新"的死循环。
-              useWorkspaceStore.setState({ isStreaming: false, error: null });
-              // 延迟 600ms 等 UI 渲染完毕再弹出 Toast，避免骨架屏切换期间闪烁
-              setTimeout(() => {
-                showFeedToast(t('workspace.error.lastRoundFailed'));
-              }, 600);
-            }
+            useWorkspaceStore.setState({ isStreaming: false, error: null });
+            // 延迟 600ms 等 UI 渲染完毕再弹出 Toast，避免骨架屏切换期间闪烁
+            setTimeout(() => {
+              showFeedToast(t('workspace.error.lastRoundFailed'));
+            }, 600);
           }
           setRestored(true);
         } else if (liveSession) {
@@ -559,7 +550,7 @@ export default function WorkspacePage() {
             setBottomPrompt={setBottomPrompt}
             heroFocused={heroFocused}
             setHeroFocused={setHeroFocused}
-            onSubmit={handleSubmit}
+            onSubmit={() => handleSubmit()}
             submitting={submitting}
             user={user}
             attachments={attachments}
@@ -589,7 +580,7 @@ export default function WorkspacePage() {
               textareaRef={textareaRef}
               bottomPrompt={bottomPrompt}
               setBottomPrompt={setBottomPrompt}
-              onSubmit={handleSubmit}
+              onSubmit={() => handleSubmit()}
               isStreaming={isStreaming}
               submitting={submitting}
               onCancel={cancel}

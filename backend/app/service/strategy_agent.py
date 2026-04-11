@@ -74,23 +74,23 @@ async def run_strategy_agent_stream(
     """
 
 
-    # ─── Chat/Patch Mode ────────────────────────────────────
+    # ─── 统一入口启动 ────────────────────────────────────
     if patch_instruction:
-        yield _make_progress("start", label="Trout 开启闲聊模式，准备为您精修组件…")
-        async for chunk in run_strategy_patch_stream(patch_instruction, old_output):
-            yield chunk
-        return
-
-    yield _make_progress("start", label="Trout 启动战略规划引擎，准备开始深度推演…")
+        user_prompt = patch_instruction
+        yield _make_progress("start", label="Trout 接收到局部指令，正在推演…")
+    else:
+        yield _make_progress("start", label="Trout 启动战略规划引擎，准备开始深度推演…")
 
     # ─── Phase 0：组装输入消息 ────────────────────────────────
     system_prompt = load_agent_prompt("strategy")
 
-    user_content = f"品牌需求：\n{user_prompt}"
+    user_content = f"品牌需求/指令：\n{user_prompt}"
     if handoff_context:
         user_content += f"\n\n【市场研究交接（Wacksman）】\n{handoff_context}"
     if clarification_answers:
         user_content += f"\n\n【用户补充信息（战略追问回答）】\n{clarification_answers}"
+    if old_output:
+        user_content += f"\n\n【已有报告底稿（用于局部修改/热更新参考）】\n{old_output}"
 
     user_content += (
         "\n\n【执行指令】请首先调用 select_applicable_frameworks 完成全局规划，"
@@ -106,6 +106,7 @@ async def run_strategy_agent_stream(
     # 执行状态追踪
     executed_frameworks: list[str] = []
     theory_combo: dict = {}
+    task_mode: str = "full_strategy"
     yielded_action_labels: set[str] = set()
 
     # ─── Phase 1：工具调用循环 ────────────────────────────────
@@ -163,11 +164,14 @@ async def run_strategy_agent_stream(
                             if tc.get("function", {}).get("name") == FRAMEWORK_SELECTOR:
                                 raw = tc["function"].get("arguments", "{}")
                                 args = json.loads(raw) if isinstance(raw, str) else raw
+                                task_mode = args.get("task_mode", "full_strategy")
                                 theory_combo = {
+                                    "task_mode": task_mode,
                                     "layer0": args.get("layer0_frameworks", []),
                                     "layer1": args.get("layer1_theory", ""),
                                     "layer2": [d.get("framework_name") for d in args.get("layer2_drivers", [])],
                                     "optional": args.get("optional_tools", []),
+                                    "patch_target_tools": args.get("patch_target_tools", [])
                                 }
                                 logger.info("Trout theory_combo 解析: %s", theory_combo)
                                 break
@@ -210,7 +214,7 @@ async def run_strategy_agent_stream(
             logger.warning("Trout Round %d 空响应，终止循环", round_idx)
             break
 
-    # ─── Phase 2：流式生成报告 ───────────────────────────────
+    # ─── Phase 2：流式输出（报告/对话/补丁） ───────────────────────────────
     executed_display = [
         f for f in executed_frameworks
         if f not in (FRAMEWORK_SELECTOR, SYNTHESIS_TRIGGER)
@@ -226,20 +230,50 @@ async def run_strategy_agent_stream(
     }
     chapters = [chapter_map[f] for f in executed_display if f in chapter_map]
 
-    messages.append({
-        "role": "user",
-        "content": (
-            f"所有框架分析已完成（{len(executed_display)} 个工具）。"
-            f"请根据以上分析结果，生成完整的品牌战略 Markdown 报告。"
-            f"本次需输出章节：{' | '.join(chapters)}。"
-            "严格按照 strategy.md 报告结构，每章详尽展开，"
-            "最后附上 <handoff> 标签数据（含传播方向指引和视觉方向指引）。"
-        ),
-    })
+    if task_mode == "full_strategy":
+        messages.append({
+            "role": "user",
+            "content": (
+                f"所有框架分析已完成（{len(executed_display)} 个工具）。\n"
+                f"请根据以上分析结果，生成完整的品牌战略 Markdown 报告。\n"
+                f"本次需输出章节：{' | '.join(chapters)}。\n"
+                "严格按照 strategy.md 报告结构，每章详尽展开，\n"
+                "最后附上 <handoff> 标签数据（含传播方向指引和视觉方向指引）。"
+            ),
+        })
+        logger.info("Trout Phase 2 开始流式生成长篇战略报告...")
+    else:
+        patch_notice = ""
+        if task_mode == "patch":
+            patch_notice = (
+                "\n\n注意：当前为 patch 热更新模式！\n"
+                "请将你修改后的具体内容，使用 `<PATCH_BLOCK>` 和 `</PATCH_BLOCK>` 标签紧接在回复中完整输出（如完整段落或最新 JSON 卡片）。\n"
+                "标签外的内容会作为陪聊话术。如果被要求修改品牌屋JSON，务必输出完整的 JSON 卡片。不要全盘重写报告全文！"
+            )
+        messages.append({
+            "role": "user",
+            "content": (
+                f"任务类型 ({task_mode}) 所需的框架分析/推演已完成。\n"
+                "请直接以资深品牌顾问的口吻（极其简练、亲切高级，直接切入正题），回复用户的具体诉求或输出修改结果。\n"
+                "如果不涉及全盘战略再造，千万不要去写大型 Markdown 报告模板。"
+                f"{patch_notice}"
+            ),
+        })
+        logger.info("Trout Phase 2 开始流式生成直接对话与补丁响应 (mode=%s)...", task_mode)
 
-    logger.info("Trout Phase 2 开始流式生成报告（%d 章）...", len(chapters))
     async for chunk in call_llm_stream(messages):
         yield chunk
+
+    if task_mode == "full_strategy":
+        menu_text = (
+            "\n\n---\n**核心战略现已成型。** 如果您觉得大方向准确，我们可以直接开始产出物料。\n"
+            "请回复序号，让我为您调配下一步团队资源：\n\n"
+            "1.同步推演文案与视觉\n"
+            "2.策划内容文案\n"
+            "3.输出视觉美术\n\n"
+            "*(若战略仍需打磨，请直接提出修改要求即可)*\n"
+        )
+        yield menu_text
 
     logger.info(
         "Trout 报告生成完成（工具调用共 %d 次）",
@@ -258,21 +292,30 @@ def _inject_progress_hint(
 ) -> None:
     """
     在工具结果后注入执行进度提示，帮助 LLM 明确下一步工具。
-    NOTE: 参考 market_agent.py 的 PROGRESS_MARKER 机制。
     """
     if not theory_combo:
         return
 
-    # 构建完整预期执行序列
-    expected = ["analyze_competitive_landscape", "apply_positioning_theory"]
-    for fw in theory_combo.get("layer2", []):
-        if fw:
-            expected.append("apply_brand_driver")
-    expected.append("build_brand_house")
-    expected.extend(theory_combo.get("optional", []))
-    expected.append("synthesize_strategy_report")
+    task_mode = theory_combo.get("task_mode", "full_strategy")
+    expected = []
+    
+    if task_mode == "name_only":
+        expected = ["generate_naming_candidates"]
+    elif task_mode == "slogan_only":
+        expected = []
+    elif task_mode == "positioning_only":
+        expected = ["apply_positioning_theory"]
+    elif task_mode == "patch":
+        expected = list(theory_combo.get("patch_target_tools", []))
+    else:
+        expected = ["analyze_competitive_landscape", "apply_positioning_theory"]
+        for fw in theory_combo.get("layer2", []):
+            if fw:
+                expected.append("apply_brand_driver")
+        expected.append("build_brand_house")
+        expected.extend(theory_combo.get("optional", []))
+        expected.append("synthesize_strategy_report")
 
-    # 去重保持顺序
     seen: set[str] = set()
     expected_unique: list[str] = []
     for item in expected:
@@ -291,36 +334,6 @@ def _inject_progress_hint(
         f"待执行: {' → '.join(remaining)}"
     )
     messages.append({"role": "user", "content": hint})
-    logger.debug("Trout 进度提示注入: 下一步 = %s", next_tool)
+    logger.debug("Trout 进度提示注入: 下一步 = %s, task_mode = %s", next_tool, task_mode)
 
-# ══════════════════════════════════════════════════════════════
-# Phase 3：局部热更新模式 (Patch Mode)
-# ══════════════════════════════════════════════════════════════
 
-async def run_strategy_patch_stream(
-    patch_instruction: str,
-    old_output: str
-) -> AsyncGenerator[str, None]:
-    """
-    Trout 专属的 Chat & Patch 模式：直接结合旧报告和用户指令，流式输出闲聊及热更新补丁。
-    """
-    prompt = (
-        "你是首席品牌战略架构师 Trout。目前处于【局部热更新 / 闲聊模式】。\n"
-        "用户对你之前出具的战略报告提出了新的修改要求或探讨。\n\n"
-        f"【用户的修改要求】：\n{patch_instruction}\n\n"
-        f"【你之前生成的完整报告底稿】：\n{old_output}\n\n"
-        "【回复要求——极其重要】：\n"
-        "1. 首段闲聊：用极其简练、亲切高级的合伙人口吻（切勿打招呼，单刀直入）以普通文本形式回复用户的诉求。例如“已收到，我把愿景部分修饰得更具攻击性了：”。\n"
-        "2. 补丁输出：把你修改后的具体内容，使用 `<PATCH_BLOCK>` 和 `</PATCH_BLOCK>` 标签紧接在回复中输出。\n"
-        "   - 注意：如果用户要求修改品牌屋，请直接在补丁标签内输出完整的最新 ```jsonbrandhouse ... ``` 卡片。\n"
-        "   - 注意：如果修改的是某个Markdown模块（例如口号），请在补丁内输出该完整段落。\n"
-        "   - 注意：不在标签里的内容会被视为陪聊文字展示给用户，标签内部的内容将在后台被精调合并进总档。\n"
-    )
-    
-    messages = [
-        {"role": "system", "content": "你是资深品牌战略专家 Trout，当前处于直接对话与积木化热更新模式。"},
-        {"role": "user", "content": prompt}
-    ]
-    
-    async for chunk in call_llm_stream(messages):
-        yield chunk
