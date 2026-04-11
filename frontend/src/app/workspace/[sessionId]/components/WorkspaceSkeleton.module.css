@@ -123,14 +123,14 @@
   position: relative;
 }
 
-/* NOTE: 单实心三角 —— 与矩形框同色，避免双三角技巧在半透明骨架色上产生色差 */
+/* NOTE: Agent 气泡矩形背景是白色(--color-surface)，三角同色匹配 */
 .feedBubble::before {
   content: '';
   position: absolute;
   left: -7px;
   top: 16px;
   border: 7px solid transparent;
-  border-right-color: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
+  border-right-color: var(--color-surface, #fff);
   border-left: none;
 }
 
