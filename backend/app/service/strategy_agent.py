@@ -171,7 +171,7 @@ async def run_strategy_agent_stream(
                                     "layer1": args.get("layer1_theory", ""),
                                     "layer2": [d.get("framework_name") for d in args.get("layer2_drivers", [])],
                                     "optional": args.get("optional_tools", []),
-                                    "patch_target_tools": args.get("patch_target_tools", [])
+                                    "target_tools": args.get("target_tools", [])
                                 }
                                 logger.info("Trout theory_combo 解析: %s", theory_combo)
                                 break
@@ -299,14 +299,8 @@ def _inject_progress_hint(
     task_mode = theory_combo.get("task_mode", "full_strategy")
     expected = []
     
-    if task_mode == "name_only":
-        expected = ["generate_naming_candidates"]
-    elif task_mode == "slogan_only":
-        expected = []
-    elif task_mode == "positioning_only":
-        expected = ["apply_positioning_theory"]
-    elif task_mode == "patch":
-        expected = list(theory_combo.get("patch_target_tools", []))
+    if task_mode in ("modular_task", "patch"):
+        expected = list(theory_combo.get("target_tools", []))
     else:
         expected = ["analyze_competitive_landscape", "apply_positioning_theory"]
         for fw in theory_combo.get("layer2", []):

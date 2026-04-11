@@ -47,13 +47,13 @@ TROUT_TOOLS: list[dict] = [
                 "properties": {
                     "task_mode": {
                         "type": "string",
-                        "enum": ["full_strategy", "name_only", "slogan_only", "positioning_only", "patch"],
-                        "description": "识别任务意图，决定走哪条执行路径",
+                        "enum": ["full_strategy", "modular_task", "patch"],
+                        "description": "识别任务意图，决定走哪条执行路径。全案流必须为 full_strategy，单点微小需求为 modular_task，售后热更新为 patch。",
                     },
-                    "patch_target_tools": {
+                    "target_tools": {
                         "type": "array",
                         "items": { "type": "string" },
-                        "description": "仅在 task_mode='patch' 时填写。指出需要被热更新/调用的具体底层工具名称。",
+                        "description": "仅在 task_mode='modular_task' 或 'patch' 时大模型自主填写。按需精准选择要调用的底层工具（可以为空）",
                     },
                     "brand_scenario": {
                         "type": "string",
@@ -600,14 +600,8 @@ def execute_select_frameworks(args: dict[str, Any]) -> str:
     emphasis = args.get("priority_emphasis", "")
 
     # 根据不同的 task_mode 编排执行计划
-    if task_mode == "name_only":
-        execution_plan = ["generate_naming_candidates"]
-    elif task_mode == "slogan_only":
-        execution_plan = []  # 由模型直接补全文字输出，或最多通过 positioning 提供支撑
-    elif task_mode == "positioning_only":
-        execution_plan = ["apply_positioning_theory"]
-    elif task_mode == "patch":
-        execution_plan = args.get("patch_target_tools", [])
+    if task_mode in ("modular_task", "patch"):
+        execution_plan = args.get("target_tools", [])
     else:
         # 默认：full_strategy
         layer0 = args.get("layer0_frameworks", ["jwt_4questions"])
