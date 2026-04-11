@@ -21,9 +21,11 @@
   animation: skeletonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* 通用骨架背景 */
+/* NOTE: 用 --color-bg 替代 transparent，得到完全不透明的实色。
+   视觉效果与半透明版完全一致（因为页面背景就是 --color-bg），
+   但现在 border-color 和 background-color 南用同一实色，三角形与矩形完美匹配。 */
 .placeholder {
-  background: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
+  background: color-mix(in srgb, var(--text-muted, #999) 15%, var(--color-bg, #f5f4ed));
 }
 
 /* ── 用户骨架 ── */
@@ -44,7 +46,16 @@
   position: relative;
 }
 
-
+/* NOTE: 实色单三角，与 .placeholder 背景色完全一致，参照 Agent 气泡三角尾巴实现方式。 */
+.userBubble::before {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 14px;
+  border: 8px solid transparent;
+  border-left-color: color-mix(in srgb, var(--text-muted, #999) 15%, var(--color-bg, #f5f4ed));
+  border-right: none;
+}
 
 .userBubbleInner {
   border-radius: var(--radius-md);
