@@ -60,7 +60,8 @@
   right: -6px;
   top: 15px;
   border: 7px solid transparent;
-  border-left-color: var(--color-surface, #fff);
+  /* NOTE: 用页面背景色而非白色，防止三角与骨架灰色摣扰不配 */
+  border-left-color: var(--color-bg, #f5f4ed);
   border-right: none;
 }
 
@@ -148,7 +149,8 @@
   left: -6px;
   top: 15px;
   border: 7px solid transparent;
-  border-right-color: var(--color-surface, #fff);
+  /* NOTE: 用页面背景色覆盖来模拟边框三角，与骨架矩形色调保持一致 */
+  border-right-color: var(--color-bg, #f5f4ed);
   border-left: none;
 }
 
