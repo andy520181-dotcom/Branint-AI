@@ -358,19 +358,128 @@ async def run_market_agent(user_prompt: str, handoff_context: str = "") -> str:
     return final_report
 
 
+# NOTE: orchestrator 捕获此前缀后，emit agent_clarify SSE + session_pause SSE
+AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
+
+
 async def run_market_agent_stream(
-    user_prompt: str, handoff_context: str = ""
+    user_prompt: str,
+    handoff_context: str = "",
+    is_micro_task: bool = False,
 ) -> AsyncGenerator[str, None]:
     """
     市场研究 Agent（流式 + 实时进度反馈）
 
-    流程：
-    1. 研究循环 gen：边检索边 yield 进度 token（PROGRESS_MARKER 前缀）
-    2. 循环结束，取出 (messages, citations) 数据包
-    3. 追加明确的「生成报告」指令，防止 DeepSeek 继续调工具
-    4. 流式生成最终报告 token（过滤 XML 工具调用泄漏）
-    5. 追加 <market_citations> 引用数据块
+    is_micro_task=False: 全流程深度研究（默认）
+    is_micro_task=True:  单点微缩任务车道，支持自适应进问 + 直接调单个工具
     """
+    # ─── Micro-Task 车道 ───────────────────────────────────────
+    if is_micro_task:
+        logger.info("Wacksman Micro-Task 车道启动")
+        yield _make_progress("start", label="Wacksman 收到单点研究指令，准备精准作业…")
+
+        system_prompt = load_agent_prompt("market")
+        context_block = f"\n\n## 品牌顾问移交的项目背景\n{handoff_context}\n" if handoff_context else ""
+
+        micro_directive = (
+            "\n\n[执行指令] 本次属于【单点微缩任务 (Micro-Task)】。\n\n"
+            "## 信息充分性原则（最优先）\n"
+            "在执行任何工具或输出任何内容之前，请先评估用户诉求是否包含完成任务所必需的关键信息。\n"
+            "如果缺少关键信息（例如：品牌名称/行业赛道/目标市场/竞品名称/关键词等），\n"
+            "你必须以 `__AGENT_CLARIFY__:` 作为回复的第一个字符，紧跟一段简洁的追问文字，然后立刻停止。\n"
+            "不要在追问之后继续输出任何分析或结论！\n\n"
+            "## 工具调用原则\n"
+            "如果信息充分，请根据用户诉求的意图选择并调用「直接相关」的工具（可多个），禁止走全流程深度研究路径：\n"
+            "- 市场规模/趋势/行业数据 → web_search_market_data\n"
+            "- 竞品情报/对标分析 → search_competitor_intel\n"
+            "- 用户口碑/社媒声音 → search_social_reviews\n"
+            "- 抓取指定页面评论 → scrape_review_url\n"
+            "- 目标用户画像/人群画像 → mine_consumer_persona\n"
+            "- 情感分析/语义分析 → analyze_semantic_sentiment\n"
+            "- 市场机会/空白分析 → identify_opportunities\n"
+            "- 数据可视化图表 → generate_data_visualization\n"
+            "结果用簡洁专业的市场研究分析师口吻输出，不需要完整深度研究报告。"
+        )
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"请对以下诉求进行市场研究分析：\n\n{user_prompt}{context_block}{micro_directive}"},
+        ]
+
+        search_citations: list[dict] = []
+
+        # NOTE: micro-task 也允许多轮工具调用，但将轮数设为 5（远小于全流程）
+        MAX_MICRO_ROUNDS = 5
+        for round_num in range(MAX_MICRO_ROUNDS):
+            content, tool_calls = await call_llm_with_tools(
+                messages=messages,
+                tools=WACKSMAN_TOOLS,
+            )
+            text_content = (content or "").strip()
+
+            # 情形 A：直接返回文本（追问信号 or 直接对话）
+            if not tool_calls:
+                if text_content.startswith(AGENT_CLARIFY_MARKER):
+                    logger.info("Wacksman Micro-Task 发起追问，会话挂起")
+                    yield text_content
+                else:
+                    logger.info("Wacksman Micro-Task Round %d 直接返回文本", round_num + 1)
+                    yield text_content
+                return
+
+            # 情形 B：工具调用
+            parsed = parse_wacksman_tool_calls(tool_calls)
+            if not parsed:
+                break
+
+            action = parsed["action"]
+            args = parsed["args"]
+
+            # synthesize 工具就是全流程的收皮协议，微缩车道无需调用
+            if action == "synthesize_research_report":
+                break
+
+            action_label = _ACTION_LABELS.get(action, f"执行 {action}…")
+            yield _make_progress(action, action_label)
+
+            clean_content = _strip_tool_xml(content) or None
+            messages.append({
+                "role": "assistant",
+                "content": clean_content,
+                "tool_calls": [{
+                    "id": tool_calls[0].get("id", f"call_{round_num}"),
+                    "type": "function",
+                    "function": {"name": action, "arguments": json.dumps(args, ensure_ascii=False)},
+                }],
+            })
+
+            # 将工具执行结果注入消息历史（复用全流程的执行逻辑）
+            tool_result = await _execute_single_tool(action, args, round_num, search_citations)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_calls[0].get("id", f"call_{round_num}"),
+                "content": tool_result,
+            })
+
+        # NOTE: 微缩任务工具完成后，询问 LLM 直接给出简洁分析结论
+        messages.append({
+            "role": "user",
+            "content": (
+                "所需数据已收集完成。请以资深市场研究分析师的口吻，"
+                "直接针对用户诉求给出简洁、有价值的分析结论或数据。"
+                "不要输出完整的深度研究报告。"
+            ),
+        })
+
+        async for chunk in call_llm_stream(messages):
+            yield chunk
+
+        if search_citations:
+            citations_json = json.dumps(search_citations, ensure_ascii=False)
+            yield f"\n\n<market_citations>{citations_json}</market_citations>"
+        return
+
+    # ─── Full-Research 车道（原有全流程，保持不变）────────────
     logger.info("Wacksman 开始研究循环（中型模式，最多 %d 轮）...", MAX_RESEARCH_ROUNDS)
 
     messages: list[dict] = []
@@ -384,28 +493,22 @@ async def run_market_agent_stream(
 
     logger.info("Wacksman 研究循环完成，来源: %d 条。开始流式生成报告...", len(search_citations))
 
-    # NOTE: 关键修复——在最终流式生成前，追加一条明确的 user 指令
-    # DeepSeek 看到 tool_calls 历史后会倾向于继续调工具，
-    # 显式 user 消息能打断这一惯性，强制进入报告生成模式
     messages.append({
         "role": "user",
         "content": (
-            "所有市场数据已收集完毕。请现在立即根据上述所有研究数据，"
+            "所有市场数据已收集完毕。请现在立刻根据上述所有研究数据，"
             "用中文撰写完整的市场研究报告（Markdown 格式）。"
             "直接输出报告正文，不要调用任何工具，不要输出 XML 标签，"
             "在报告末尾附上 <handoff> 品牌战略交接摘要块。"
         )
     })
 
-    # 构建引用数据块
     citations_json = ""
     if search_citations:
         citations_json = (
             f"\n\n<market_citations>{json.dumps(search_citations, ensure_ascii=False)}</market_citations>"
         )
 
-    # NOTE: 流式生成时过滤 DeepSeek 工具调用 XML 泄漏
-    # 当 buffer 中发现 <|function 或 <function_calls 等标记时，丢弃直到闭合标签
     _xml_buf = ""
     _in_xml = False
     _xml_open_tags = ("<|function_calls|>", "<function_calls>")
@@ -413,7 +516,6 @@ async def run_market_agent_stream(
 
     async for chunk in call_llm_stream(messages):
         if _in_xml:
-            # 正在缓冲 XML 块，检查是否已到闭合标签
             _xml_buf += chunk
             if any(tag in _xml_buf for tag in _xml_close_tags):
                 _in_xml = False
@@ -421,7 +523,6 @@ async def run_market_agent_stream(
                 logger.warning("Wacksman 流式输出中检测并过滤了工具调用 XML 块")
             continue
 
-        # 检测开放标签
         if any(tag in chunk for tag in _xml_open_tags):
             _in_xml = True
             _xml_buf = chunk
@@ -432,3 +533,95 @@ async def run_market_agent_stream(
 
     if citations_json:
         yield citations_json
+
+
+async def _execute_single_tool(
+    action: str,
+    args: dict,
+    round_num: int,
+    search_citations: list[dict],
+) -> str:
+    """
+    NOTE: 封装单个工具的执行逻辑，供 Micro-Task 车道复用。
+    与 _run_research_loop 中的工具执行逻辑一致，避免重复。
+    """
+    if action == "web_search_market_data":
+        query = args.get("query", "")
+        research_angle = args.get("research_angle", "market_size")
+        search_result = await execute_tavily_search(query, max_results=15)
+        for r in search_result.get("results", []):
+            search_citations.append({
+                "type": "market_data", "angle": research_angle,
+                "title": r.get("title", ""), "url": r.get("url", ""),
+                "snippet": r.get("content", "")[:200],
+            })
+        return format_search_result_for_llm(search_result)
+
+    elif action == "search_competitor_intel":
+        brand_name = args.get("brand_name", "")
+        query = args.get("query", "")
+        search_result = await execute_tavily_search(query, max_results=10)
+        for r in search_result.get("results", []):
+            search_citations.append({
+                "type": "competitor", "brand": brand_name,
+                "title": r.get("title", ""), "url": r.get("url", ""),
+                "snippet": r.get("content", "")[:200],
+            })
+        return f"竞品情报：{brand_name}\n" + format_search_result_for_llm(search_result)
+
+    elif action == "search_social_reviews":
+        query = args.get("query", "")
+        platform_focus = args.get("platform_focus", "cross_platform")
+        sentiment_focus = args.get("sentiment_focus", "all")
+        search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=15)
+        for r in search_result.get("results", []):
+            if _is_valid_social_citation(r):
+                search_citations.append({
+                    "type": "social_review", "platform": platform_focus, "sentiment": sentiment_focus,
+                    "title": r.get("title", ""), "url": r.get("url", ""),
+                    "snippet": r.get("content", "")[:200],
+                })
+        return f"用户声音（{platform_focus}）\n" + format_search_result_for_llm(search_result)
+
+    elif action == "scrape_review_url":
+        url = args.get("url", "")
+        platform = args.get("platform", "other")
+        focus = args.get("focus", "")
+        jina_result = await execute_jina_scrape(url, platform, focus)
+        if jina_result.get("success"):
+            search_citations.append({
+                "type": "user_review", "platform": platform,
+                "title": f"{platform.upper()} 用户评价页面",
+                "url": url, "snippet": jina_result.get("content", "")[:200],
+            })
+        return format_jina_result_for_llm(jina_result)
+
+    elif action == "mine_consumer_persona":
+        res = await execute_mine_consumer_persona(
+            args.get("target_audience", ""), args.get("core_pain_points", [])
+        )
+        return json.dumps(res, ensure_ascii=False)
+
+    elif action == "analyze_semantic_sentiment":
+        res = await execute_analyze_semantic_sentiment(
+            args.get("sentiment_summary", ""),
+            args.get("positive_topics", []),
+            args.get("negative_topics", []),
+        )
+        return json.dumps(res, ensure_ascii=False)
+
+    elif action == "identify_opportunities":
+        res = await execute_identify_opportunities(args.get("opportunities_list", []))
+        return json.dumps(res, ensure_ascii=False)
+
+    elif action == "generate_data_visualization":
+        res = await execute_generate_data_visualization(
+            args.get("chart_type", "bar"), args.get("intent_description", "")
+        )
+        return json.dumps(res, ensure_ascii=False)
+
+    elif action == "clarify_research_scope":
+        question = args.get("question", "")
+        return f"[系统] 研究范围需要澄清：{question}"
+
+    return f"[未知工具] {action}"

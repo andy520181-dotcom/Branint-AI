@@ -631,7 +631,8 @@ class AgentOrchestrator:
             if agent_key == "market":
                 # NOTE: 市场研究是第一个专业 Agent，接收品牌顾问的初步分析作为背景
                 handoff_context = _build_handoff_context(project_context, ["consultant_plan"])
-                stream = run_market_agent_stream(enriched_user_prompt, handoff_context)
+                stream = run_market_agent_stream(enriched_user_prompt, handoff_context, is_micro_task=is_micro_task)
+
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
                 is_strategy_rerun = "strategy" in project_context["full_outputs"]
