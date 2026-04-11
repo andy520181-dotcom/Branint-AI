@@ -32,7 +32,7 @@ from app.service.skills.wacksman_skills import (
 logger = logging.getLogger(__name__)
 
 # NOTE: 中型检索模式的最大轮次限制，防止无限递归调用
-MAX_RESEARCH_ROUNDS = 7
+MAX_RESEARCH_ROUNDS = 10
 
 # NOTE: 进度事件特殊前缀，Orchestrator 通过此前缀识别并转发为独立 SSE 事件
 # 不会被当作报告文本内容累积到 agent output 中
@@ -229,7 +229,7 @@ async def _run_research_loop(
         elif action == "web_search_market_data":
             query = args.get("query", "")
             research_angle = args.get("research_angle", "market_size")
-            search_result = await execute_tavily_search(query, max_results=8)
+            search_result = await execute_tavily_search(query, max_results=15)
             tool_result = format_search_result_for_llm(search_result)
             for r in search_result.get("results", []):
                 search_citations.append({
@@ -243,7 +243,7 @@ async def _run_research_loop(
         elif action == "search_competitor_intel":
             brand_name = args.get("brand_name", "")
             query = args.get("query", "")
-            search_result = await execute_tavily_search(query, max_results=6)
+            search_result = await execute_tavily_search(query, max_results=10)
             tool_result = f"## 竞品情报：{brand_name}\n" + format_search_result_for_llm(search_result)
             for r in search_result.get("results", []):
                 search_citations.append({
@@ -273,7 +273,7 @@ async def _run_research_loop(
             query = args.get("query", "")
             platform_focus = args.get("platform_focus", "cross_platform")
             sentiment_focus = args.get("sentiment_focus", "all")
-            search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=8)
+            search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=15)
             tool_result = (
                 f"## 用户声音检索结果（平台: {platform_focus}，情感倾向: {sentiment_focus}）\n"
                 + format_search_result_for_llm(search_result)

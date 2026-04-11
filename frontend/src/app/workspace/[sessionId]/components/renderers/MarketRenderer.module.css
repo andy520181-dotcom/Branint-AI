@@ -230,6 +230,63 @@
   background: color-mix(in srgb, var(--agent-strategy) 12%, transparent);
 }
 
+/* ── 引用来源标签容器（横向流式自动换行） */
+.citationPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* 编辑能进行点击的紧凑胶囊标签 */
+.citationPill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 260px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--agent-market);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  cursor: pointer;
+}
+
+.citationPill:hover {
+  background: color-mix(in srgb, var(--agent-market) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--agent-market) 40%, var(--color-border));
+}
+
+.citationPillCompetitor {
+  color: var(--agent-strategy);
+}
+.citationPillCompetitor:hover {
+  background: color-mix(in srgb, var(--agent-strategy) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--agent-strategy) 40%, var(--color-border));
+}
+
+.citationPillSocial {
+  color: var(--agent-content);
+}
+.citationPillSocial:hover {
+  background: color-mix(in srgb, var(--agent-content) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--agent-content) 40%, var(--color-border));
+}
+
+.citationPillReview {
+  color: var(--agent-visual);
+}
+.citationPillReview:hover {
+  background: color-mix(in srgb, var(--agent-visual) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--agent-visual) 40%, var(--color-border));
+}
+
 /* 用户声音（社交平台） */
 .citationGroupLabelSocial {
   color: var(--agent-content);
