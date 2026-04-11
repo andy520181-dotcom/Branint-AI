@@ -124,7 +124,16 @@
   gap: 14px;
   position: relative;
 }
-
+/* NOTE: Agent 气泡左侧三角尾巴，实色与 --color-surface 矩形背景完全一致 */
+.feedBubble::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 14px;
+  border: 8px solid transparent;
+  border-right-color: var(--color-surface, #fff);
+  border-left: none;
+}
 
 
 .line {
