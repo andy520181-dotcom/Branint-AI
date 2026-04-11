@@ -110,6 +110,9 @@ async def run_strategy_agent_stream(
             "- 品牌驱动力/传播逻辑 → apply_brand_driver\n"
             "- 命名/Slogan → generate_naming_candidates\n"
             "- 多品牌/业务矩阵 → design_brand_architecture\n"
+            "- 传播策略/内容方向/品牌声音 → plan_communication_strategy\n"
+            "- 新品牌上市/GTM/渠道策略/定价 → design_gtm_strategy\n"
+            "- 品牌健康度/品牌复盘/战略回顾 → audit_brand_health\n"
             "- 即兴问答/无需工具 → 直接以资深顾问口吻极简作答\n\n"
             "绝对禁止：输出完整 Markdown 长文报告 / 调用多个工具进行全案推演。"
         )
@@ -170,6 +173,9 @@ async def run_strategy_agent_stream(
                     "build_brand_house": "搭建严密的品牌屋框架",
                     "design_brand_architecture": "梳理多品牌业务矩阵",
                     "generate_naming_candidates": "碰撞中英文品牌命名建议",
+                    "plan_communication_strategy": "规划品牌传播策略与触点矩阵",
+                    "design_gtm_strategy": "制定品牌上市路径与渠道策略",
+                    "audit_brand_health": "执行品牌健康度全维审计",
                     "synthesize_strategy_report": "全维定鼎，正在整合战略报告",
                 }.get(tool_name, f"执行 {tool_name}")
                 

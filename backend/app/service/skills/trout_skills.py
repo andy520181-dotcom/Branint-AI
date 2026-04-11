@@ -218,7 +218,8 @@ TROUT_TOOLS: list[dict] = [
                         "description": "Layer 0 整体战略结论（2-3句话，明确竞争方式和增长方向，为Layer1选择定位理论提供依据）",
                     },
                 },
-                "required": ["jwt_where_now", "jwt_why_here", "jwt_where_go", "jwt_how_get", "competitive_conclusion"],
+                # NOTE: JWT 四问已从必填项移除，由 LLM 根据场景自主决定是否填写
+                "required": ["competitive_conclusion"],
             },
         },
     },
@@ -583,6 +584,177 @@ TROUT_TOOLS: list[dict] = [
             },
         },
     },
+
+    # ─── ⑨ plan_communication_strategy（可选）────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "plan_communication_strategy",
+            "description": (
+                "可选工具：品牌传播策略规划。当用户提出传播方向、媒介策略、内容方向、"
+                "品牌声音等诉求时调用。输出核心传播主张、触点矩阵和内容方向指引。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "core_message": {
+                        "type": "string",
+                        "description": "核心传播主张（一句话，基于品牌定位提炼，所有内容围绕此展开）",
+                    },
+                    "target_audience_summary": {
+                        "type": "string",
+                        "description": "目标受众核心画像描述（简洁，1-2句）",
+                    },
+                    "communication_phases": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "phase": {"type": "string", "description": "阶段名称（如：认知期/考虑期/转化期）"},
+                                "objective": {"type": "string", "description": "该阶段传播目标"},
+                                "key_message": {"type": "string", "description": "该阶段核心信息"},
+                                "channels": {"type": "array", "items": {"type": "string"}, "description": "推荐触点渠道"},
+                            },
+                            "required": ["phase", "objective", "key_message", "channels"],
+                        },
+                        "description": "分阶段传播路径（2-3个阶段）",
+                    },
+                    "content_pillars": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "内容支柱主题（3-4个，指导内容方向）",
+                    },
+                    "brand_voice_guide": {
+                        "type": "string",
+                        "description": "品牌声音指南（语气、措辞风格、禁用表达）",
+                    },
+                    "kpi_framework": {
+                        "type": "string",
+                        "description": "建议衡量传播效果的核心 KPI 框架（如：品牌认知度/NPS/内容互动率）",
+                    },
+                },
+                "required": ["core_message", "target_audience_summary", "communication_phases", "content_pillars"],
+            },
+        },
+    },
+
+    # ─── ⑩ design_gtm_strategy（可选）────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "design_gtm_strategy",
+            "description": (
+                "可选工具：品牌/产品上市策略（Go-To-Market）。当用户提出新品牌上市、"
+                "产品发布、进入新市场等诉求时调用。输出上市路径、渠道策略、定价方向和阶段里程碑。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "gtm_objective": {
+                        "type": "string",
+                        "description": "上市核心目标（如：12个月内获取首批1000个付费用户）",
+                    },
+                    "gtm_model": {
+                        "type": "string",
+                        "enum": ["direct_sales", "channel_partner", "product_led", "community_led", "hybrid"],
+                        "description": "GTM 模式：直销/渠道伙伴/产品驱动/社群驱动/混合",
+                    },
+                    "beachhead_market": {
+                        "type": "string",
+                        "description": "滩头阵地市场（最小初始目标市场，集中资源首先攻克的细分）",
+                    },
+                    "pricing_strategy": {
+                        "type": "string",
+                        "enum": ["penetration", "premium", "freemium", "value_based", "subscription"],
+                        "description": "定价策略：渗透定价/溢价定价/免费增值/价值定价/订阅制",
+                    },
+                    "pricing_rationale": {"type": "string", "description": "定价策略选择原因"},
+                    "distribution_channels": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "核心分发渠道列表（线上+线下）",
+                    },
+                    "launch_phases": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "phase_name": {"type": "string"},
+                                "timeline": {"type": "string"},
+                                "key_actions": {"type": "array", "items": {"type": "string"}},
+                                "success_metric": {"type": "string"},
+                            },
+                            "required": ["phase_name", "timeline", "key_actions", "success_metric"],
+                        },
+                        "description": "上市阶段里程碑（2-3个阶段）",
+                    },
+                    "key_risks": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "主要风险与应对预案（2-3条）",
+                    },
+                },
+                "required": ["gtm_objective", "gtm_model", "beachhead_market", "pricing_strategy", "distribution_channels", "launch_phases"],
+            },
+        },
+    },
+
+    # ─── ⑪ audit_brand_health（可选）─────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "audit_brand_health",
+            "description": (
+                "可选工具：品牌健康度审计。当用户提出品牌复盘、健康度评估、"
+                "战略回顾或找出品牌问题根源等诉求时调用。输出多维度评分与优先改进建议。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "brand_name": {"type": "string", "description": "被审计品牌名称"},
+                    "audit_dimensions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "dimension": {
+                                    "type": "string",
+                                    "enum": ["positioning_clarity", "differentiation", "brand_consistency",
+                                             "audience_resonance", "visual_identity", "communication_effectiveness",
+                                             "brand_equity", "competitive_advantage"],
+                                    "description": "审计维度",
+                                },
+                                "score": {"type": "integer", "description": "评分 1-10"},
+                                "finding": {"type": "string", "description": "该维度关键发现（1-2句）"},
+                                "priority": {"type": "string", "enum": ["critical", "important", "nice_to_have"]},
+                            },
+                            "required": ["dimension", "score", "finding", "priority"],
+                        },
+                        "description": "逐维度审计结果",
+                    },
+                    "overall_health_score": {
+                        "type": "integer",
+                        "description": "品牌整体健康度综合评分（1-100）",
+                    },
+                    "critical_issues": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "必须立即解决的关键问题（≤3条）",
+                    },
+                    "quick_wins": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "3个月内可执行的快速改善措施",
+                    },
+                    "long_term_roadmap": {
+                        "type": "string",
+                        "description": "品牌建设12-24个月路线图建议（3-5句）",
+                    },
+                },
+                "required": ["brand_name", "audit_dimensions", "overall_health_score", "critical_issues", "quick_wins"],
+            },
+        },
+    },
 ]
 
 
@@ -905,6 +1077,98 @@ def execute_generate_naming_candidates(args: dict[str, Any]) -> str:
     )
 
 
+def execute_plan_communication_strategy(args: dict[str, Any]) -> str:
+    """品牌传播策略规划：核心主张 + 阶段路径 + 内容支柱。"""
+    phases = args.get("communication_phases", [])
+    phases_text = "\n".join(
+        f"  [{p.get('phase', '')}] 目标：{p.get('objective', '')} | 核心信息：{p.get('key_message', '')} | 渠道：{', '.join(p.get('channels', []))}"
+        for p in phases
+    )
+    pillars = " / ".join(args.get("content_pillars", []))
+    result = (
+        f"【传播策略规划】\n"
+        f"核心传播主张：{args.get('core_message', '')}\n"
+        f"目标受众：{args.get('target_audience_summary', '')}\n\n"
+        f"分阶段路径：\n{phases_text}\n\n"
+        f"内容支柱：{pillars}\n"
+        f"品牌声音：{args.get('brand_voice_guide', '待定')}\n"
+        f"衡量 KPI：{args.get('kpi_framework', '待定')}"
+    )
+    logger.info("传播策略规划完成：%s", args.get("core_message", ""))
+    return result
+
+
+def execute_design_gtm_strategy(args: dict[str, Any]) -> str:
+    """GTM 上市策略：目标 + 模式 + 定价 + 渠道 + 里程碑。"""
+    gtm_model_labels = {
+        "direct_sales": "直销模式",
+        "channel_partner": "渠道伙伴模式",
+        "product_led": "产品驱动增长 (PLG)",
+        "community_led": "社群驱动增长 (CLG)",
+        "hybrid": "混合模式",
+    }
+    pricing_labels = {
+        "penetration": "渗透定价",
+        "premium": "溢价定价",
+        "freemium": "免费增值",
+        "value_based": "价值定价",
+        "subscription": "订阅制",
+    }
+    phases = args.get("launch_phases", [])
+    phases_text = "\n".join(
+        f"  [{p.get('phase_name', '')} · {p.get('timeline', '')}] "
+        f"关键动作：{', '.join(p.get('key_actions', []))} | 成功指标：{p.get('success_metric', '')}"
+        for p in phases
+    )
+    channels = " / ".join(args.get("distribution_channels", []))
+    risks = "\n".join(f"  • {r}" for r in args.get("key_risks", []))
+    result = (
+        f"【GTM 上市策略】\n"
+        f"核心目标：{args.get('gtm_objective', '')}\n"
+        f"GTM 模式：{gtm_model_labels.get(args.get('gtm_model', ''), args.get('gtm_model', ''))}\n"
+        f"滩头市场：{args.get('beachhead_market', '')}\n"
+        f"定价策略：{pricing_labels.get(args.get('pricing_strategy', ''), '')} — {args.get('pricing_rationale', '')}\n"
+        f"分发渠道：{channels}\n\n"
+        f"上市里程碑：\n{phases_text}\n\n"
+        f"主要风险：\n{risks}"
+    )
+    logger.info("GTM 策略规划完成：%s", args.get("gtm_objective", ""))
+    return result
+
+
+def execute_audit_brand_health(args: dict[str, Any]) -> str:
+    """品牌健康度审计：多维评分 + 关键问题 + 改进路线。"""
+    dimension_labels = {
+        "positioning_clarity": "定位清晰度",
+        "differentiation": "差异化程度",
+        "brand_consistency": "品牌一致性",
+        "audience_resonance": "受众共鸣度",
+        "visual_identity": "视觉识别系统",
+        "communication_effectiveness": "传播有效性",
+        "brand_equity": "品牌资产积累",
+        "competitive_advantage": "竞争优势",
+    }
+    priority_labels = {"critical": "🔴关键", "important": "🟡重要", "nice_to_have": "🟢可优化"}
+    dimensions = args.get("audit_dimensions", [])
+    dim_text = "\n".join(
+        f"  {dimension_labels.get(d.get('dimension', ''), d.get('dimension', ''))}："
+        f"{d.get('score', 0)}/10 [{priority_labels.get(d.get('priority', ''), '')}] — {d.get('finding', '')}"
+        for d in dimensions
+    )
+    critical = "\n".join(f"  ⚠️ {i}" for i in args.get("critical_issues", []))
+    wins = "\n".join(f"  ✅ {w}" for w in args.get("quick_wins", []))
+    result = (
+        f"【品牌健康度审计 · {args.get('brand_name', '')}】\n"
+        f"整体健康度评分：{args.get('overall_health_score', 0)}/100\n\n"
+        f"各维度评分：\n{dim_text}\n\n"
+        f"关键问题（立即处理）：\n{critical}\n\n"
+        f"快速改善措施（3个月内）：\n{wins}\n\n"
+        f"12-24个月路线图：{args.get('long_term_roadmap', '待规划')}"
+    )
+    logger.info("品牌健康度审计完成：%s，总分 %s", args.get("brand_name", ""), args.get("overall_health_score", 0))
+    return result
+
+
 def execute_synthesize_report(args: dict[str, Any]) -> str:
     """
     汇总所有框架执行结果，返回报告提示标记。
@@ -948,6 +1212,9 @@ TOOL_EXECUTORS: dict[str, Any] = {
     "design_brand_architecture": execute_design_brand_architecture,
     "generate_naming_candidates": execute_generate_naming_candidates,
     "synthesize_strategy_report": execute_synthesize_report,
+    "plan_communication_strategy": execute_plan_communication_strategy,
+    "design_gtm_strategy": execute_design_gtm_strategy,
+    "audit_brand_health": execute_audit_brand_health,
 }
 
 
