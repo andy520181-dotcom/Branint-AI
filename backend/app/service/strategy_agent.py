@@ -1,18 +1,19 @@
 """
-品牌战略 Agent — Trout v4.0
+品牌战略 Agent — Trout v5.0
 
-工作流（四层理论体系）：
+工作流（四层理论体系 · 已对齐 strategy.md + trout_skills.py v5.0）：
   Phase -1: 自适应反问 — 评估5个关键信息维度的完整度，针对缺口追问，最多3轮
   Phase  0: 输入组装 — 注入 System Prompt + 用户回答 + Wacksman handoff
   Phase  1: 工具调用循环（max 10轮）
     ① select_applicable_frameworks → 全局规划 theory_combo
-    ② analyze_competitive_landscape → Layer 0 竞争分析
-    ③ apply_positioning_theory → Layer 1 定位理论
-    ④ apply_brand_driver（0-2次）→ Layer 2 驱动力
-    ⑤ build_brand_house → 品牌屋（强制）
-    ⑥ design_brand_architecture → 可选
-    ⑦ generate_naming_candidates → 可选
-    ⑧ synthesize_strategy_report → 触发报告，循环结束
+    ② apply_layer0_macro_strategy  → Layer 0 宏观大盘
+    ③ apply_layer1_industry_os     → Layer 1 行业底座引擎
+    ④ apply_layer2_positioning     → Layer 2 心智定位尖刀
+    ⑤ apply_layer3_brand_identity  → Layer 3 身份血肉包装（0-2次）
+    ⑥ build_brand_house            → 品牌屋（强制）
+    ⑦ design_brand_architecture    → 可选
+    ⑧ generate_naming_candidates   → 可选
+    ⑨ synthesize_strategy_report   → 触发报告，循环结束
   Phase  2: 流式生成 Markdown 品牌战略报告
 """
 from __future__ import annotations
@@ -105,9 +106,10 @@ async def run_strategy_agent_stream(
             "## 工具调用原则\n"
             "如果信息充分，请根据用户诉求的意图直接调用「唯一最相关」的单个工具，禁止调用 select_applicable_frameworks：\n"
             "- 品牌屋搭建/重构 → build_brand_house\n"
-            "- 核心定位/定位重塑 → apply_positioning_theory\n"
-            "- 竞争分析/格局梳理 → analyze_competitive_landscape\n"
-            "- 品牌驱动力/传播逻辑 → apply_brand_driver\n"
+            "- 核心定位/定位重塑 → apply_layer2_positioning\n"
+            "- 竞争分析/格局梳理 → apply_layer0_macro_strategy\n"
+            "- 行业底座/市场洞察/五看三定 → apply_layer1_industry_os\n"
+            "- 品牌身份/个性/品牌棱镜 → apply_layer3_brand_identity\n"
             "- 命名/Slogan → generate_naming_candidates\n"
             "- 多品牌/业务矩阵 → design_brand_architecture\n"
             "- 传播策略/内容方向/品牌声音 → plan_communication_strategy\n"
@@ -166,41 +168,40 @@ async def run_strategy_agent_stream(
                 logger.info("Trout 工具执行: %s", tool_name)
                 
                 action_label = {
-                    "select_applicable_frameworks": "构建品牌战略全局规划",
-                    "analyze_competitive_landscape": "审视行业竞争格局与心智缝隙",
-                    "apply_positioning_theory": "推演核心品牌定位",
-                    "apply_brand_driver": "规划品牌传播底层驱动力",
-                    "build_brand_house": "搭建严密的品牌屋框架",
-                    "design_brand_architecture": "梳理多品牌业务矩阵",
-                    "generate_naming_candidates": "碰撞中英文品牌命名建议",
-                    "plan_communication_strategy": "规划品牌传播策略与触点矩阵",
-                    "design_gtm_strategy": "制定品牌上市路径与渠道策略",
-                    "audit_brand_health": "执行品牌健康度全维审计",
-                    "synthesize_strategy_report": "全维定鼎，正在整合战略报告",
+                    "select_applicable_frameworks":  "构建品牌战略全局规划",
+                    "apply_layer0_macro_strategy":   "审视宏观大盘与竞争格局",
+                    "apply_layer1_industry_os":      "构建行业底座引擎",
+                    "apply_layer2_positioning":      "推演心智定位尖刀",
+                    "apply_layer3_brand_identity":   "塑造品牌身份血肉",
+                    "build_brand_house":             "搭建严密的品牌屋框架",
+                    "design_brand_architecture":     "梳理多品牌业务矩阵",
+                    "generate_naming_candidates":    "碰撞中英文品牌命名建议",
+                    "plan_communication_strategy":   "规划品牌传播策略与触点矩阵",
+                    "design_gtm_strategy":           "制定品牌上市路径与渠道策略",
+                    "audit_brand_health":            "执行品牌健康度全维审计",
+                    "synthesize_strategy_report":    "全维定鼎，正在整合战略报告",
                 }.get(tool_name, f"执行 {tool_name}")
                 
                 if action_label not in yielded_action_labels:
                     yield _make_progress(tool_name, label=action_label)
                     yielded_action_labels.add(action_label)
 
-                # 提取 theory_combo 供进度提示使用
+                # NOTE: 提取 theory_combo 供进度提示使用，字段名对齐 trout_skills.py v5.0
                 if tool_name == FRAMEWORK_SELECTOR:
                     try:
-                        # select_applicable_frameworks 的执行结果是文本摘要，theory_combo 在 args 中
-                        # 从 tool_calls 原始 args 中提取
                         for tc in tool_calls:
                             if tc.get("function", {}).get("name") == FRAMEWORK_SELECTOR:
                                 raw = tc["function"].get("arguments", "{}")
                                 args = json.loads(raw) if isinstance(raw, str) else raw
-                                # 只有全案和 patch 会用到这个返回值来覆盖，如果一开始就是 micro_task 则直接保留 modular_task
                                 if not is_micro_task:
                                     task_mode = args.get("task_mode", "full_strategy")
 
                                 theory_combo = {
                                     "task_mode": task_mode,
                                     "layer0": args.get("layer0_frameworks", []),
-                                    "layer1": args.get("layer1_theory", ""),
-                                    "layer2": [d.get("framework_name") for d in args.get("layer2_drivers", [])],
+                                    "layer1": args.get("layer1_industry_engine", ""),
+                                    "layer2": args.get("layer2_positioning_theory", ""),
+                                    "layer3": [d.get("framework_name") for d in args.get("layer3_brand_identity", [])],
                                     "optional": args.get("optional_tools", []),
                                     "target_tools": args.get("target_tools", [])
                                 }
@@ -251,13 +252,15 @@ async def run_strategy_agent_stream(
         if f not in (FRAMEWORK_SELECTOR, SYNTHESIS_TRIGGER)
     ]
 
+    # NOTE: chapter_map 已对齐新四层工具名
     chapter_map = {
-        "analyze_competitive_landscape": "一、竞争战略诊断",
-        "apply_positioning_theory":      "二、核心品牌定位",
-        "apply_brand_driver":            "三、品牌驱动力分析",
-        "build_brand_house":             "四、品牌屋",
-        "design_brand_architecture":     "五、品牌架构",
-        "generate_naming_candidates":    "六、品牌命名建议",
+        "apply_layer0_macro_strategy":  "一、宏观大盘与竞争格局",
+        "apply_layer1_industry_os":     "二、行业底座引擎分析",
+        "apply_layer2_positioning":     "三、核心品牌定位",
+        "apply_layer3_brand_identity":  "四、品牌身份血肉包装",
+        "build_brand_house":            "五、品牌屋",
+        "design_brand_architecture":    "六、品牌架构",
+        "generate_naming_candidates":   "七、品牌命名建议",
     }
     chapters = [chapter_map[f] for f in executed_display if f in chapter_map]
 
@@ -333,10 +336,14 @@ def _inject_progress_hint(
     if task_mode in ("modular_task", "patch"):
         expected = list(theory_combo.get("target_tools", []))
     else:
-        expected = ["analyze_competitive_landscape", "apply_positioning_theory"]
-        for fw in theory_combo.get("layer2", []):
-            if fw:
-                expected.append("apply_brand_driver")
+        # NOTE: 全案路径 L0 → L1 → L2 → L3(0-2次) → 品牌屋 → 可选 → 报告
+        expected = [
+            "apply_layer0_macro_strategy",
+            "apply_layer1_industry_os",
+            "apply_layer2_positioning",
+        ]
+        for _ in theory_combo.get("layer3", []):
+            expected.append("apply_layer3_brand_identity")
         expected.append("build_brand_house")
         expected.extend(theory_combo.get("optional", []))
         expected.append("synthesize_strategy_report")

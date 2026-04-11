@@ -1,18 +1,19 @@
 """
-Trout Agent（品牌战略专家）核心功能库 v4.0
+Trout Agent（品牌战略专家）核心功能库 v5.0
 
-工作流（四层理论体系）：
+工作流（四层理论体系 · 已对齐 strategy.md）：
   Phase -1: 自适应反问（在 strategy_agent.py 中实现，非工具）
   Phase  0: Input Assembly（消息组装）
   Phase  1: Tool Loop（工具调用循环）
     ① select_applicable_frameworks  — 全局规划，输出 theory_combo
-    ② analyze_competitive_landscape — Layer 0：JWT必跑 + 按需选1-2个
-    ③ apply_positioning_theory      — Layer 1：特劳特/里斯/STP 三选一
-    ④ apply_brand_driver            — Layer 2：身份/资产/个性/使命，按需最多2次
-    ⑤ build_brand_house             — 【强制】品牌屋
-    ⑥ design_brand_architecture     — 可选，品牌架构
-    ⑦ generate_naming_candidates    — 可选，命名方案
-    ⑧ synthesize_strategy_report    — 【强制最后】触发报告
+    ② apply_layer0_macro_strategy   — Layer 0：宏观大盘（波特/蓝海/聚焦/安索夫）
+    ③ apply_layer1_industry_os      — Layer 1：行业底座引擎（华为五看/Brand Key/奥美大理想/黄金圈）
+    ④ apply_layer2_positioning      — Layer 2：心智定位尖刀（特劳特/里斯/STP）
+    ⑤ apply_layer3_brand_identity   — Layer 3：身份血肉包装（12原型/Kapferer/Aaker/CBBE）按需 0-2次
+    ⑥ build_brand_house             — 【强制】品牌屋（5层系统收拢模型）
+    ⑦ design_brand_architecture     — 可选，品牌架构
+    ⑧ generate_naming_candidates    — 可选，命名方案
+    ⑨ synthesize_strategy_report    — 【强制最后】触发报告
 """
 from __future__ import annotations
 
@@ -36,10 +37,7 @@ TROUT_TOOLS: list[dict] = [
             "description": (
                 "【必须第一步调用】读取用户补充信息和 Wacksman 市场研究交接，"
                 "规划本次战略执行的完整理论组合（theory_combo）。"
-                "输出包含 Layer 0/1/2 的理论选择和可选工具清单。"
-                "Layer 0 中 JWT品牌四问始终必选；"
-                "Layer 1 的定位理论必须选且只能选1个；"
-                "Layer 2 驱动力框架按需选 0-2 个。"
+                "输出包含 L0宏观大盘 / L1行业底座 / L2心智定位 / L3身份包装 四层理论选择和可选工具清单。"
                 "强制必跑的工具：build_brand_house 和 synthesize_strategy_report。"
             ),
             "parameters": {
@@ -52,8 +50,8 @@ TROUT_TOOLS: list[dict] = [
                     },
                     "target_tools": {
                         "type": "array",
-                        "items": { "type": "string" },
-                        "description": "仅在 task_mode='modular_task' 或 'patch' 时大模型自主填写。按需精准选择要调用的底层工具（可以为空）",
+                        "items": {"type": "string"},
+                        "description": "仅在 task_mode='modular_task' 或 'patch' 时大模型自主填写。按需精准选择要调用的底层工具（可以为空数组）",
                     },
                     "brand_scenario": {
                         "type": "string",
@@ -71,55 +69,77 @@ TROUT_TOOLS: list[dict] = [
                         "type": "string",
                         "description": "判断该场景的依据（2-3句，引用用户原文关键信息）",
                     },
+                    # Layer 0 · 宏观大盘（战略方向选择）
                     "layer0_frameworks": {
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "enum": ["jwt_4questions", "porter_competitive", "blue_ocean", "ansoff_matrix"],
+                            "enum": ["porter_competitive", "blue_ocean", "focus_strategy", "ansoff_matrix"],
                         },
                         "description": (
-                            "【针对 full_strategy 模式】Layer 0 竞争战略分析框架，jwt_4questions 始终必选，"
-                            "按场景再选1-2个其他框架（竞争激烈→porter；"
-                            "需找蓝海→blue_ocean；增长方向不明→ansoff_matrix）"
+                            "【full_strategy】Layer 0 宏观大盘框架，按场景选1-2个："
+                            "竞争激烈→porter_competitive；需找蓝海→blue_ocean；"
+                            "聚焦细分→focus_strategy；增长方向不明→ansoff_matrix"
                         ),
                     },
-                    "layer1_theory": {
+                    # Layer 1 · 行业底座引擎（按行业类型选一个）
+                    "layer1_industry_engine": {
                         "type": "string",
-                        "enum": ["trout_positioning", "ries_positioning", "stp_positioning"],
+                        "enum": [
+                            "huawei_five_views",
+                            "brand_key",
+                            "ogilvy_big_ideal",
+                            "golden_circle",
+                        ],
                         "description": (
-                            "【针对 full_strategy 模式】Layer 1 核心定位主理论，必须且只能选1个。"
-                            "竞争激烈找差异化→trout_positioning；"
-                            "需创造新品类→ries_positioning；"
-                            "新市场细分→stp_positioning"
+                            "【full_strategy】Layer 1 行业底座引擎，必须且只能选1个："
+                            "科技/B2B/制造→huawei_five_views；"
+                            "快消/日化/食品→brand_key；"
+                            "文化/服饰/奢品→ogilvy_big_ideal；"
+                            "创新颠覆/技术初创→golden_circle；"
+                            "通用找增长→huawei_five_views"
                         ),
                     },
                     "layer1_rationale": {
                         "type": "string",
-                        "description": "选择该定位理论的原因（1-2句话）",
+                        "description": "选择该行业底座引擎的原因（1-2句话）",
                     },
-                    "layer2_drivers": {
+                    # Layer 2 · 心智定位尖刀（必选1个）
+                    "layer2_positioning_theory": {
+                        "type": "string",
+                        "enum": ["trout_positioning", "ries_positioning", "stp_positioning"],
+                        "description": (
+                            "【full_strategy】Layer 2 心智定位理论，必须且只能选1个："
+                            "竞争激烈找差异化→trout_positioning；"
+                            "需创造/画新品类→ries_positioning；"
+                            "新市场细分→stp_positioning"
+                        ),
+                    },
+                    # Layer 3 · 身份血肉包装（按需选 0-2 个）
+                    "layer3_brand_identity": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "driver_type": {
+                                "identity_type": {
                                     "type": "string",
-                                    "enum": ["brand_identity", "brand_equity", "brand_personality", "mission_driven"],
+                                    "enum": ["archetype", "brand_prism", "brand_equity", "brand_personality"],
                                 },
                                 "framework_name": {
                                     "type": "string",
                                     "description": (
-                                        "具体框架名：brand_identity→aaker_identity/kapferer_prism/ogilvy_image/ogilvy_honeycomb/lb_brand_mark；"
-                                        "brand_equity→keller_cbbe/yr_bav/brand_value_chain/brand_promise；"
-                                        "brand_personality→jung_aaker_personality；"
-                                        "mission_driven→golden_circle"
+                                        "具体框架名："
+                                        "archetype→jung_12_archetypes；"
+                                        "brand_prism→kapferer_prism；"
+                                        "brand_equity→aaker_identity/keller_cbbe/yr_bav/ogilvy_honeycomb；"
+                                        "brand_personality→jung_aaker_personality"
                                     ),
                                 },
                                 "rationale": {"type": "string", "description": "选用理由（1句）"},
                             },
-                            "required": ["driver_type", "framework_name", "rationale"],
+                            "required": ["identity_type", "framework_name", "rationale"],
                         },
-                        "description": "【针对 full_strategy 模式】Layer 2 驱动力框架，按需选 0-2 个，超过2个会导致分析失焦",
+                        "description": "【full_strategy】Layer 3 身份血肉包装，按需选 0-2 个（奢品必加 kapferer_prism）",
                     },
                     "optional_tools": {
                         "type": "array",
@@ -141,41 +161,24 @@ TROUT_TOOLS: list[dict] = [
         },
     },
 
-    # ─── ② Layer 0：竞争战略分析 ─────────────────────────────
+    # ─── ② Layer 0：宏观大盘分析 ──────────────────────────────
     {
         "type": "function",
         "function": {
-            "name": "analyze_competitive_landscape",
+            "name": "apply_layer0_macro_strategy",
             "description": (
-                "Layer 0 竞争战略分析。JWT品牌四问始终必须完成，"
-                "其他框架（波特/蓝海/安索夫）根据 select_applicable_frameworks 的规划选用。"
-                "本工具输出竞争方式和增长方向，为 Layer 1 定位理论选择提供战略前提。"
+                "Layer 0 宏观大盘分析。根据 select_applicable_frameworks 规划的 layer0_frameworks，"
+                "执行波特竞争战略、蓝海战略、聚焦战略或安索夫增长矩阵中的1-2个分析。"
+                "本工具输出宏观竞争方向和增长路径，为 Layer 1 行业底座选型提供战略前提。"
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    # JWT 四问（始终必填）
-                    "jwt_where_now": {
-                        "type": "string",
-                        "description": "JWT问题1：我们现在在哪？（品牌现状、市场位置、核心挑战）",
-                    },
-                    "jwt_why_here": {
-                        "type": "string",
-                        "description": "JWT问题2：为什么在这里？（根因分析、历史决策、市场力量）",
-                    },
-                    "jwt_where_go": {
-                        "type": "string",
-                        "description": "JWT问题3：我们可以去哪里？（战略机会、差异化空间）",
-                    },
-                    "jwt_how_get": {
-                        "type": "string",
-                        "description": "JWT问题4：我们如何到达那里？（路径、资源、关键动作）",
-                    },
                     # 波特竞争战略（可选）
                     "porter_strategy": {
                         "type": "string",
                         "enum": ["cost_leadership", "differentiation", "focus_cost", "focus_differentiation"],
-                        "description": "波特竞争战略选择（仅在规划中包含porter_competitive时填写）",
+                        "description": "波特竞争战略选择（仅在规划中包含 porter_competitive 时填写）",
                     },
                     "porter_rationale": {
                         "type": "string",
@@ -202,6 +205,15 @@ TROUT_TOOLS: list[dict] = [
                         "items": {"type": "string"},
                         "description": "蓝海四步-创造：哪些行业从未有的要素应该被创造？",
                     },
+                    # 聚焦战略（可选）
+                    "focus_target_segment": {
+                        "type": "string",
+                        "description": "聚焦战略-目标细分市场（精准描述聚焦的垂直领域/人群/场景）",
+                    },
+                    "focus_advantage": {
+                        "type": "string",
+                        "description": "聚焦战略-聚焦后的核心竞争优势",
+                    },
                     # 安索夫矩阵（可选）
                     "ansoff_direction": {
                         "type": "string",
@@ -213,24 +225,89 @@ TROUT_TOOLS: list[dict] = [
                         "description": "选择该增长方向的原因和关键策略",
                     },
                     # 综合结论
-                    "competitive_conclusion": {
+                    "macro_conclusion": {
                         "type": "string",
-                        "description": "Layer 0 整体战略结论（2-3句话，明确竞争方式和增长方向，为Layer1选择定位理论提供依据）",
+                        "description": "Layer 0 整体宏观战略结论（2-3句，明确竞争方式和增长方向，为 L1 行业底座选型提供依据）",
                     },
                 },
-                # NOTE: JWT 四问已从必填项移除，由 LLM 根据场景自主决定是否填写
-                "required": ["competitive_conclusion"],
+                "required": ["macro_conclusion"],
             },
         },
     },
 
-    # ─── ③ Layer 1：核心定位理论（多理论统一入口）─────────────
+    # ─── ③ Layer 1：行业底座引擎（四大行业框架统一入口）────────
     {
         "type": "function",
         "function": {
-            "name": "apply_positioning_theory",
+            "name": "apply_layer1_industry_os",
             "description": (
-                "Layer 1 核心品牌定位分析。根据 select_applicable_frameworks 选定的 layer1_theory，"
+                "Layer 1 行业底座引擎。根据 select_applicable_frameworks 选定的 layer1_industry_engine，"
+                "执行对应的行业底座框架分析。"
+                "engine_type=huawei_five_views → 华为五看（看市场/客户/竞争/自身/机会）+ 三定（定方向/目标/策略）；"
+                "engine_type=brand_key → 联合利华 Brand Key（目标消费者/竞争环境/洞察/利益/信任状/个性/精髓）；"
+                "engine_type=ogilvy_big_ideal → 奥美大理想（文化张力+品牌真相→大理想宣言）；"
+                "engine_type=golden_circle → 西蒙·斯涅克黄金圈（WHY→HOW→WHAT）。"
+                "仅填写与选定引擎对应的参数组，其他参数留空。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "engine_type": {
+                        "type": "string",
+                        "enum": ["huawei_five_views", "brand_key", "ogilvy_big_ideal", "golden_circle"],
+                        "description": "与 select_applicable_frameworks 输出的 layer1_industry_engine 一致",
+                    },
+                    "brand_name": {"type": "string", "description": "品牌名称"},
+                    # ── 华为五看三定参数组 ──
+                    "hw_look_market": {"type": "string", "description": "【华为五看】看市场：市场规模、增速、阶段判断"},
+                    "hw_look_customer": {"type": "string", "description": "【华为五看】看客户：目标客户需求与痛点分析"},
+                    "hw_look_competition": {"type": "string", "description": "【华为五看】看竞争：竞争对手格局与差距分析"},
+                    "hw_look_self": {"type": "string", "description": "【华为五看】看自身：自身核心能力与短板"},
+                    "hw_look_opportunity": {"type": "string", "description": "【华为五看】看机会：可抓取的战略机会窗口"},
+                    "hw_define_direction": {"type": "string", "description": "【华为三定】定方向：战略方向选择"},
+                    "hw_define_target": {"type": "string", "description": "【华为三定】定目标：可量化的战略目标"},
+                    "hw_define_strategy": {"type": "string", "description": "【华为三定】定策略：达成目标的核心举措"},
+                    # ── 联合利华 Brand Key 参数组 ──
+                    "bk_target_consumer": {"type": "string", "description": "【Brand Key】目标消费者：最精准的核心人群画像"},
+                    "bk_competitive_context": {"type": "string", "description": "【Brand Key】竞争环境：主要竞品及市场格局"},
+                    "bk_consumer_insight": {"type": "string", "description": "【Brand Key】消费者洞察：最核心的一句消费者 insight"},
+                    "bk_functional_benefit": {"type": "string", "description": "【Brand Key】功能利益：品牌给消费者带来的最核心功能利益"},
+                    "bk_emotional_benefit": {"type": "string", "description": "【Brand Key】情感利益：品牌带来的情感价值"},
+                    "bk_rtb": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "【Brand Key】信任状 RTB（Reasons to Believe），2-4个核心支撑点",
+                    },
+                    "bk_brand_personality": {"type": "string", "description": "【Brand Key】品牌个性（3-5个形容词）"},
+                    "bk_brand_essence": {"type": "string", "description": "【Brand Key】品牌精髓（一句话，最内核的灵魂）"},
+                    # ── 奥美大理想参数组 ──
+                    "oi_cultural_tension": {"type": "string", "description": "【大理想】文化张力：社会/文化层面存在的矛盾或未解决的紧张关系"},
+                    "oi_brand_truth": {"type": "string", "description": "【大理想】品牌真相：品牌最真实的，与文化张力产生共鸣的核心事实"},
+                    "oi_big_ideal": {"type": "string", "description": "【大理想】大理想宣言：品牌希望为世界带来什么改变（一句话，充满张力）"},
+                    "oi_role_in_culture": {"type": "string", "description": "【大理想】品牌在文化中扮演的角色"},
+                    # ── 黄金圈参数组 ──
+                    "gc_why": {"type": "string", "description": "【黄金圈】WHY：品牌存在的信念与根本目的（最内圈）"},
+                    "gc_how": {"type": "string", "description": "【黄金圈】HOW：实现信念的独特方法与差异化路径"},
+                    "gc_what": {"type": "string", "description": "【黄金圈】WHAT：品牌对外提供的产品或服务（最外圈）"},
+                    "gc_purpose_statement": {"type": "string", "description": "【黄金圈】综合 Purpose 宣言（凝练整个黄金圈的一句话）"},
+                    # 通用结论
+                    "layer1_conclusion": {
+                        "type": "string",
+                        "description": "Layer 1 行业底座核心结论（2-3句），以及如何为 Layer 2 心智定位提供底座支撑",
+                    },
+                },
+                "required": ["engine_type", "brand_name", "layer1_conclusion"],
+            },
+        },
+    },
+
+    # ─── ④ Layer 2：心智定位尖刀（多理论统一入口）─────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "apply_layer2_positioning",
+            "description": (
+                "Layer 2 核心品牌定位分析。根据 select_applicable_frameworks 选定的 layer2_positioning_theory，"
                 "执行对应的定位理论及其子模型。"
                 "theory_type=trout_positioning → 定位三角模型 + 定位四步法；"
                 "theory_type=ries_positioning → 品类创新四步 + 定位四象限；"
@@ -290,36 +367,36 @@ TROUT_TOOLS: list[dict] = [
         },
     },
 
-    # ─── ④ Layer 2：品牌驱动力（统一入口）────────────────────
+    # ─── ⑤ Layer 3：身份血肉包装（统一入口）──────────────────
     {
         "type": "function",
         "function": {
-            "name": "apply_brand_driver",
+            "name": "apply_layer3_brand_identity",
             "description": (
-                "Layer 2 品牌驱动力分析。根据 select_applicable_frameworks 选定的 layer2_drivers，"
-                "每次调用执行一个驱动力框架（最多调用2次）。"
-                "driver_type 决定分析类别，framework_name 决定具体框架。"
-                "brand_identity 类：定义品牌身份（Aaker/Kapferer/奥格威/奥美/李奥贝纳）；"
-                "brand_equity 类：积累品牌资产（CBBE/BAV/价值链/承诺模型）；"
-                "brand_personality 类：品牌性格与原型（Jung原型+Aaker五维度）；"
-                "mission_driven 类：信念驱动（黄金圆WHY-HOW-WHAT）。"
+                "Layer 3 品牌身份血肉包装。根据 select_applicable_frameworks 选定的 layer3_brand_identity，"
+                "每次调用执行一个身份包装框架（最多调用2次）。"
+                "identity_type 决定分析类别，framework_name 决定具体框架。"
+                "archetype 类：12大品牌原型（必加，Jung + Aaker五维度）；"
+                "brand_prism 类：Kapferer 品牌棱镜（奢品/文化品必加）；"
+                "brand_equity 类：品牌资产积累（Aaker识别/CBBE/BAV/奥美蜂巢）；"
+                "brand_personality 类：品牌性格系统（Jung原型+Aaker五维度深度版）。"
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "driver_type": {
+                    "identity_type": {
                         "type": "string",
-                        "enum": ["brand_identity", "brand_equity", "brand_personality", "mission_driven"],
-                        "description": "驱动力类别",
+                        "enum": ["archetype", "brand_prism", "brand_equity", "brand_personality"],
+                        "description": "身份包装类别",
                     },
                     "framework_name": {
                         "type": "string",
                         "description": (
                             "具体框架名称。"
-                            "brand_identity→aaker_identity/kapferer_prism/ogilvy_image/ogilvy_honeycomb/lb_brand_mark；"
-                            "brand_equity→keller_cbbe/yr_bav/brand_value_chain/brand_promise；"
-                            "brand_personality→jung_aaker_personality；"
-                            "mission_driven→golden_circle"
+                            "archetype→jung_12_archetypes；"
+                            "brand_prism→kapferer_prism；"
+                            "brand_equity→aaker_identity/keller_cbbe/yr_bav/brand_promise/ogilvy_honeycomb；"
+                            "brand_personality→jung_aaker_personality"
                         ),
                     },
                     # 品牌身份构建参数（brand_identity类通用）
@@ -389,12 +466,12 @@ TROUT_TOOLS: list[dict] = [
                     "golden_circle_how": {"type": "string", "description": "【黄金圆】HOW-实现信念的核心方法"},
                     "golden_circle_what": {"type": "string", "description": "【黄金圆】WHAT-提供的产品/服务"},
                     # 通用分析结论
-                    "driver_conclusion": {
+                    "identity_conclusion": {
                         "type": "string",
-                        "description": "本次驱动力分析的核心结论（2-3句），以及如何支撑 Layer 1 的定位",
+                        "description": "本次身份包装分析的核心结论（2-3句），以及如何赋予品牌有血有肉的个性与识别度",
                     },
                 },
-                "required": ["driver_type", "framework_name", "driver_conclusion"],
+                "required": ["identity_type", "framework_name", "identity_conclusion"],
             },
         },
     },
@@ -536,14 +613,14 @@ TROUT_TOOLS: list[dict] = [
         },
     },
 
-    # ─── ⑧ synthesize_strategy_report（强制最后步骤）──────────
+    # ─── ⑨ synthesize_strategy_report（强制最后步骤）──────────
     {
         "type": "function",
         "function": {
             "name": "synthesize_strategy_report",
             "description": (
                 "【强制最后步骤】在所有框架工具调用完毕后调用。"
-                "汇总本次执行的所有框架结果（Layer 0/1/2），触发最终战略报告的流式生成。"
+                "汇总本次执行的所有框架结果（Layer 0/1/2/3），触发最终战略报告的流式生成。"
                 "同时提供下游 handoff 数据要点。"
             ),
             "parameters": {
@@ -554,9 +631,10 @@ TROUT_TOOLS: list[dict] = [
                         "items": {"type": "string"},
                         "description": "本次实际执行的工具列表（按执行顺序）",
                     },
-                    "layer0_conclusion": {"type": "string", "description": "Layer 0 竞争战略分析核心结论"},
-                    "layer1_conclusion": {"type": "string", "description": "Layer 1 品牌定位核心结论（含定位语）"},
-                    "layer2_conclusion": {"type": "string", "description": "Layer 2 驱动力分析核心结论（无则填'未执行'）"},
+                    "layer0_conclusion": {"type": "string", "description": "Layer 0 宏观大盘分析核心结论"},
+                    "layer1_conclusion": {"type": "string", "description": "Layer 1 行业底座引擎核心结论"},
+                    "layer2_conclusion": {"type": "string", "description": "Layer 2 心智定位核心结论（含定位语）"},
+                    "layer3_conclusion": {"type": "string", "description": "Layer 3 身份血肉包装核心结论（无则填'未执行'）"},
                     "brand_house_summary": {"type": "string", "description": "品牌屋核心内容摘要（品牌承诺+三大支柱名称）"},
                     # Handoff 数据（供下游 Agent 使用）
                     "handoff_positioning_statement": {"type": "string", "description": "完整定位语"},
@@ -581,6 +659,7 @@ TROUT_TOOLS: list[dict] = [
                     "handoff_personality_keywords", "handoff_communication_direction",
                     "handoff_visual_direction", "report_ready",
                 ],
+                # NOTE: layer3_conclusion 非强制，L3可能未执行
             },
         },
     },
@@ -835,19 +914,102 @@ def execute_analyze_competitive_landscape(args: dict[str, Any]) -> str:
             f"创造{args.get('blue_ocean_create', [])}"
         )
 
+    focus_summary = ""
+    if args.get("focus_target_segment"):
+        focus_summary = (
+            f"\n聚焦战略：目标细分→{args['focus_target_segment']} | "
+            f"聚焦优势→{args.get('focus_advantage', '')}"
+        )
+
     ansoff_summary = ""
     if args.get("ansoff_direction"):
         ansoff_summary = f"\n安索夫矩阵：{args['ansoff_direction']} — {args.get('ansoff_rationale', '')}"
 
-    conclusion = args.get("competitive_conclusion", "")
+    conclusion = args.get("macro_conclusion", "")
 
-    result = f"{jwt_summary}{porter_summary}{blue_ocean_summary}{ansoff_summary}\n\nLayer 0 结论：{conclusion}"
-    logger.info("Layer 0 竞争分析完成")
+    result = f"{porter_summary}{blue_ocean_summary}{focus_summary}{ansoff_summary}\n\nLayer 0 宏观大盘结论：{conclusion}"
+    logger.info("Layer 0 宏观大盘分析完成")
     return result
 
 
-def execute_apply_positioning_theory(args: dict[str, Any]) -> str:
-    """执行 Layer 1 定位理论，根据 theory_type 路由到对应子分析。"""
+def execute_apply_layer1_industry_os(args: dict[str, Any]) -> str:
+    """执行 Layer 1 行业底座引擎，根据 engine_type 路由到对应子分析。"""
+    engine_type = args.get("engine_type", "")
+    brand_name = args.get("brand_name", "")
+    conclusion = args.get("layer1_conclusion", "")
+
+    if engine_type == "huawei_five_views":
+        detail = _execute_huawei_five_views(args)
+    elif engine_type == "brand_key":
+        detail = _execute_brand_key(args)
+    elif engine_type == "ogilvy_big_ideal":
+        detail = _execute_ogilvy_big_ideal(args)
+    elif engine_type == "golden_circle":
+        detail = _execute_golden_circle_l1(args)
+    else:
+        detail = f"行业底座分析（{engine_type}）"
+
+    logger.info("Layer 1 行业底座引擎完成：%s / %s", engine_type, brand_name)
+    return f"【Layer 1 · {engine_type} · 品牌：{brand_name}】\n{detail}\n\n行业底座结论：{conclusion}"
+
+
+def _execute_huawei_five_views(args: dict) -> str:
+    """华为五看三定框架。"""
+    return (
+        f"华为五看三定框架：\n\n"
+        f"【五看】\n"
+        f"  看市场：{args.get('hw_look_market', '')}\n"
+        f"  看客户：{args.get('hw_look_customer', '')}\n"
+        f"  看竞争：{args.get('hw_look_competition', '')}\n"
+        f"  看自身：{args.get('hw_look_self', '')}\n"
+        f"  看机会：{args.get('hw_look_opportunity', '')}\n\n"
+        f"【三定】\n"
+        f"  定方向：{args.get('hw_define_direction', '')}\n"
+        f"  定目标：{args.get('hw_define_target', '')}\n"
+        f"  定策略：{args.get('hw_define_strategy', '')}"
+    )
+
+
+def _execute_brand_key(args: dict) -> str:
+    """联合利华 Brand Key 框架。"""
+    rtb_list = "\n".join(f"    - {r}" for r in args.get("bk_rtb", []))
+    return (
+        f"联合利华 Brand Key 模型：\n\n"
+        f"  目标消费者：{args.get('bk_target_consumer', '')}\n"
+        f"  竞争环境：{args.get('bk_competitive_context', '')}\n"
+        f"  消费者洞察：{args.get('bk_consumer_insight', '')}\n"
+        f"  功能利益：{args.get('bk_functional_benefit', '')}\n"
+        f"  情感利益：{args.get('bk_emotional_benefit', '')}\n"
+        f"  信任状（RTB）：\n{rtb_list}\n"
+        f"  品牌个性：{args.get('bk_brand_personality', '')}\n"
+        f"  品牌精髓：{args.get('bk_brand_essence', '')}"
+    )
+
+
+def _execute_ogilvy_big_ideal(args: dict) -> str:
+    """奥美大理想框架。"""
+    return (
+        f"奥美大理想框架：\n\n"
+        f"  文化张力：{args.get('oi_cultural_tension', '')}\n"
+        f"  品牌真相：{args.get('oi_brand_truth', '')}\n\n"
+        f"  ★ 大理想宣言：{args.get('oi_big_ideal', '')}\n\n"
+        f"  品牌文化角色：{args.get('oi_role_in_culture', '')}"
+    )
+
+
+def _execute_golden_circle_l1(args: dict) -> str:
+    """西蒙·斯涅克黄金圈框架（L1行业底座版）。"""
+    return (
+        f"黄金圈理论（Simon Sinek）：\n\n"
+        f"  WHY（信念/目的）：{args.get('gc_why', '')}\n"
+        f"  HOW（独特方法）：{args.get('gc_how', '')}\n"
+        f"  WHAT（产品/服务）：{args.get('gc_what', '')}\n\n"
+        f"  Purpose 宣言：{args.get('gc_purpose_statement', '')}"
+    )
+
+
+def execute_apply_layer2_positioning(args: dict[str, Any]) -> str:
+    """执行 Layer 2 心智定位尖刀，根据 theory_type 路由到对应子分析。"""
     theory_type = args.get("theory_type", "trout_positioning")
     brand_name = args.get("brand_name", "")
     positioning_statement = args.get("core_positioning_statement", "")
@@ -861,7 +1023,7 @@ def execute_apply_positioning_theory(args: dict[str, Any]) -> str:
     else:
         result = f"定位理论 {theory_type} 执行结果：{positioning_statement}"
 
-    logger.info("Layer 1 定位分析完成，理论：%s", theory_type)
+    logger.info("Layer 2 心智定位分析完成，理论：%s", theory_type)
     return result
 
 
@@ -913,25 +1075,25 @@ def _execute_stp_positioning(args: dict, brand_name: str, statement: str) -> str
     )
 
 
-def execute_apply_brand_driver(args: dict[str, Any]) -> str:
-    """执行 Layer 2 驱动力分析，根据 driver_type 路由。"""
-    driver_type = args.get("driver_type", "")
+def execute_apply_layer3_brand_identity(args: dict[str, Any]) -> str:
+    """执行 Layer 3 身份血肉包装分析，根据 identity_type 路由。"""
+    identity_type = args.get("identity_type", "")
     framework_name = args.get("framework_name", "")
-    conclusion = args.get("driver_conclusion", "")
+    conclusion = args.get("identity_conclusion", "")
 
-    if driver_type == "brand_identity":
-        detail = _format_brand_identity(args, framework_name)
-    elif driver_type == "brand_equity":
+    if identity_type == "archetype":
+        detail = _format_brand_personality(args)   # 复用 12原型+Aaker五维度格式
+    elif identity_type == "brand_prism":
+        detail = _format_brand_identity(args, "kapferer_prism")
+    elif identity_type == "brand_equity":
         detail = _format_brand_equity(args, framework_name)
-    elif driver_type == "brand_personality":
+    elif identity_type == "brand_personality":
         detail = _format_brand_personality(args)
-    elif driver_type == "mission_driven":
-        detail = _format_mission_driven(args)
     else:
-        detail = ""
+        detail = _format_brand_identity(args, framework_name)
 
-    logger.info("Layer 2 驱动力分析完成：%s / %s", driver_type, framework_name)
-    return f"【Layer 2 · {framework_name}】\n{detail}\n\n结论：{conclusion}"
+    logger.info("Layer 3 身份血肉包装完成：%s / %s", identity_type, framework_name)
+    return f"【Layer 3 · {framework_name}】\n{detail}\n\n包装结论：{conclusion}"
 
 
 def _format_brand_identity(args: dict, framework_name: str) -> str:
@@ -1010,8 +1172,9 @@ def _format_brand_personality(args: dict) -> str:
 
 
 def _format_mission_driven(args: dict) -> str:
+    # NOTE: 黄金圈在新架构中已升至 L1，此处保留作为 L3 brand_equity 兼容层
     return (
-        f"黄金圆理论（Simon Sinek）：\n"
+        f"黄金圈理论（Simon Sinek）：\n"
         f"  WHY（信念）：{args.get('golden_circle_why', '')}\n"
         f"  HOW（方法）：{args.get('golden_circle_how', '')}\n"
         f"  WHAT（产品）：{args.get('golden_circle_what', '')}"
@@ -1191,6 +1354,7 @@ def execute_synthesize_report(args: dict[str, Any]) -> str:
             "layer0_conclusion": args.get("layer0_conclusion", ""),
             "layer1_conclusion": args.get("layer1_conclusion", ""),
             "layer2_conclusion": args.get("layer2_conclusion", "未执行"),
+            "layer3_conclusion": args.get("layer3_conclusion", "未执行"),
             "brand_house_summary": args.get("brand_house_summary", ""),
             "handoff": handoff_data,
         },
@@ -1204,17 +1368,25 @@ def execute_synthesize_report(args: dict[str, Any]) -> str:
 # ══════════════════════════════════════════════════════════════
 
 TOOL_EXECUTORS: dict[str, Any] = {
-    "select_applicable_frameworks": execute_select_frameworks,
-    "analyze_competitive_landscape": execute_analyze_competitive_landscape,
-    "apply_positioning_theory": execute_apply_positioning_theory,
-    "apply_brand_driver": execute_apply_brand_driver,
-    "build_brand_house": execute_build_brand_house,
-    "design_brand_architecture": execute_design_brand_architecture,
-    "generate_naming_candidates": execute_generate_naming_candidates,
-    "synthesize_strategy_report": execute_synthesize_report,
-    "plan_communication_strategy": execute_plan_communication_strategy,
-    "design_gtm_strategy": execute_design_gtm_strategy,
-    "audit_brand_health": execute_audit_brand_health,
+    # 全局规划
+    "select_applicable_frameworks":  execute_select_frameworks,
+    # Layer 0 · 宏观大盘
+    "apply_layer0_macro_strategy":   execute_apply_layer0_macro_strategy,
+    # Layer 1 · 行业底座引擎（新增）
+    "apply_layer1_industry_os":      execute_apply_layer1_industry_os,
+    # Layer 2 · 心智定位尖刀
+    "apply_layer2_positioning":      execute_apply_layer2_positioning,
+    # Layer 3 · 身份血肉包装
+    "apply_layer3_brand_identity":   execute_apply_layer3_brand_identity,
+    # 强制工具
+    "build_brand_house":             execute_build_brand_house,
+    "synthesize_strategy_report":    execute_synthesize_report,
+    # 可选工具
+    "design_brand_architecture":     execute_design_brand_architecture,
+    "generate_naming_candidates":    execute_generate_naming_candidates,
+    "plan_communication_strategy":   execute_plan_communication_strategy,
+    "design_gtm_strategy":           execute_design_gtm_strategy,
+    "audit_brand_health":            execute_audit_brand_health,
 }
 
 
