@@ -44,15 +44,21 @@
   position: relative;
 }
 
-/* NOTE: 单实心三角 —— 与矩形框同色，避免双三角技巧在半透明骨架色上产生色差 */
+/* NOTE: 旋转方块模拟三角尾巴，background 与矩形框 placeholder 完全一致，
+   彻底避免 border-color + 半透明在不同属性上渲染偏差的问题。
+   裁切一半（clip-path）使其只露出三角形部分。 */
 .userBubble::before {
   content: '';
   position: absolute;
-  right: -7px;
-  top: 16px;
-  border: 7px solid transparent;
-  border-left-color: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
-  border-right: none;
+  right: -6px;
+  top: 14px;
+  width: 12px;
+  height: 12px;
+  background: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
+  transform: rotate(45deg);
+  border-radius: 2px;
+  /* 遮住右半露出三角 */
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
 }
 
 .userBubbleInner {
@@ -123,15 +129,19 @@
   position: relative;
 }
 
-/* NOTE: Agent 气泡矩形背景是白色(--color-surface)，三角同色匹配 */
+/* NOTE: Agent 气泡白色矩形，旋转方块同色，左侧露出三角 */
 .feedBubble::before {
   content: '';
   position: absolute;
-  left: -7px;
-  top: 16px;
-  border: 7px solid transparent;
-  border-right-color: var(--color-surface, #fff);
-  border-left: none;
+  left: -6px;
+  top: 14px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-surface, #fff);
+  transform: rotate(45deg);
+  border-radius: 2px;
+  /* 遮住左半露出三角 */
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
 }
 
 .line {
