@@ -1,16 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { stripHandoff, sharedMarkdownComponents } from './MarkdownRenderer';
 import { ResearchProgressStep } from '@/store/workspaceStore';
 import styles from '../WorkspaceFeed.module.css';
 import marketStyles from './MarketRenderer.module.css';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { stripHandoff, sharedMarkdownComponents } from './MarkdownRenderer';
-import { ResearchProgressStep } from '@/store/workspaceStore';
-import styles from '../WorkspaceFeed.module.css';
-import marketStyles from './MarketRenderer.module.css';
+
 
 interface SearchCitation {
   type: 'market_data' | 'competitor' | 'user_review' | 'social_review';
