@@ -44,22 +44,7 @@
   position: relative;
 }
 
-/* NOTE: 旋转方块模拟三角尾巴，background 与矩形框 placeholder 完全一致，
-   彻底避免 border-color + 半透明在不同属性上渲染偏差的问题。
-   裁切一半（clip-path）使其只露出三角形部分。 */
-.userBubble::before {
-  content: '';
-  position: absolute;
-  right: -6px;
-  top: 14px;
-  width: 12px;
-  height: 12px;
-  background: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
-  transform: rotate(45deg);
-  border-radius: 2px;
-  /* 遮住右半露出三角 */
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
-}
+
 
 .userBubbleInner {
   border-radius: var(--radius-md);
@@ -129,20 +114,7 @@
   position: relative;
 }
 
-/* NOTE: Agent 气泡白色矩形，旋转方块同色，左侧露出三角 */
-.feedBubble::before {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 14px;
-  width: 12px;
-  height: 12px;
-  background: var(--color-surface, #fff);
-  transform: rotate(45deg);
-  border-radius: 2px;
-  /* 遮住左半露出三角 */
-  clip-path: polygon(0 0, 0 100%, 100% 100%);
-}
+
 
 .line {
   height: 12px;
