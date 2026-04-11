@@ -33,6 +33,16 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* "暂定"小字：品牌名为 AI 推荐时显示，低调、半透明 */
+.roofSubtitle {
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
 /* 愿景、使命等单独拆分为带背景色的行 */
 .roofRowsContainer {
   display: flex;

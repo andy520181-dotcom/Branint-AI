@@ -2,6 +2,11 @@ import React from 'react';
 import styles from './BrandHouseRender.module.css';
 
 export interface BrandHouseData {
+  /**
+   * NOTE: 可选的明确品牌名字段（后端 handoff 段注入）。
+   * 缺省时由 extractBrandName 在 modules.items 中自动搜索。
+   */
+  brandName?: string;
   roof?: {
     vision?: string;
     mission?: string;
@@ -28,9 +33,34 @@ interface BrandHouseRenderProps {
 }
 
 /**
- * 品牌屋可视化组件
- * NOTE: t 函数可选，缺省时回退到中文默认值，保证旧快照数据仍可正常渲染。
+ * 去除字符串末尾的中文句号或英文句点（单个）。
+ * NOTE: 只去掉最末一个标点，不影响正文中的句号。
  */
+function stripTrailingPeriod(text: string): string {
+  return text ? text.replace(/[。.]+$/, '') : text;
+}
+
+/**
+ * 从 BrandHouseData 中推断品牌名。
+ * 优先级：brandName 字段 → modules items 中标题含「品牌名」的项 → undefined
+ */
+function extractBrandName(data: BrandHouseData): string | undefined {
+  if (data.brandName) return data.brandName;
+  if (!data.modules) return undefined;
+  const BRAND_NAME_KEYS = ['品牌名', '品牌名称', 'Brand Name', '推荐品牌名'];
+  for (const mod of data.modules) {
+    for (const row of mod.rows) {
+      if (!row.items) continue;
+      for (const item of row.items) {
+        if (BRAND_NAME_KEYS.some(k => item.title?.includes(k)) && item.desc) {
+          return item.desc;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 export function BrandHouseRender({ data, t }: BrandHouseRenderProps) {
   if (!data) return null;
 
@@ -55,11 +85,25 @@ export function BrandHouseRender({ data, t }: BrandHouseRenderProps) {
     }
   }
 
+  // NOTE: 品牌名优先从 data.brandName 取，fallback 到 modules items 自动搜索
+  const brandName = extractBrandName(data);
+  // 是否为"暂定"品牌名（无 brandName 字段，仅靠 AI 推荐提取）
+  const isBrandNameProvisional = !data.brandName && !!brandName;
+
   return (
     <div className={styles.container}>
-      {/* 纯屋顶层 - 几何顶帽 */}
+      {/* 纯屋顶层 - 几何顶帽，标题改为品牌名；若无品牌名则回退到"品牌战略" */}
       <div className={styles.roof}>
-        <div className={styles.roofTitle}>{label('brandHouse.roof.title', '品牌战略')}</div>
+        {brandName ? (
+          <>
+            <div className={styles.roofTitle}>{brandName}</div>
+            {isBrandNameProvisional && (
+              <div className={styles.roofSubtitle}>暂定</div>
+            )}
+          </>
+        ) : (
+          <div className={styles.roofTitle}>{label('brandHouse.roof.title', '品牌战略')}</div>
+        )}
       </div>
 
       {/* 战略层模块 (包含愿景等顶层属性以及定位) */}
@@ -73,19 +117,19 @@ export function BrandHouseRender({ data, t }: BrandHouseRenderProps) {
                   {data.roof.vision && (
                     <div className={styles.roofDetailRow}>
                       <div className={styles.roofDetailLabel}>{label('brandHouse.field.vision', '愿景')}</div>
-                      <div className={styles.roofDetailValue}>{data.roof.vision}</div>
+                      <div className={styles.roofDetailValue}>{stripTrailingPeriod(data.roof.vision)}</div>
                     </div>
                   )}
                   {data.roof.mission && (
                     <div className={styles.roofDetailRow}>
                       <div className={styles.roofDetailLabel}>{label('brandHouse.field.mission', '使命')}</div>
-                      <div className={styles.roofDetailValue}>{data.roof.mission}</div>
+                      <div className={styles.roofDetailValue}>{stripTrailingPeriod(data.roof.mission)}</div>
                     </div>
                   )}
                   {data.roof.values && (
                     <div className={styles.roofDetailRow}>
                       <div className={styles.roofDetailLabel}>{label('brandHouse.field.values', '价值观')}</div>
-                      <div className={styles.roofDetailValue}>{data.roof.values}</div>
+                      <div className={styles.roofDetailValue}>{stripTrailingPeriod(data.roof.values)}</div>
                     </div>
                   )}
                 </div>
@@ -95,7 +139,7 @@ export function BrandHouseRender({ data, t }: BrandHouseRenderProps) {
               {data.positioning && (
                 <div className={styles.positioningRow}>
                   <div className={styles.positioningLabel}>{label('brandHouse.field.positioning', '品牌定位')}</div>
-                  <div className={styles.positioningValue}>{data.positioning}</div>
+                  <div className={styles.positioningValue}>{stripTrailingPeriod(data.positioning)}</div>
                 </div>
               )}
 
@@ -103,7 +147,7 @@ export function BrandHouseRender({ data, t }: BrandHouseRenderProps) {
               {extractedSlogan && (
                 <div className={styles.positioningRow}>
                   <div className={styles.positioningLabel}>{label('brandHouse.field.slogan', '品牌口号')}</div>
-                  <div className={styles.positioningValue}>{extractedSlogan}</div>
+                  <div className={styles.positioningValue}>{stripTrailingPeriod(extractedSlogan)}</div>
                 </div>
               )}
             </div>
