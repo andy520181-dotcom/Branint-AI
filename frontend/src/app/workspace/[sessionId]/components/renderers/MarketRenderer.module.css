@@ -217,17 +217,22 @@
   display: inline-block;
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
-  color: var(--agent-market);
-  background: color-mix(in srgb, var(--agent-market) 12%, transparent);
+  color: var(--text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
   padding: 2px var(--space-2);
   margin-bottom: var(--space-2);
   letter-spacing: 0.02em;
 }
 
-.citationGroupLabelCompetitor {
-  color: var(--agent-strategy);
-  background: color-mix(in srgb, var(--agent-strategy) 12%, transparent);
+/* NOTE: 所有类型的分组标签统一为简洁灰色，不再区分颜色 */
+.citationGroupLabelCompetitor,
+.citationGroupLabelSocial,
+.citationGroupLabelReview {
+  color: var(--text-muted);
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
 }
 
 /* ── 引用来源标签容器（横向流式自动换行） */
@@ -238,65 +243,44 @@
   margin-top: 4px;
 }
 
-/* 编辑能进行点击的紧凑胶囊标签 */
+/* 统一的紧凑灰色胶囊标签 */
 .citationPill {
   display: inline-flex;
   align-items: center;
-  max-width: 260px;
+  max-width: 160px;
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
   font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--agent-market);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
   cursor: pointer;
 }
 
 .citationPill:hover {
-  background: color-mix(in srgb, var(--agent-market) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--agent-market) 40%, var(--color-border));
+  background: var(--color-surface);
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
-.citationPillCompetitor {
-  color: var(--agent-strategy);
-}
-.citationPillCompetitor:hover {
-  background: color-mix(in srgb, var(--agent-strategy) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--agent-strategy) 40%, var(--color-border));
-}
-
-.citationPillSocial {
-  color: var(--agent-content);
-}
-.citationPillSocial:hover {
-  background: color-mix(in srgb, var(--agent-content) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--agent-content) 40%, var(--color-border));
-}
-
+/* NOTE: 所有类型胶囊统一样式，不再区分颜色 */
+.citationPillCompetitor,
+.citationPillSocial,
 .citationPillReview {
-  color: var(--agent-visual);
+  color: var(--text-muted);
 }
+.citationPillCompetitor:hover,
+.citationPillSocial:hover,
 .citationPillReview:hover {
-  background: color-mix(in srgb, var(--agent-visual) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--agent-visual) 40%, var(--color-border));
-}
-
-/* 用户声音（社交平台） */
-.citationGroupLabelSocial {
-  color: var(--agent-content);
-  background: color-mix(in srgb, var(--agent-content) 12%, transparent);
-}
-
-/* 电商评价爬取 */
-.citationGroupLabelReview {
-  color: var(--agent-visual);
-  background: color-mix(in srgb, var(--agent-visual) 12%, transparent);
+  background: var(--color-surface);
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* ── 引用卡片横向滚动容器 ─────────────────────────── */
