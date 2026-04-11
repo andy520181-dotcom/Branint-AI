@@ -219,12 +219,10 @@ async def _run_research_loop(
 
         if action == "clarify_research_scope":
             question = args.get("question", "")
-            logger.info("Wacksman 澄清研究范围（基于假设继续）: %s", question)
-            tool_result = (
-                f"[系统] 研究范围需要澄清：{question}\n"
-                "由于无法中断咨询流程，Wacksman 将基于最常见的市场假设继续研究，"
-                "并在报告结尾注明此假设。请继续调用搜索工具收集数据。"
-            )
+            logger.info("Wacksman 发起全流程研究范围追问挂起: %s", question)
+            # 真正的挂起：使用与 micro_task 一致的挂起标识，供 orchestrator 捕获并中断流程
+            yield f"{AGENT_CLARIFY_MARKER}{question}"
+            return
 
         elif action == "web_search_market_data":
             query = args.get("query", "")
@@ -622,6 +620,7 @@ async def _execute_single_tool(
 
     elif action == "clarify_research_scope":
         question = args.get("question", "")
-        return f"[系统] 研究范围需要澄清：{question}"
+        # 单独工具调用时（如被 patch 触发），返回真正的挂起标志
+        return f"{AGENT_CLARIFY_MARKER}{question}"
 
     return f"[未知工具] {action}"

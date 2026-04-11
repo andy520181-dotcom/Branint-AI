@@ -855,24 +855,22 @@ def execute_select_frameworks(args: dict[str, Any]) -> str:
         execution_plan = args.get("target_tools", [])
     else:
         # 默认：full_strategy
-        layer0 = args.get("layer0_frameworks", ["jwt_4questions"])
-        layer1 = args.get("layer1_theory", "trout_positioning")
-        layer2 = args.get("layer2_drivers", [])
+        layer0 = args.get("layer0_frameworks", [])
+        layer1 = args.get("layer1_industry_engine", "")
+        layer2 = args.get("layer2_positioning_theory", "")
+        layer3 = [d.get("framework_name", "") for d in args.get("layer3_brand_identity", [])]
         optional = args.get("optional_tools", [])
 
-        # NOTE: 强制确保 jwt_4questions 在 Layer 0 中
-        if "jwt_4questions" not in layer0:
-            layer0 = ["jwt_4questions"] + layer0
-            logger.warning("⚠️ JWT品牌四问被强制加入 Layer 0（必跑项）")
-            
-        execution_plan = ["analyze_competitive_landscape", "apply_positioning_theory"]
-        for driver in layer2: # type: ignore
-            execution_plan.append(f"apply_brand_driver({driver.get('framework_name', '')})")
+        execution_plan = [
+            "apply_layer0_macro_strategy",
+            "apply_layer1_industry_os",
+            "apply_layer2_positioning",
+        ]
+        for f in layer3:
+            if f: execution_plan.append(f"apply_layer3_brand_identity({f})")
         execution_plan.append("build_brand_house")
         execution_plan.extend(optional)
         execution_plan.append("synthesize_strategy_report")
-
-    layer2_names = [d.get("framework_name", "") for d in args.get("layer2_drivers", [])] if args.get("layer2_drivers") else ["无"]
 
     summary = (
         f"✅ 任务意图解析完成：当前模式 `{task_mode}`\n"
@@ -880,27 +878,21 @@ def execute_select_frameworks(args: dict[str, Any]) -> str:
         f"执行顺序：{' → '.join(execution_plan) if execution_plan else '无工具调用，准备直接回复'}"
     )
     if task_mode == "full_strategy":
+        layer3_names = [d.get("framework_name", "") for d in args.get("layer3_brand_identity", [])] if args.get("layer3_brand_identity") else ["无"]
         summary += (
             f"\n--- full_strategy 理论分配 ---\n"
-            f"Layer 0（竞争分析）：{', '.join(args.get('layer0_frameworks', []))}\n"
-            f"Layer 1（核心定位）：{args.get('layer1_theory', '')}\n"
-            f"Layer 2（驱动力）：{', '.join(layer2_names)}\n"
+            f"Layer 0（宏观大盘）：{', '.join(args.get('layer0_frameworks', []))}\n"
+            f"Layer 1（行业底座）：{args.get('layer1_industry_engine', '')}\n"
+            f"Layer 2（心智定位）：{args.get('layer2_positioning_theory', '')}\n"
+            f"Layer 3（身份血肉）：{', '.join(layer3_names)}\n"
             f"可选工具：{', '.join(args.get('optional_tools', [])) if args.get('optional_tools') else '无'}"
         )
     logger.info("Trout 全局规划：%s", summary)
     return summary
 
 
-def execute_analyze_competitive_landscape(args: dict[str, Any]) -> str:
-    """执行 Layer 0 竞争战略分析，返回结构化摘要。"""
-    jwt_summary = (
-        f"JWT诊断：\n"
-        f"  现在在哪：{args.get('jwt_where_now', '')}\n"
-        f"  为何在此：{args.get('jwt_why_here', '')}\n"
-        f"  可以去哪：{args.get('jwt_where_go', '')}\n"
-        f"  如何到达：{args.get('jwt_how_get', '')}"
-    )
-
+def execute_apply_layer0_macro_strategy(args: dict[str, Any]) -> str:
+    """执行 Layer 0 宏观大盘与竞争战略分析，返回结构化摘要。"""
     porter_summary = ""
     if args.get("porter_strategy"):
         porter_summary = f"\n波特战略：{args['porter_strategy']} — {args.get('porter_rationale', '')}"
@@ -929,7 +921,7 @@ def execute_analyze_competitive_landscape(args: dict[str, Any]) -> str:
 
     result = f"{porter_summary}{blue_ocean_summary}{focus_summary}{ansoff_summary}\n\nLayer 0 宏观大盘结论：{conclusion}"
     logger.info("Layer 0 宏观大盘分析完成")
-    return result
+    return result.strip()
 
 
 def execute_apply_layer1_industry_os(args: dict[str, Any]) -> str:
