@@ -106,7 +106,6 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
   const phases = data[0].slice(1);
   const dimensionRows = data.slice(1);
 
-  // 列宽: 标签列 80px, 数据列每个 150px
   const colTemplate = `80px repeat(${phases.length}, minmax(150px, 1fr))`;
 
   return (
@@ -124,7 +123,6 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
       }}>
 
         {/* ── Header Row ── */}
-        {/* 顶部左角单元格 */}
         <div style={{
           background: '#ece9e0',
           display: 'flex',
@@ -143,7 +141,6 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
           {data[0][0]}
         </div>
 
-        {/* 阶段标题 */}
         {phases.map((phase, i) => (
           <div
             key={`phase-${i}`}
@@ -170,19 +167,16 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
         {dimensionRows.map((row, rIndex) => {
           const dimensionName = row[0];
           const rowCells = row.slice(1);
-          const icon = getDimensionIcon(dimensionName);
           const isLastRow = rIndex === dimensionRows.length - 1;
 
           return (
             <React.Fragment key={`row-${rIndex}`}>
-              {/* 行标签（固定） */}
+              {/* 行标签（固定，去掉 emoji） */}
               <div style={{
                 background: '#f5f3ed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexDirection: 'column',
-                gap: '2px',
                 padding: '10px 6px',
                 fontWeight: 600,
                 fontSize: '11px',
@@ -194,13 +188,12 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
                 zIndex: 5,
                 textAlign: 'center',
               }}>
-                <span style={{ fontSize: '14px' }}>{icon}</span>
-                <span>{dimensionName}</span>
+                {dimensionName}
               </div>
 
-              {/* 数据格 */}
+              {/* 数据格：直接换行显示全文 */}
               {phases.map((_, cIndex) => {
-                const cellText = rowCells[cIndex] || '';
+                const cellText = rowCells[cIndex] || '—';
                 return (
                   <div
                     key={`cell-${rIndex}-${cIndex}`}
@@ -209,15 +202,17 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
                       padding: '10px 12px',
                       borderBottom: isLastRow ? 'none' : '1px solid #ece9e0',
                       borderRight: cIndex < phases.length - 1 ? '1px solid #ece9e0' : 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      minHeight: '44px',
+                      fontSize: '12px',
+                      lineHeight: '1.65',
+                      color: '#5e5d59',
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
                       transition: 'background 0.12s',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#f0ede6')}
                     onMouseLeave={e => (e.currentTarget.style.background = '#fafaf8')}
                   >
-                    <TooltipCell text={cellText} />
+                    {cellText}
                   </div>
                 );
               })}
