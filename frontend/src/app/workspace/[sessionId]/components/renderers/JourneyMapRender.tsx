@@ -124,7 +124,7 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
 
         {/* ── Header Row ── */}
         <div style={{
-          background: 'transparent',
+          background: '#f3f4f6',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -145,16 +145,16 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
           <div
             key={`phase-${i}`}
             style={{
-              background: '#c96442',
+              background: 'transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               padding: '8px 10px',
               fontWeight: 600,
               fontSize: '12px',
-              color: '#fff',
-              borderBottom: '1px solid #b85538',
-              borderRight: i < phases.length - 1 ? '1px solid #b85538' : 'none',
+              color: '#374151',
+              borderBottom: '1px solid #e5e7eb',
+              borderRight: i < phases.length - 1 ? '1px solid #e5e7eb' : 'none',
               textAlign: 'center',
               whiteSpace: 'nowrap',
             }}
@@ -173,7 +173,7 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
             <React.Fragment key={`row-${rIndex}`}>
               {/* 行标签（固定，去掉 emoji） */}
               <div style={{
-                background: 'transparent',
+                background: '#f3f4f6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
