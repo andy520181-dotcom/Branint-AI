@@ -91,6 +91,8 @@ MICRO_TASK_LOCK = (
     "能少写绝不多写。\n"
     "不管你的默认职责有多全面，现在必须关闭漫长的铺垫、分析和报告格式，"
     "只准就事论事地给出精简、硬核的结果。\n"
+    "【最高指令】：在调用 `select_applicable_frameworks` 工具时，"
+    "必须强制将 `task_mode` 设为 `modular_task`！绝对禁止触发 full_strategy 全案流程！\n"
 )
 
 
@@ -645,6 +647,7 @@ class AgentOrchestrator:
                     skip_clarify=is_strategy_rerun,
                     patch_instruction=patch_instr,
                     old_output=old_strategy_output,
+                    is_micro_task=is_micro_task,
                 )
             elif agent_key == "content":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy"])

@@ -59,6 +59,7 @@ async def run_strategy_agent_stream(
     skip_clarify: bool = False,
     patch_instruction: str | None = None,
     old_output: str = "",
+    is_micro_task: bool = False,
 ) -> AsyncGenerator[str, None]:
     """
     品牌战略 Agent 主入口（流式输出）。
@@ -92,11 +93,21 @@ async def run_strategy_agent_stream(
     if old_output:
         user_content += f"\n\n【已有报告底稿（用于局部修改/热更新参考）】\n{old_output}"
 
-    user_content += (
-        "\n\n【执行指令】请首先调用 select_applicable_frameworks 完成全局规划，"
-        "输出 theory_combo（包含 Layer 0/1/2 的理论选择），"
-        "然后按照规划的顺序依次调用各理论工具，完成所有分析后调用 synthesize_strategy_report。"
-    )
+    if is_micro_task:
+        task_mode = "modular_task"
+        user_content += (
+            "\n\n【执行指令】根据调用来源，本次需求属于『单点微缩任务 (Micro-Task)』。\n"
+            "你【不需要且绝对不能】调用 select_applicable_frameworks 进行任何全案战略分析规划。\n"
+            "请直接针对用户的微缩要求（如起名字、定口号等）调用相关的极轻量工具（如果需要的话，例如生成名字可用 generate_naming_candidates），"
+            "或者干脆不调用任何工具，直接以专业、极为精简的语言作答。绝不要输出完整的Markdown分析报告！"
+        )
+    else:
+        task_mode = "full_strategy"
+        user_content += (
+            "\n\n【执行指令】请首先调用 select_applicable_frameworks 识别任务意图。\n"
+            "如果处于 full_strategy，请规划 theory_combo 顺序调用理论工具，并以 synthesize_strategy_report 收尾；\n"
+            "如果处于 patch，请只需且只能设置 target_tools，严禁调起无关的大盘架构工具！\n"
+        )
 
     messages: list[dict] = [
         {"role": "system", "content": system_prompt},
@@ -106,7 +117,6 @@ async def run_strategy_agent_stream(
     # 执行状态追踪
     executed_frameworks: list[str] = []
     theory_combo: dict = {}
-    task_mode: str = "full_strategy"
     yielded_action_labels: set[str] = set()
 
     # ─── Phase 1：工具调用循环 ────────────────────────────────
@@ -164,7 +174,10 @@ async def run_strategy_agent_stream(
                             if tc.get("function", {}).get("name") == FRAMEWORK_SELECTOR:
                                 raw = tc["function"].get("arguments", "{}")
                                 args = json.loads(raw) if isinstance(raw, str) else raw
-                                task_mode = args.get("task_mode", "full_strategy")
+                                # 只有全案和 patch 会用到这个返回值来覆盖，如果一开始就是 micro_task 则直接保留 modular_task
+                                if not is_micro_task:
+                                    task_mode = args.get("task_mode", "full_strategy")
+
                                 theory_combo = {
                                     "task_mode": task_mode,
                                     "layer0": args.get("layer0_frameworks", []),
