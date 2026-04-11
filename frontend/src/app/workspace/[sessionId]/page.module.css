@@ -19,27 +19,45 @@
   min-height: 0;
 }
 
+/* ── Toast 通知：全局统一规范 ────────────────────────────────────────────
+   以毛玻璃暗底 + 弹性入场实现高级提示感；复用于 historyToast 与 feedToast。
+   位置固定在底部输入栏上方（bottom: 100px），水平居中。
+   ─────────────────────────────────────────────────────────────────────── */
 .historyToast {
   position: fixed;
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
-  padding: 10px 20px;
-  border-radius: var(--radius-full);
+  padding: 11px 22px;
+  border-radius: 10px;
   font-size: var(--font-size-body);
-  color: var(--color-toast-text);
-  background: var(--color-toast-bg);
+  font-weight: 500;
+  line-height: 1.45;
+  color: #ffffff;
+  /* NOTE: 毛玻璃背景 — 比纯黑更通透精致，与工作台深色 UI 协调 */
+  background: rgba(28, 28, 30, 0.88);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 8px 28px rgba(0, 0, 0, 0.18);
+  max-width: min(88vw, 380px);
+  white-space: normal;
+  text-align: center;
   pointer-events: none;
-  animation: historyToastIn 0.2s ease;
+  /* NOTE: cubic-bezier(0.22, 1, 0.36, 1) 为类 iOS Spring 曲线，给人轻盈弹跳感 */
+  animation: toastSpring 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes historyToastIn {
+
+@keyframes toastSpring {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(8px);
+    transform: translateX(-50%) translateY(14px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%) translateY(0) scale(1);
   }
 }

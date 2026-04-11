@@ -32,6 +32,7 @@ export const workspace: Record<string, string> = {
   'workspace.error.sessionExpired': '此会话记录已过期或不存在，请返回重新开始分析',
   'workspace.error.connectionLost': '与服务器的连接中断，请刷新页面重试',
   'workspace.error.streamInterrupted': '连接中断，请刷新重试',
+  'workspace.error.lastRoundFailed': '⚠️ 上次生成未完成，请重新发送指令',
 
   // ── 品牌屋组件标签 ──
   'brandHouse.roof.title': '品牌战略',

@@ -31,6 +31,7 @@ export const workspace: Record<string, string> = {
   'workspace.error.sessionExpired': 'This session is missing or expired. Go back and start again.',
   'workspace.error.connectionLost': 'Connection to the server was lost. Please refresh the page.',
   'workspace.error.streamInterrupted': 'Connection interrupted. Please refresh and try again.',
+  'workspace.error.lastRoundFailed': '⚠️ Last generation failed. Please resend your message.',
 
   // ── Brand House component labels ──
   'brandHouse.roof.title': 'Brand Strategy',

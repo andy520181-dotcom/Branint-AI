@@ -113,7 +113,7 @@
   --color-inverse-fill: #1a1a1a;
   --color-inverse-fill-hover: #333333;
   --color-spinner-ring-on-inverse: rgba(255, 255, 255, 0.3);
-  --color-toast-bg: rgba(30, 30, 30, 0.88);
+  --color-toast-bg: rgba(28, 28, 30, 0.88);
   --color-toast-text: #ffffff;
   /* 遮罩（历史侧栏等） */
   --overlay-scrim: rgba(0, 0, 0, 0.18);

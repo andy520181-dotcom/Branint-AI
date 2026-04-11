@@ -21,7 +21,7 @@ import { WorkspaceHeroEmpty } from './components/WorkspaceHeroEmpty';
 import { WorkspaceFeed } from './components/WorkspaceFeed';
 import { WorkspaceBottomBar } from './components/WorkspaceBottomBar';
 import { WorkspaceOutlineDock } from './components/WorkspaceOutlineDock';
-
+import { WorkspaceSkeleton } from './components/WorkspaceSkeleton';
 
 export default function WorkspacePage() {
   const params = useParams();
@@ -164,7 +164,7 @@ export default function WorkspacePage() {
         // NOTE: 追问回复不创建新会话，复用同一个 sessionId
         // URL 保持不变，侧边栏历史记录依旧是同一条
         initSession(sessionId, inputText);
-        setRestored(null); // 挂起 SSE，等待后端续写
+        setRestored(true); // 挂起 SSE，等待后端续写
 
         setTimeout(() => {
           currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -228,7 +228,7 @@ export default function WorkspacePage() {
       // URL 保持不变，用户在侧边栏只会看到一条历史记录
       setBottomPrompt('');
       initSession(sessionId, promptText);
-      setRestored(null); // 挂起 SSE 连接，等待后端续写完成
+      setRestored(true); // 挂起 SSE 连接，等待后端续写完成
 
       setTimeout(() => {
         currentRoundRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -388,9 +388,17 @@ export default function WorkspacePage() {
           if (snap.status === 'error' && !hasAnyOutput) {
             const hasHistory = (snap.conversation_history || []).length > 0;
             if (!hasHistory) {
+              // 无历史记录：全新会话就已失败，展示阻断型错误（无法恢复）
               useWorkspaceStore.setState({ error: 'workspace.error.sessionExpired', isStreaming: false });
             } else {
-              useWorkspaceStore.setState({ error: 'workspace.error.streamInterrupted', isStreaming: false });
+              // NOTE: 有历史记录说明只是本轮生成失败（如服务端 LLM API 异常）。
+              // 不设阻断型 error，改为轻量 Toast 提醒，立即放开输入框让用户重新发送。
+              // 这样避免了"刷新 → 仍报错 → 再刷新"的死循环。
+              useWorkspaceStore.setState({ isStreaming: false, error: null });
+              // 延迟 600ms 等 UI 渲染完毕再弹出 Toast，避免骨架屏切换期间闪烁
+              setTimeout(() => {
+                showFeedToast(t('workspace.error.lastRoundFailed'));
+              }, 600);
             }
           }
           setRestored(true);
@@ -542,8 +550,8 @@ export default function WorkspacePage() {
 
       <main className={`${styles.main} ${showHeroInput ? styles.mainHeroShell : ''}`}>
         {isLoading ? (
-          /* 加载过渡态：彻底不渲染具体内容避免底框乱闪 */
-          <div style={{ flex: 1 }} />
+          /* 加载过渡态：骨架屏平滑过渡 */
+          <WorkspaceSkeleton />
         ) : showHeroInput ? (
           <WorkspaceHeroEmpty
             textareaRef={textareaRef}
