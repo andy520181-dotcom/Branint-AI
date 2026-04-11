@@ -44,24 +44,14 @@
   position: relative;
 }
 
-/* 气泡右侧尖角 */
+/* NOTE: 单实心三角 —— 与矩形框同色，避免双三角技巧在半透明骨架色上产生色差 */
 .userBubble::before {
   content: '';
   position: absolute;
-  right: -8px;
-  top: 14px;
-  border: 8px solid transparent;
-  border-left-color: var(--color-border);
-  border-right: none;
-}
-.userBubble::after {
-  content: '';
-  position: absolute;
-  right: -6px;
-  top: 15px;
+  right: -7px;
+  top: 16px;
   border: 7px solid transparent;
-  /* NOTE: 用页面背景色而非白色，防止三角与骨架灰色摣扰不配 */
-  border-left-color: var(--color-bg, #f5f4ed);
+  border-left-color: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
   border-right: none;
 }
 
@@ -133,24 +123,14 @@
   position: relative;
 }
 
-/* 气泡左侧尾巴 */
+/* NOTE: 单实心三角 —— 与矩形框同色，避免双三角技巧在半透明骨架色上产生色差 */
 .feedBubble::before {
   content: '';
   position: absolute;
-  left: -8px;
-  top: 14px;
-  border: 8px solid transparent;
-  border-right-color: var(--color-border);
-  border-left: none;
-}
-.feedBubble::after {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 15px;
+  left: -7px;
+  top: 16px;
   border: 7px solid transparent;
-  /* NOTE: 用页面背景色覆盖来模拟边框三角，与骨架矩形色调保持一致 */
-  border-right-color: var(--color-bg, #f5f4ed);
+  border-right-color: color-mix(in srgb, var(--text-muted, #999) 15%, transparent);
   border-left: none;
 }
 
