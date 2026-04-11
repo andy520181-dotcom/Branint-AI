@@ -180,16 +180,32 @@
   margin-bottom: var(--space-3);
 }
 
-.citationsTitle {
+/* 可点击折叠切换按钮 */
+.citationsToggle {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  width: 100%;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  margin: 0 0 var(--space-3) 0;
+  background: none;
+  border: none;
+  padding: 0 0 var(--space-2) 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--transition-fast);
+}
+
+.citationsToggle:hover {
+  color: var(--text-secondary);
+}
+
+/* 折叠内容容器 */
+.citationsBody {
+  margin-top: var(--space-2);
 }
 
 /* ── 按类别分组的引用区 ──────────────────────────── */

@@ -229,7 +229,7 @@ async def _run_research_loop(
         elif action == "web_search_market_data":
             query = args.get("query", "")
             research_angle = args.get("research_angle", "market_size")
-            search_result = await execute_tavily_search(query, max_results=5)
+            search_result = await execute_tavily_search(query, max_results=8)
             tool_result = format_search_result_for_llm(search_result)
             for r in search_result.get("results", []):
                 search_citations.append({
@@ -243,7 +243,7 @@ async def _run_research_loop(
         elif action == "search_competitor_intel":
             brand_name = args.get("brand_name", "")
             query = args.get("query", "")
-            search_result = await execute_tavily_search(query, max_results=4)
+            search_result = await execute_tavily_search(query, max_results=6)
             tool_result = f"## 竞品情报：{brand_name}\n" + format_search_result_for_llm(search_result)
             for r in search_result.get("results", []):
                 search_citations.append({
@@ -273,7 +273,7 @@ async def _run_research_loop(
             query = args.get("query", "")
             platform_focus = args.get("platform_focus", "cross_platform")
             sentiment_focus = args.get("sentiment_focus", "all")
-            search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=5)
+            search_result = await execute_social_review_search(query, platform_focus, sentiment_focus, max_results=8)
             tool_result = (
                 f"## 用户声音检索结果（平台: {platform_focus}，情感倾向: {sentiment_focus}）\n"
                 + format_search_result_for_llm(search_result)

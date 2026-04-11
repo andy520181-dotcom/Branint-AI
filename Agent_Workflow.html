@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branin AI 智能体矩阵协作流程图</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: #0f172a;
+        }
+        .header p {
+            font-size: 15px;
+            color: #64748b;
+            margin: 0;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        .mermaid-container {
+            width: 100%;
+            max-width: 1000px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            overflow-x: auto;
+        }
+        .legend {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                fontFamily: "'Inter', -apple-system, sans-serif",
+                lineColor: '#94a3b8',
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 50,
+                rankSpacing: 60
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Branin AI / 核心智能体矩阵协作架构</h1>
+        <p>最新重构版：展示品牌顾问 (Ogilvy) 的意图识别与路由策略，以及市场研究 (Wacksman) 与品牌战略 (Trout) 在「全案引擎」与「单点微操」双轨模式下的无缝调度配合。</p>
+    </div>
+
+    <div class="mermaid-container">
+        <div class="mermaid">
+            graph TD
+                %% 节点样式体系
+                classDef userBox fill:#1e293b,stroke:#0f172a,color:#ffffff,stroke-width:0px,rx:8px,ry:8px,font-weight:bold;
+                classDef ogilvyBox fill:#ecfdf5,stroke:#10b981,color:#065f46,stroke-width:2px,rx:8px,ry:8px;
+                classDef wacksmanBox fill:#eff6ff,stroke:#3b82f6,color:#1e40af,stroke-width:2px,rx:8px,ry:8px;
+                classDef troutBox fill:#fdf4ff,stroke:#d946ef,color:#86198f,stroke-width:2px,rx:8px,ry:8px;
+                classDef systemBox fill:#fff7ed,stroke:#f97316,color:#9a3412,stroke-width:2px,stroke-dasharray: 5 5,rx:8px,ry:8px;
+                classDef decisionBox fill:#f1f5f9,stroke:#64748b,color:#334155,stroke-width:2px,rx:20px,ry:20px;
+                classDef endpointBox fill:#f8fafc,stroke:#cbd5e1,color:#475569,stroke-width:1px,rx:4px,ry:4px;
+                
+                %% 用户入口
+                U["👩‍💻 用户业务诉求 (指令/自然对话)"]:::userBox
+                
+                %% 品牌顾问引擎
+                subgraph Ogilvy ["🗣 品牌顾问 (Ogilvy) — 客户总监 & 路由中心"]
+                    O_Input{"识别诉求意图"}:::decisionBox
+                    O_Diligence["前置背调 (conduct_brand_diligence)<br/>获取全网基本面预增强"]:::ogilvyBox
+                    O_Clarify["自适应追问 (clarify_requirement)<br/>挂起会话索要必要信息"]:::ogilvyBox
+                    O_Direct["轻量直答 (direct_response)<br/>寒暄、进度安抚或解释概念<br/>🚫 严禁越权替代专家进行创作"]:::ogilvyBox
+                    
+                    O_DAG["生成专业链路 (generate_workflow_dag)<br/>决定选调哪些下游专家 & 赋值 is_micro_task"]:::ogilvyBox
+                end
+                
+                %% 系统中枢
+                subgraph Orchestrator ["⚙️ Orchestrator (系统调度层)"]
+                    Sys_Handoff["提取前置 Agent Handoff 上下文"]:::systemBox
+                    Sys_DualTrack{"基于 is_micro_task 判定原生车道"}:::systemBox
+                end
+
+                %% 市场研究引擎
+                subgraph Wacksman ["📊 市场研究 (Wacksman) — 商业情报支持"]
+                    W_Exec["动态执行深度搜索工具<br/>抓取行业研报与竞对数据"]:::wacksmanBox
+                    W_Handoff["产出核心洞察<br/>结构化封装至 &lt;handoff&gt;"]:::wacksmanBox
+                end
+
+                %% 品牌战略引擎
+                subgraph Trout ["🧠 品牌战略 (Trout) — 架构与心智卡位"]
+                    T_Micro["「单点微缩任务原生车道」<br/>(is_micro_task = True)"]:::troutBox
+                    T_Micro_Action["屏蔽所有宏大分析理论与推演模板<br/>针对命名/Slogan 等直击要害地进行轻量级输出"]:::troutBox
+                    
+                    T_Full["「全栈战略推演原生车道」<br/>(is_micro_task = False)"]:::troutBox
+                    T_Framework["必须调用 select_applicable_frameworks<br/>结合商业场景动态挑选 theory_combo 组合"]:::troutBox
+                    T_Cascade["严格瀑布流执行推演：<br/>Layer 0 (竞争格局) → Layer 1 (核心定位) →<br/>Layer 2 (驱动力) → 品牌屋 (Brand House)"]:::troutBox
+                    T_Report["调用 synthesize_strategy_report<br/>生成结构化大报告与下游移交档案"]:::troutBox
+                end
+
+                %% 执行链路
+                U --> O_Input
+                O_Input -->|首轮缺乏信息| O_Diligence
+                O_Diligence -.-> O_Input
+                O_Input -->|缺少关键核心参数| O_Clarify
+                O_Input -->|非创意实操类纯聊天| O_Direct
+                O_Input -->|商业执行与创意诉求| O_DAG
+                
+                O_DAG ==>|将执行规划下发系统| Sys_Handoff
+                
+                Sys_Handoff -->|如果涉及竞争调研| W_Exec
+                W_Exec --> W_Handoff
+                W_Handoff -->|提取浓缩摘要传递给 Trout| Sys_DualTrack
+                O_DAG -->|如果仅需直接创作,跳过市场| Sys_DualTrack
+
+                Sys_DualTrack ====>|是: 走原生降维隔离车道| T_Micro
+                Sys_DualTrack ====>|否: 启动经典长文推演车道| T_Full
+                
+                T_Micro --> T_Micro_Action
+                T_Full --> T_Framework
+                T_Framework --> T_Cascade
+                T_Cascade --> T_Report
+                
+                %% 终局
+                END1["即刻响应 (流式极简对话)"]:::endpointBox
+                END2["知识留存 (沉淀复杂 Markdown 研报)"]:::endpointBox
+                
+                O_Direct -.-> END1
+                T_Micro_Action -.-> END1
+                T_Report -.-> END2
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div> Ogilvy (品牌顾问)</div>
+        <div class="legend-item"><div class="legend-color" style="background: #3b82f6;"></div> Wacksman (市场研究)</div>
+        <div class="legend-item"><div class="legend-color" style="background: #d946ef;"></div> Trout (品牌战略)</div>
+        <div class="legend-item"><div class="legend-color" style="background: #f97316;"></div> 系统 Orchestrator</div>
+    </div>
+
+</body>
+</html>
