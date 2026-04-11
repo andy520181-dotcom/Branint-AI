@@ -114,7 +114,7 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
       WebkitOverflowScrolling: 'touch',
       margin: 'var(--space-4) 0',
       borderRadius: '12px',
-      border: '1px solid #f0eee6',
+      border: '1px solid #e5e7eb',
     }}>
       <div style={{
         display: 'grid',
@@ -124,16 +124,16 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
 
         {/* ── Header Row ── */}
         <div style={{
-          background: '#ece9e0',
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '8px',
           fontWeight: 600,
           fontSize: '12px',
-          color: '#6b6a65',
-          borderBottom: '1px solid #e8e5da',
-          borderRight: '1px solid #e8e5da',
+          color: '#6b7280',
+          borderBottom: '1px solid #e5e7eb',
+          borderRight: '1px solid #e5e7eb',
           position: 'sticky',
           left: 0,
           zIndex: 10,
@@ -173,16 +173,16 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
             <React.Fragment key={`row-${rIndex}`}>
               {/* 行标签（固定，去掉 emoji） */}
               <div style={{
-                background: '#f5f3ed',
+                background: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '10px 6px',
                 fontWeight: 600,
                 fontSize: '11px',
-                color: '#5e5d59',
-                borderBottom: isLastRow ? 'none' : '1px solid #ece9e0',
-                borderRight: '1px solid #e8e5da',
+                color: '#6b7280',
+                borderBottom: isLastRow ? 'none' : '1px solid #e5e7eb',
+                borderRight: '1px solid #e5e7eb',
                 position: 'sticky',
                 left: 0,
                 zIndex: 5,
@@ -198,19 +198,16 @@ export function JourneyMapRender({ data }: JourneyMapRenderProps) {
                   <div
                     key={`cell-${rIndex}-${cIndex}`}
                     style={{
-                      background: '#fafaf8',
+                      background: 'transparent',
                       padding: '10px 12px',
-                      borderBottom: isLastRow ? 'none' : '1px solid #ece9e0',
-                      borderRight: cIndex < phases.length - 1 ? '1px solid #ece9e0' : 'none',
+                      borderBottom: isLastRow ? 'none' : '1px solid #e5e7eb',
+                      borderRight: cIndex < phases.length - 1 ? '1px solid #e5e7eb' : 'none',
                       fontSize: '12px',
                       lineHeight: '1.65',
                       color: '#5e5d59',
                       wordBreak: 'break-word',
                       whiteSpace: 'pre-wrap',
-                      transition: 'background 0.12s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f0ede6')}
-                    onMouseLeave={e => (e.currentTarget.style.background = '#fafaf8')}
                   >
                     {cellText}
                   </div>
