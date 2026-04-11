@@ -170,42 +170,117 @@
 }
 
 /* ── 引用来源区域 ──────────────────────────────── */
+/* ── DeepSeek 风格数据来源徽章 ───────────────────── */
 .citationsSection {
-  margin-top: 24px;
+  margin-top: 20px;
+  position: relative;
+  display: inline-block;
 }
 
-.citationsDivider {
-  height: 1px;
-  background: var(--color-border);
-  margin-bottom: var(--space-3);
+/* 外层胶囊容器 */
+.citationsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: default;
+  position: relative;
+  transition: border-color 0.15s;
 }
 
-/* 可点击折叠切换按钮 */
-.citationsToggle {
+.citationsBadge:hover {
+  border-color: #d1d5db;
+}
+
+/* Favicon 叠加层 */
+.citationsFavicons {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  background: none;
-  border: none;
-  padding: 0 0 var(--space-2) 0;
-  cursor: pointer;
-  text-align: left;
-  transition: color var(--transition-fast);
+  flex-direction: row-reverse;
 }
 
-.citationsToggle:hover {
-  color: var(--text-secondary);
+.citationFavicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #f9fafb;
+  object-fit: cover;
+  margin-left: -5px;
+  background: #e5e7eb;
+}
+/* 第一张不需要负 margin */
+.citationFavicon:last-child {
+  margin-left: 0;
 }
 
-/* 折叠内容容器 */
-.citationsBody {
-  margin-top: var(--space-2);
+/* 计数文字 */
+.citationsCount {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Hover 展开浮层 */
+.citationsBadge:hover .citationsPopover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.citationsPopover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 6px 0;
+  min-width: 260px;
+  max-width: 360px;
+  max-height: 280px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.citationsPopoverItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 12px;
+  line-height: 1.4;
+  transition: background 0.1s;
+  border-radius: 0;
+}
+.citationsPopoverItem:hover {
+  background: #f3f4f6;
+}
+
+.citationsPopoverFavicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.citationsPopoverTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #374151;
 }
 
 /* ── 按类别分组的引用区 ──────────────────────────── */
@@ -247,14 +322,14 @@
 .citationPill {
   display: inline-flex;
   align-items: center;
-  max-width: 160px;
-  padding: 2px 8px;
+  max-width: 120px;
+  padding: 1px 7px;
   border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-normal);
-  color: var(--text-muted);
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -264,23 +339,23 @@
 }
 
 .citationPill:hover {
-  background: var(--color-surface);
-  border-color: var(--text-muted);
-  color: var(--text-secondary);
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #6b7280;
 }
 
 /* NOTE: 所有类型胶囊统一样式，不再区分颜色 */
 .citationPillCompetitor,
 .citationPillSocial,
 .citationPillReview {
-  color: var(--text-muted);
+  color: #9ca3af;
 }
 .citationPillCompetitor:hover,
 .citationPillSocial:hover,
 .citationPillReview:hover {
-  background: var(--color-surface);
-  border-color: var(--text-muted);
-  color: var(--text-secondary);
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #6b7280;
 }
 
 /* ── 引用卡片横向滚动容器 ─────────────────────────── */

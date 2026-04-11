@@ -159,80 +159,43 @@ export function MarketRenderer({ output, isRunning, researchProgress = [], agent
         </ReactMarkdown>
       )}
 
-      {/* 来源引用区 — 始终可见，仅展示标题，省略详细内容 */}
+      {/* DeepSeek 风格数据来源：favicon 叠加 + 计数 + hover 展开浮层 */}
       {citations.length > 0 && (
         <div className={marketStyles.citationsSection}>
-          <p className={marketStyles.citationsTitle}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-            </svg>
-            数据来源（{citations.length} 条检索引用）
-          </p>
-
-          {/* 市场数据来源 */}
-          {marketCitations.length > 0 && (
-            <div className={marketStyles.citationGroup}>
-              <span className={marketStyles.citationGroupLabel}>市场数据</span>
-              <div className={marketStyles.citationPills}>
-                {marketCitations.map((c, i) => (
-                  <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className={marketStyles.citationPill} title={c.title}>
-                    {c.title || c.url}
-                  </a>
-                ))}
-              </div>
+          <div className={marketStyles.citationsBadge}>
+            <div className={marketStyles.citationsFavicons}>
+              {citations.slice(0, 5).map((c, i) => {
+                const domain = (() => { try { return new URL(c.url).hostname; } catch { return ''; } })();
+                return domain ? (
+                  <img
+                    key={i}
+                    src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+                    alt={domain}
+                    className={marketStyles.citationFavicon}
+                    style={{ zIndex: 5 - i }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : null;
+              })}
             </div>
-          )}
-
-          {/* 竞品情报来源（按品牌分组） */}
-          {Object.entries(citationsByBrand).map(([brand, items]) => (
-            <div key={brand} className={marketStyles.citationGroup}>
-              <span className={`${marketStyles.citationGroupLabel} ${marketStyles.citationGroupLabelCompetitor}`}>
-                竞品：{brand}
-              </span>
-              <div className={marketStyles.citationPills}>
-                {items.map((c, i) => (
-                  <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className={`${marketStyles.citationPill} ${marketStyles.citationPillCompetitor}`} title={c.title}>
-                    {c.title || c.url}
+            <span className={marketStyles.citationsCount}>{citations.length} 个网页</span>
+            <div className={marketStyles.citationsPopover}>
+              {citations.map((c, i) => {
+                const domain = (() => { try { return new URL(c.url).hostname; } catch { return c.url; } })();
+                return (
+                  <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className={marketStyles.citationsPopoverItem}>
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+                      alt=""
+                      className={marketStyles.citationsPopoverFavicon}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <span className={marketStyles.citationsPopoverTitle}>{c.title || domain}</span>
                   </a>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          ))}
-
-          {/* NOTE: 用户声音 — 只有真实抓到内容才显示，严防假数据 */}
-          {Object.entries(socialByPlatform).map(([platform, items]) =>
-            items.length > 0 ? (
-              <div key={platform} className={marketStyles.citationGroup}>
-                <span className={`${marketStyles.citationGroupLabel} ${marketStyles.citationGroupLabelSocial}`}>
-                  用户声音：{platform}
-                </span>
-                <div className={marketStyles.citationPills}>
-                  {items.map((c, i) => (
-                    <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className={`${marketStyles.citationPill} ${marketStyles.citationPillSocial}`} title={c.title}>
-                      {c.title || c.url}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
-
-          {/* NOTE: Jina 爬虫评价页 — 只有实际爬取成功才显示 */}
-          {reviewCitations.length > 0 && (
-            <div className={marketStyles.citationGroup}>
-              <span className={`${marketStyles.citationGroupLabel} ${marketStyles.citationGroupLabelReview}`}>
-                电商评价页爬取
-              </span>
-              <div className={marketStyles.citationPills}>
-                {reviewCitations.map((c, i) => (
-                  <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className={`${marketStyles.citationPill} ${marketStyles.citationPillReview}`} title={c.snippet}>
-                    {c.platform?.toUpperCase()} 用户评价
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>
