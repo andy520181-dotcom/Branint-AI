@@ -96,10 +96,22 @@ async def run_strategy_agent_stream(
     if is_micro_task:
         task_mode = "modular_task"
         user_content += (
-            "\n\n【执行指令】根据调用来源，本次需求属于『单点微缩任务 (Micro-Task)』。\n"
-            "你【不需要且绝对不能】调用 select_applicable_frameworks 进行任何全案战略分析规划。\n"
-            "请直接针对用户的微缩要求（如起名字、定口号等）调用相关的极轻量工具（如果需要的话，例如生成名字可用 generate_naming_candidates），"
-            "或者干脆不调用任何工具，直接以专业、极为精简的语言作答。绝不要输出完整的Markdown分析报告！"
+            "\n\n【执行指令】本次属于『单点微缩任务 (Micro-Task)』，你作为品牌战略顾问 Trout 独立作业。\n\n"
+            "## 信息充分性原则（最优先）\n"
+            "在执行任何工具或输出任何内容之前，请先评估用户的诉求是否包含完成任务所必需的关键信息。\n"
+            "如果缺少关键信息（例如：行业/赛道、核心受众、差异化诉求、预算规模、竞争对手等），\n"
+            "你必须以 `__AGENT_CLARIFY__:` 作为回复的第一字符，紧跟一段简洁的追问文字，然后立刻停止。\n"
+            "不要在追问之后继续输出任何分析或结论！\n\n"
+            "## 工具调用原则\n"
+            "如果信息充分，请根据用户诉求的意图直接调用「唯一最相关」的单个工具，禁止调用 select_applicable_frameworks：\n"
+            "- 品牌屋搭建/重构 → build_brand_house\n"
+            "- 核心定位/定位重塑 → apply_positioning_theory\n"
+            "- 竞争分析/格局梳理 → analyze_competitive_landscape\n"
+            "- 品牌驱动力/传播逻辑 → apply_brand_driver\n"
+            "- 命名/Slogan → generate_naming_candidates\n"
+            "- 多品牌/业务矩阵 → design_brand_architecture\n"
+            "- 即兴问答/无需工具 → 直接以资深顾问口吻极简作答\n\n"
+            "绝对禁止：输出完整 Markdown 长文报告 / 调用多个工具进行全案推演。"
         )
     else:
         task_mode = "full_strategy"
