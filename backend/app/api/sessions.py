@@ -585,6 +585,7 @@ async def get_snapshot(
             "agent_outputs": record.agent_outputs or {},
             "agent_statuses": record.agent_statuses or {},
             "agent_media": getattr(record, "agent_media", {}) or {},
+            "asset_recommendations": getattr(record, "agent_media", {}).get("assetRecommendations", {}),
             "report": record.report,
             "selected_agents": record.selected_agents or [],
             "conversation_history": record.conversation_history or [],
