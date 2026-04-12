@@ -4,16 +4,6 @@
 .actionBar {
   margin-top: 16px;
   animation: fadeIn 0.4s ease both;
-  
-  /* 默认隐藏，hover 容器时显示 */
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.visualContainer:hover .actionBar {
-  opacity: 1;
-  visibility: visible;
 }
 
 @keyframes fadeIn {
