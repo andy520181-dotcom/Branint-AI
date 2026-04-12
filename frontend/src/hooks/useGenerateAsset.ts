@@ -41,7 +41,8 @@ export function useGenerateAsset(): UseGenerateAssetReturn {
 
     setGenerating(assetType);
     try {
-      const res = await fetch(`/api/sessions/${sessionId}/generate-asset`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '';
+      const res = await fetch(`${apiBase}/api/sessions/${sessionId}/generate-asset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ asset_type: assetType, count }),
