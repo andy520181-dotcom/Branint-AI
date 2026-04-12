@@ -241,8 +241,9 @@ async def run_content_agent_stream(
 
     full_plan_directive = (
         "\n\n[执行指令] 本次属于【全案品牌内容策划】模式，按以下固定顺序调用工具：\n"
-        "① define_brand_voice → ② draft_brand_story → ③ brainstorm_slogans "
-        "→ ④ build_social_matrix → ⑤ design_kol_koc_strategy → ⑥ synthesize_content_report\n"
+        "① define_brand_voice → ② draft_brand_story "
+        "→ ③ build_social_matrix → ④ design_kol_koc_strategy → ⑤ synthesize_content_report\n"
+        "注意：命名（Naming）和 Slogan 已由 Trout 在策略报告中完成，本阶段不重复创作。\n"
         "所有工具必须完整调用，最后以 synthesize_content_report 收尾触发报告生成。"
     )
 

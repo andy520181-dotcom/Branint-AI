@@ -1,5 +1,9 @@
 """
-内容策划 Agent (Lois) 技能库 v1.0
+内容策划 Agent (Lois) 技能库 v2.0
+
+职责归口说明：
+  命名（Naming）和品牌口号（Slogan）均由品牌战略 Agent Trout 负责。
+  Lois 以 Trout 输出的名字和口号为既定前提，专注内容执行层。
 
 工具分三组：
   A. 通用工具
@@ -14,10 +18,9 @@
   C. 全案工具（Full-Plan Tools）—— 品牌内容策略完整推演
      ⑥ define_brand_voice           — 品牌语感系统（人格 / 调性词库 / 禁忌语）
      ⑦ draft_brand_story            — 品牌故事创作（标准版 + 电梯演讲版）
-     ⑧ brainstorm_slogans           — 核心 Slogan 与场景传播口号
-     ⑨ build_social_matrix          — 全渠道社交媒体内容矩阵
-     ⑩ design_kol_koc_strategy      — KOL/KOC 投放策略与关键词防线
-     ⑪ synthesize_content_report    — 汇总报告并生成 Handoff 交接至 Scher
+     ⑧ build_social_matrix          — 全渠道社交媒体内容矩阵
+     ⑨ design_kol_koc_strategy      — KOL/KOC 投放策略与关键词防线
+     ⑩ synthesize_content_report    — 汇总报告并生成 Handoff 交接至 Scher
 """
 from __future__ import annotations
 
@@ -375,55 +378,7 @@ LOIS_TOOLS: list[dict] = [
         },
     },
 
-    # ⑧ Slogan 创作
-    {
-        "type": "function",
-        "function": {
-            "name": "brainstorm_slogans",
-            "description": (
-                "为品牌或产品创作核心 Slogan 及不同场景下的传播口号（Campaign Tagline）。"
-                "与 Trout 的硬性'定位陈述'不同，Lois 的 Slogan 强调传播力与消费者共鸣。"
-            ),
-            "parameters": {
-                "type": "object",
-                "required": ["brand_name", "brand_position_hint", "slogan_candidates"],
-                "properties": {
-                    "brand_name": {"type": "string"},
-                    "brand_position_hint": {
-                        "type": "string",
-                        "description": "Trout 给出的品牌定位核心（从 handoff 中提取）",
-                    },
-                    "slogan_candidates": {
-                        "type": "array",
-                        "description": "5个候选 Slogan，每个包含创作理由和适用场景",
-                        "items": {
-                            "type": "object",
-                            "required": ["text", "rationale", "best_for"],
-                            "properties": {
-                                "text": {"type": "string", "description": "Slogan 文本"},
-                                "rationale": {"type": "string", "description": "为什么这句话能打透消费者心智"},
-                                "best_for": {
-                                    "type": "string",
-                                    "enum": ["poster", "packaging", "tvc_tagline", "social_campaign", "offline_signage"],
-                                    "description": "最适用的传播场景",
-                                },
-                            },
-                        },
-                    },
-                    "recommended": {
-                        "type": "integer",
-                        "description": "首选推荐的候选编号（0-4）",
-                    },
-                    "recommendation_reason": {
-                        "type": "string",
-                        "description": "为什么首选这一个的理由",
-                    },
-                },
-            },
-        },
-    },
-
-    # ⑨ 社交媒体内容矩阵
+    # ⑧ 社交媒体内容矩阵
     {
         "type": "function",
         "function": {
@@ -526,7 +481,7 @@ LOIS_TOOLS: list[dict] = [
         },
     },
 
-    # ⑪ 全案汇总报告
+    # ⑩ 全案汇总报告
     {
         "type": "function",
         "function": {
@@ -719,23 +674,6 @@ def execute_draft_brand_story(args: dict[str, Any]) -> str:
     return result
 
 
-def execute_brainstorm_slogans(args: dict[str, Any]) -> str:
-    """提取 Slogan 候选列表。"""
-    candidates = args.get("slogan_candidates", [])
-    recommended_idx = args.get("recommended", 0)
-    candidates_text = "\n".join(
-        f"  {'★' if i == recommended_idx else '·'} [{i+1}] {c.get('text', '')} — {c.get('rationale', '')} [适用：{c.get('best_for', '')}]"
-        for i, c in enumerate(candidates)
-    )
-    result = (
-        f"【Slogan 候选完成 · {args.get('brand_name', '')}】\n"
-        f"{candidates_text}\n\n"
-        f"首选推荐：第{recommended_idx + 1}个 — {args.get('recommendation_reason', '')}"
-    )
-    logger.info("Slogan 候选生成完毕，推荐第 %s 个", recommended_idx + 1)
-    return result
-
-
 def execute_build_social_matrix(args: dict[str, Any]) -> str:
     """提取社交媒体矩阵配置。"""
     channels = args.get("channels", [])
@@ -801,7 +739,6 @@ LOIS_TOOL_EXECUTORS: dict[str, Any] = {
     # 全案
     "define_brand_voice":           execute_define_brand_voice,
     "draft_brand_story":            execute_draft_brand_story,
-    "brainstorm_slogans":           execute_brainstorm_slogans,
     "build_social_matrix":          execute_build_social_matrix,
     "design_kol_koc_strategy":      execute_design_kol_koc_strategy,
     "synthesize_content_report":    execute_synthesize_content_report,
