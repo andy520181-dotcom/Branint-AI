@@ -23,22 +23,22 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
-  border-radius: 999px; /* 彻底的胶囊形 */
-  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 500;
-  color: rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.9);
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.75);
 }
 
 .actionBtn:disabled {
@@ -46,11 +46,11 @@
   opacity: 0.4;
 }
 
-/* 已触发态：灰色高亮或者柔和选中态 */
+/* 已触发态：柔和选中 */
 .actionBtnTriggered {
-  background: rgba(255,255,255,0.1) !important;
-  border-color: rgba(255,255,255,0.2) !important;
-  color: rgba(255,255,255,1) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  color: rgba(0, 0, 0, 0.6) !important;
   opacity: 1 !important;
 }
 
