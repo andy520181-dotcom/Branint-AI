@@ -345,7 +345,11 @@ export default function WorkspacePage() {
           userPrompt: snap.user_prompt ?? '',
           agents: agentsMap,
           selectedAgents: selectedAgentsResolved,
-          agentImages: snap.agent_media?.agentImages ?? [],
+          agentImages: (snap.agent_media?.agentImages ?? []).map((img: any) => ({
+            agentId: img.agentId ?? img.id ?? 'visual',
+            type: img.type ?? '',
+            dataUrl: img.dataUrl ?? img.data_url ?? '',
+          })),
           agentVideos: snap.agent_media?.agentVideos ?? [],
           assetRecommendations: snap.asset_recommendations ?? {},
           finalReport: snap.report ?? '',
