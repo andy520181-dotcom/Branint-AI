@@ -8,6 +8,7 @@ import type { RoundSnapshot } from '../workspaceTypes';
 import { UserMsgBubble } from './UserMsgBubble';
 import { AgentLayoutWrapper } from './AgentLayoutWrapper';
 import { RendererFactory } from './renderers/RendererFactory';
+import { ImageAssetCard } from './renderers/ImageAssetCard';
 import styles from './WorkspaceFeed.module.css';
 
 type TFn = (key: string) => string;
@@ -193,6 +194,25 @@ export function WorkspaceFeed({
             </AgentLayoutWrapper>
           );
         })}
+
+        {/* 方案 B：视觉资产独立卡片——在 visual agent 气泡块之外独立渲染 */}
+        {(() => {
+          const visualImages = agentImages.filter((img) => img.agentId === 'visual');
+          if (visualImages.length === 0) return null;
+          // 按 type 分组
+          const byType: Record<string, typeof visualImages> = {};
+          visualImages.forEach((img) => {
+            if (!byType[img.type]) byType[img.type] = [];
+            byType[img.type].push(img);
+          });
+          return Object.entries(byType).map(([type, imgs]) => (
+            <ImageAssetCard
+              key={type}
+              assetType={type as 'logo' | 'poster' | 'banner'}
+              images={imgs.map((img) => ({ type: img.type, mime: 'image/jpeg', data_url: img.dataUrl }))}
+            />
+          ));
+        })()}
       </div>
     </div>
   );

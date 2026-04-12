@@ -5,11 +5,13 @@
  *
  * 当用户在美术指导 Agent 气泡底部点击生成按钮时调用，
  * 调用后端 /generate-asset 接口，返回图片 URL 列表。
+ * 生成结果同步写入 workspaceStore，供气泡外的独立卡片渲染使用。
  */
 
 import { useState, useCallback } from 'react';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 
-export type AssetType = 'logo' | 'poster' | 'banner';
+export type AssetType = 'logo' | 'poster' | 'banner' | 'presentation';
 
 export interface GeneratedImage {
   type: AssetType;
@@ -20,17 +22,13 @@ export interface GeneratedImage {
 interface UseGenerateAssetReturn {
   /** 正在生成中的资产类型，null 表示空闲 */
   generating: AssetType | null;
-  /** 生成结果（历次累积） */
-  images: GeneratedImage[];
   /** 触发生成 */
   generate: (sessionId: string, assetType: AssetType, count?: number) => Promise<void>;
-  /** 清空本地结果（不影响持久化） */
-  clearImages: () => void;
 }
 
 export function useGenerateAsset(): UseGenerateAssetReturn {
   const [generating, setGenerating] = useState<AssetType | null>(null);
-  const [images, setImages] = useState<GeneratedImage[]>([]);
+  const addAgentImage = useWorkspaceStore((s) => s.addAgentImage);
 
   const generate = useCallback(async (
     sessionId: string,
@@ -54,13 +52,15 @@ export function useGenerateAsset(): UseGenerateAssetReturn {
       }
 
       const data = (await res.json()) as { images: GeneratedImage[] };
-      setImages((prev) => [...prev, ...data.images]);
+
+      // NOTE: 生成结果写入全局 Store，供气泡外独立图片卡片渲染
+      data.images.forEach((img) => {
+        addAgentImage('visual', img.type, img.data_url);
+      });
     } finally {
       setGenerating(null);
     }
-  }, [generating]);
+  }, [generating, addAgentImage]);
 
-  const clearImages = useCallback(() => setImages([]), []);
-
-  return { generating, images, generate, clearImages };
+  return { generating, generate };
 }
