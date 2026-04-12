@@ -125,20 +125,18 @@ async def poll_jimeng_video(task_id: str, timeout: int = 600, poll_interval: int
     return ""
 
 
-async def generate_brand_video_async(visual_output: str) -> list[dict]:
+async def generate_brand_video_async(cinematic_prompt: str) -> list[dict]:
     """
     发起完整的即梦文生视频流程，返回可供 SSE 推送的视频结果列表。
 
     返回格式：[{"type": "video", "mime": "video/mp4", "data_url": "https://..."}]
     如果生成失败，返回空列表（静默失败，不影响主流程）。
     """
-    # 取视觉 Agent 输出的前 500 字作为视频 Prompt
-    prompt = visual_output[:500].strip()
-    if not prompt:
+    if not cinematic_prompt:
         logger.warning("即梦视频 Prompt 为空，跳过生成。")
         return []
 
-    task_id = submit_jimeng_video(prompt)
+    task_id = submit_jimeng_video(cinematic_prompt)
     if not task_id:
         logger.warning("即梦视频 API 调用失败，跳过视频生成。")
         return []

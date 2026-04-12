@@ -19,7 +19,7 @@ from app.service.consultant_agent import (
 from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
 from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
-from app.service.visual_agent import run_visual_agent_stream
+from app.service.visual_agent import run_visual_agent_stream, AGENT_CLARIFY_MARKER, IMAGE_MARKER, VIDEO_TASK_MARKER
 from app.service.skills.wacksman_skills import execute_tavily_search
 
 logger = logging.getLogger(__name__)
@@ -703,6 +703,25 @@ class AgentOrchestrator:
                     yield _sse("session_pause", json.dumps({"reason": f"{agent_key}_clarification"}))
                     logger.info(f"{agent_key} 追问已推送，等待用户回答...")
                     return
+                # NOTE: 处理视觉 Agent 发来的图片物理产出事件
+                elif chunk.startswith(IMAGE_MARKER):
+                    image_data_str = chunk[len(IMAGE_MARKER):]
+                    try:
+                        image_data = json.loads(image_data_str)
+                        yield _sse("agent_image", json.dumps({
+                            "id": "visual",
+                            "type": image_data.get("type", "poster"),
+                            "data_url": image_data.get("data_url", "")
+                        }, ensure_ascii=False))
+                    except Exception as e:
+                        logger.error("解析 IMAGE_MARKER 失败: %s", e)
+                # NOTE: 处理视觉 Agent 提交的视频异步生成队列事件
+                elif chunk.startswith(VIDEO_TASK_MARKER):
+                    task_id = chunk[len(VIDEO_TASK_MARKER):]
+                    logger.info("捕获视频生成队列信号，开启后台轮询(task_id=%s)", task_id)
+                    yield _sse("agent_video_start", "visual")
+                    from app.service.video_generator import poll_jimeng_video
+                    video_task = asyncio.create_task(poll_jimeng_video(task_id))
                 else:
                     accumulated += chunk
                     yield _sse_raw(
@@ -736,46 +755,20 @@ class AgentOrchestrator:
                 agent_key, len(accumulated), len(handoff),
             )
 
-            # NOTE: 美术指导 Agent 完成后，按需触发多模态生成引擎
-            if agent_key == "visual":
-                need_image = "<generate_image>True</generate_image>" in accumulated
-                need_video = "<generate_video>True</generate_video>" in accumulated
+            # NOTE: 美术指导 Agent 完成 (不再需要根据文本正则扫描生图) 
 
-                if need_image:
-                    try:
-                        from app.service.image_generator import generate_brand_images
-                        logger.info("检测到 <generate_image> 标识，开始生成品牌参考图...")
-                        images = await generate_brand_images(accumulated, user_prompt)
-                        for img in images:
-                            yield _sse("agent_image", json.dumps({
-                                "id": "visual",
-                                "type": img["type"],
-                                "data_url": img["data_url"],
-                            }))
-                        logger.info("品牌参考图生成完成，共 %d 张", len(images))
-                    except Exception as e:
-                        logger.error("品牌参考图生成失败（不影响主流程）: %s", e)
-                
-                if need_video:
-                    try:
-                        from app.service.video_generator import generate_brand_video_async
-                        logger.info("检测到 <generate_video> 标识，开始排队生成即梦文生视频...")
-                        yield _sse("agent_video_start", "visual")
-                        video_task = asyncio.create_task(generate_brand_video_async(accumulated))
-                    except Exception as e:
-                        logger.error("排队即梦视频任务失败: %s", e)
 
         # NOTE: 拦截等待视频生成完成（如果尚未完成）
         if video_task:
             try:
                 logger.info("等待即梦视频生成任务返回结果...")
                 # 为了防止它无限卡死导致无法出结果，加一个总兜底超时
-                videos = await asyncio.wait_for(video_task, timeout=605)
-                for vid in videos:
+                video_url = await asyncio.wait_for(video_task, timeout=605)
+                if video_url:
                     yield _sse("agent_video", json.dumps({
                         "id": "visual",
-                        "type": vid["type"],
-                        "data_url": vid["data_url"]
+                        "type": "video",
+                        "data_url": video_url
                     }))
                 logger.info("即梦视频结果回推完成。")
             except asyncio.TimeoutError:

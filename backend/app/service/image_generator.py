@@ -29,69 +29,31 @@ def _get_client() -> genai.Client:
     return genai.Client(api_key=api_key)
 
 
-def _extract_logo_prompt(visual_output: str) -> str:
-    """
-    从美术指导 Agent 的输出中提取 Logo 设计方向，
-    构建适合图片生成模型的英文 Prompt。
-    """
-    # 尝试从 handoff 或正文中提取关键信息
-    style_keywords = []
-    color_hex = []
-
-    # 提取 HEX 色值
-    hex_matches = re.findall(r"#[0-9A-Fa-f]{6}", visual_output)
-    if hex_matches:
-        color_hex = hex_matches[:3]  # 最多取前 3 个
-
-    # 提取风格关键词
-    style_match = re.search(r"(?:风格|调性|关键词)[：:]\s*(.+)", visual_output)
-    if style_match:
-        style_keywords.append(style_match.group(1).strip()[:50])
-
-    # 构建 prompt
-    prompt_parts = [
-        "Design a professional brand logo.",
-        "Clean, minimal, flat design style.",
-        "White background, suitable for brand identity.",
-    ]
-    if color_hex:
-        prompt_parts.append(f"Use these brand colors: {', '.join(color_hex)}.")
-    if style_keywords:
-        prompt_parts.append(f"Visual style: {', '.join(style_keywords)}.")
-
-    return " ".join(prompt_parts)
-
-
 async def generate_brand_images(
-    visual_output: str,
-    user_prompt: str,
+    image_type: str,
+    midjourney_prompt: str,
+    aspect_ratio: str,
 ) -> list[dict]:
     """
-    根据美术指导 Agent 的输出生成品牌参考图。
-
-    返回：[{"type": "logo", "mime": "image/jpeg", "data_url": "data:image/jpeg;base64,..."}]
+    根据美术指导 Agent 提供的高品质提示词生成品牌资产图像。
+    返回：[{"type": "logo", "mime": "image/jpeg", "data_url": "https://oss..."}]
     """
     client = _get_client()
     results: list[dict] = []
 
-    # NOTE: 生成 Logo 概念图
-    logo_prompt = (
-        f"Based on this brand brief: {user_prompt[:200]}. "
-        f"{_extract_logo_prompt(visual_output)} "
-        "Create a professional, premium brand logo design. "
-        "Minimal, modern, clean flat design. White background."
-    )
+    # 将 1:1, 16:9, 9:16, 4:3 传递给 config
+    allowed_ratios = ["1:1", "16:9", "9:16", "4:3"]
+    safe_ratio = aspect_ratio if aspect_ratio in allowed_ratios else "16:9"
 
     for attempt in range(2):
         try:
-            logger.info("开始调用内置 Nano/Fast 图片生成模型 (Banner 款)...")
-            # 使用专用的 generate_images 接口，支持指定长宽比 (Banner 常规比例 16:9)
+            logger.info("开始调用内置 Nano/Fast 图片生成模型 (%s 款)...", image_type)
             response = client.models.generate_images(
                 model=IMAGE_MODEL,
-                prompt=logo_prompt,
+                prompt=midjourney_prompt,
                 config=dict(
                     number_of_images=1,
-                    aspect_ratio="16:9",  # Banner 比例
+                    aspect_ratio=safe_ratio,
                     output_mime_type="image/jpeg",
                 )
             )
@@ -99,21 +61,19 @@ async def generate_brand_images(
             for img in response.generated_images:
                 if img.image and img.image.image_bytes:
                     mime = "image/jpeg"
-                    logger.info("Nano Banner 图片生成成功，准备上传 OSS (大小: %d bytes)", len(img.image.image_bytes))
                     
-                    # 彻底丢弃 base64 通过流强推前端的内存杀手做法，转为直接上传至阿里云 OSS
                     oss_url = await upload_file(
                         content=img.image.image_bytes,
-                        original_name="ai_generated_banner.jpg",
+                        original_name=f"ai_generated_{image_type}.jpg",
                         content_type=mime,
                     )
                     
                     results.append({
-                        "type": "banner",
+                        "type": image_type,
                         "mime": mime,
                         "data_url": oss_url,
                     })
-                    logger.info("Nano Banner 图片生成成功，大小: %d bytes", len(img.image.image_bytes))
+                    logger.info("Nano %s 图片生成成功并上传 OSS，大小: %d bytes", image_type, len(img.image.image_bytes))
             break  # 成功则跳出重试循环
         except Exception as e:
             import asyncio
