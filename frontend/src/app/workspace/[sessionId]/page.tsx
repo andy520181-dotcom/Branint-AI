@@ -104,11 +104,14 @@ export default function WorkspacePage() {
   const commitCurrentRoundToHistory = useCallback((currentAgents: Record<string, AgentState>) => {
     if (userPrompt) {
       const currentSelectedAgents = useWorkspaceStore.getState().selectedAgents;
+      // NOTE: 将当前 agentImages 快照进轮次，使图片卡片永远显示在触发它的对话轮次位置
+      const currentAgentImages = useWorkspaceStore.getState().agentImages;
       const snapshot: RoundSnapshot = {
         sessionId: sessionId,
         userPrompt,
         agents: { ...currentAgents },
         selectedAgents: currentSelectedAgents,
+        agentImages: [...currentAgentImages],
       };
       setPreviousRounds((prev) => {
         const nextRounds = [...prev, snapshot];

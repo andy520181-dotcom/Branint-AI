@@ -114,6 +114,24 @@ export function WorkspaceFeed({
                 );
               })}
             </div>
+
+            {/* NOTE: 渲染该轮次快照中的视觉资产独立卡片，位置永久锁定在此轮对话后 */}
+            {(() => {
+              const roundImages = (round.agentImages ?? []).filter((img) => img.agentId === 'visual');
+              if (roundImages.length === 0) return null;
+              const byType: Record<string, typeof roundImages> = {};
+              roundImages.forEach((img) => {
+                if (!byType[img.type]) byType[img.type] = [];
+                byType[img.type].push(img);
+              });
+              return Object.entries(byType).map(([type, imgs]) => (
+                <ImageAssetCard
+                  key={`${roundIndex}-${type}`}
+                  assetType={type as 'logo' | 'poster' | 'banner'}
+                  images={imgs.map((img) => ({ type: img.type, mime: 'image/jpeg', data_url: img.dataUrl }))}
+                />
+              ));
+            })()}
           </div>
         );
       })}
@@ -195,13 +213,18 @@ export function WorkspaceFeed({
           );
         })}
 
-        {/* 方案 B：视觉资产独立卡片——在 visual agent 气泡块之外独立渲染 */}
+        {/* 方案 B：当前轮视觉资产独立卡片——仅显示历史轮次未包含的新图片 */}
         {(() => {
-          const visualImages = agentImages.filter((img) => img.agentId === 'visual');
-          if (visualImages.length === 0) return null;
-          // 按 type 分组
-          const byType: Record<string, typeof visualImages> = {};
-          visualImages.forEach((img) => {
+          // NOTE: 收集所有历史轮次已经渲染的图片 dataUrl，去重避免在当前轮重复显示
+          const historicalDataUrls = new Set(
+            previousRounds.flatMap((r) => (r.agentImages ?? []).map((img) => img.dataUrl))
+          );
+          const newImages = agentImages.filter(
+            (img) => img.agentId === 'visual' && !historicalDataUrls.has(img.dataUrl)
+          );
+          if (newImages.length === 0) return null;
+          const byType: Record<string, typeof newImages> = {};
+          newImages.forEach((img) => {
             if (!byType[img.type]) byType[img.type] = [];
             byType[img.type].push(img);
           });
