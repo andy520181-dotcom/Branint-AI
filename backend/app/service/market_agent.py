@@ -47,6 +47,10 @@ MAX_RESEARCH_ROUNDS = 10
 # 不会被当作报告文本内容累积到 agent output 中
 PROGRESS_MARKER = "\x00WACKSMAN_PROGRESS\x00"
 
+# NOTE: Orchestrator 捕获此前缀后，emit agent_clarify SSE + session_pause SSE
+# 定义在模块上层，确保全文任意位置都能引用
+AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
+
 # 各 Tool action 对应的人类可读进度描述
 _ACTION_LABELS: dict[str, str] = {
     "clarify_research_scope": "分析研究范围与边界定义…",
@@ -365,8 +369,6 @@ async def run_market_agent(user_prompt: str, handoff_context: str = "") -> str:
     return final_report
 
 
-# NOTE: orchestrator 捕获此前缀后，emit agent_clarify SSE + session_pause SSE
-AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 
 
 async def run_market_agent_stream(
@@ -382,6 +384,15 @@ async def run_market_agent_stream(
     is_execution_brief=True: 单议题快报车道，精准工具调用 + 结构化快报输出
     is_micro_task=True: 轻量微缩任务车道，简洁分析师口吻直接作答
     """
+    # IMPORTANT: 互斥保障——is_execution_brief 优先级高于 is_micro_task
+    # 如果两者同时为 True（应该避免但防御性应对），快报车道竟然出错地被激活，強制重置 micro_task
+    if is_execution_brief and is_micro_task:
+        logger.warning(
+            "Wacksman 收到 is_execution_brief=True + is_micro_task=True 矛盾信号，"
+            "强制重置 is_micro_task=False，以 Execution Brief 车道优先"
+        )
+        is_micro_task = False
+
     # ─── Execution 单议题快报车道 ─────────────────────────────
     # NOTE: 优先于 Micro-Task 判断，is_execution_brief 是更重量级的执行路径
     if is_execution_brief:
