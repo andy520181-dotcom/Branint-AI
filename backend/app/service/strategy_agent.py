@@ -90,8 +90,10 @@ async def run_strategy_agent_stream(
 
     # ─── Pure Advisory 纯对话快车道 ────────────────────────────
     # NOTE: 完全绕过工具循环，适用于无需数据的纯概念性战略问答
-    if is_pure_advisory:
-        logger.info("Trout Pure Advisory 快车道启动，绕过工具循环直接啊出")
+    # IMPORTANT: patch_instruction 优先级高于 pure_advisory——
+    # 如果本次是热更新修订任务，必须走完整工具链，不能走纯对话快车道
+    if is_pure_advisory and not patch_instruction:
+        logger.info("Trout Pure Advisory 快车道启动，绕过工具循环直接输出")
         yield _make_progress("start", label="Trout 收到战略问题，个人观点直接上阵…")
 
         system_prompt = load_agent_prompt("strategy")
@@ -102,7 +104,7 @@ async def run_strategy_agent_stream(
             advisory_content += f"\n\n[用户补充信息]\n{clarification_answers}"
         advisory_content += (
             "\n\n[车道说明] 本次属于『纯战略问答』模式。"
-            "请不调用任何工具，直接以 Trout 的口吻——简洁、锐利、有洱源——回答用户的战略问题。"
+            "请不调用任何工具，直接以 Trout 的口吻——简洁、锐利、有洞源——回答用户的战略问题。"
             "无需输出完整报告模板，但可用简短 Markdown 小标题结构化关键观点。"
         )
         messages = [

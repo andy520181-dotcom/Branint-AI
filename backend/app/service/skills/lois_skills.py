@@ -508,7 +508,12 @@ LOIS_TOOLS: list[dict] = [
                     },
                     "handoff_slogan": {
                         "type": "string",
-                        "description": "首选推荐 Slogan（含理由）",
+                        "description": (
+                            "品牌口号（Slogan）——必须从 Trout 的战略交接摘要（handoff_context）中提取，"
+                            "Lois 不创作 Slogan，只传递和引用 Trout 的定稿成果。"
+                            "提取方式：查找 handoff_context 中 Trout 标注的「推荐口号」或「品牌口号候选首选」字段。"
+                            "若 handoff_context 中无 Slogan（如 Trout 未介入本次流程），填写「待 Trout 确认」。"
+                        ),
                     },
                     "handoff_brand_voice_keywords": {
                         "type": "array",
