@@ -527,7 +527,12 @@ class AgentOrchestrator:
                     selected_agents = args.get("routing_sequence", [])
                     # NOTE: 防线 2 — Ogilvy 自主判断是否为微型任务
                     is_micro_task = args.get("is_micro_task", False)
-                    logger.info("Ogilvy 输出 DAG: %s, is_micro_task=%s", selected_agents, is_micro_task)
+                    is_execution_brief = args.get("is_execution_brief", False)
+                    is_pure_advisory = args.get("is_pure_advisory", False)
+                    logger.info(
+                        "Ogilvy 输出 DAG: %s, is_micro_task=%s, is_execution_brief=%s, is_pure_advisory=%s",
+                        selected_agents, is_micro_task, is_execution_brief, is_pure_advisory,
+                    )
 
                     # 将选中的 agent 转换成中文名称给大模型参考
                     agent_names = "、".join(
@@ -631,7 +636,12 @@ class AgentOrchestrator:
             if agent_key == "market":
                 # NOTE: 市场研究是第一个专业 Agent，接收品牌顾问的初步分析作为背景
                 handoff_context = _build_handoff_context(project_context, ["consultant_plan"])
-                stream = run_market_agent_stream(enriched_user_prompt, handoff_context, is_micro_task=is_micro_task)
+                stream = run_market_agent_stream(
+                    enriched_user_prompt,
+                    handoff_context,
+                    is_micro_task=is_micro_task,
+                    is_execution_brief=is_execution_brief,
+                )
 
             elif agent_key == "strategy":
                 handoff_context = _build_handoff_context(project_context, ["market"])
@@ -649,6 +659,7 @@ class AgentOrchestrator:
                     patch_instruction=patch_instr,
                     old_output=old_strategy_output,
                     is_micro_task=is_micro_task,
+                    is_pure_advisory=is_pure_advisory,
                 )
             elif agent_key == "content":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy"])

@@ -80,6 +80,28 @@ OGILVY_TOOLS = [
                         ),
                         "default": False
                     },
+                    "is_execution_brief": {
+                        "type": "boolean",
+                        "description": (
+                            "仅对 market（Wacksman）Agent 生效。"
+                            "设为 true 的典型场景：用户只需了解某单一议题的精准快报，例如："
+                            "'帮我快速看一下小红书上的成分护肤竞争格局'、'给我XX品牌的竞品简报'。"
+                            "触发后 Wacksman 精准调用 1-3 个工具，输出结构化快报（400-600字），而非完整报告。"
+                            "注意：当 is_execution_brief=true 时，is_micro_task 通常为 false。"
+                        ),
+                        "default": False
+                    },
+                    "is_pure_advisory": {
+                        "type": "boolean",
+                        "description": (
+                            "仅对 strategy（Trout）Agent 生效。"
+                            "设为 true 的典型场景：用户提出无需数据或工具支撑的纯战略概念问答，例如："
+                            "'聚焦战略和蓝海战略哪个更适合我的情况？'、'品牌定位和品牌识别有什么区别？'。"
+                            "触发后 Trout 完全绕过工具调用循环，直接以资深顾问口吻流式对话，大幅降低响应延迟。"
+                            "注意：当 is_pure_advisory=true 时，is_micro_task 通常为 false。"
+                        ),
+                        "default": False
+                    },
                     "plan_explanation": {
                         "type": "string",
                         "description": (

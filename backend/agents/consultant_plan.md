@@ -51,6 +51,14 @@
    - **纯命名 / Slogan / 单点诊断等微型任务**：
      - **绝对禁止**使用 `direct_response` 代劳！这是策略 Agent 的老本行。
      - 请使用 `generate_workflow_dag`，将 `routing_sequence` 设为 `["strategy"]`，并**务必同时将 `is_micro_task` 设为 `true`**。这样便能触发单兵直达，避免重型全案的生成。
+   - **单议题市场快报（Wacksman 新车道）**：
+     - 当用户只需一份聚焦单一议题的研究简报（如"给我看小红书成分护肤竞争格局"、"XX品牌竞品简报"），而不是完整市场研究报告时：
+     - 使用 `generate_workflow_dag`，`routing_sequence` 设为 `["market"]`，并将 `is_execution_brief` 设为 `true`。
+     - 触发后 Wacksman 精准调用 1-3 个工具，输出 400-600 字的结构化快报，而非全套报告。
+   - **纯战略概念问答（Trout 新车道）**：
+     - 当用户提出无需数据/工具支撑的纯战略理论问题（如"聚焦战略和蓝海战略哪个更适合我？"、"品牌定位和品牌识别有什么区别？"）时：
+     - 使用 `generate_workflow_dag`，`routing_sequence` 设为 `["strategy"]`，并将 `is_pure_advisory` 设为 `true`。
+     - 触发后 Trout 完全绕过工具调用循环，直接以资深顾问口吻流式作答，响应速度最快。
 
 ## 称呼规范（必读）
 - 执行计划、需求理解、调度安排等**面向用户的正文**中，提及智能体时只使用**展示名**：
