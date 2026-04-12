@@ -1,10 +1,10 @@
 /* ImageAssetCard.module.css — 独立图片资产卡片样式（方案 B）*/
 
 /* ── 独立卡片容器 ── */
-/* NOTE: margin-left: 80px 与 feedLeft 等宽，使卡片右侧与气泡右边界对齐 */
+/* NOTE: margin-left = feedLeft(80px) + feedItem.gap(16px) = 96px，使左边界与气泡内容对齐 */
 .card {
   margin-top: 12px;
-  margin-left: 80px;   /* 与气泡头像栏等宽，和气泡对齐 */
+  margin-left: 96px;
   border-radius: 16px;
   overflow: hidden;
   animation: cardFadeIn 0.4s ease both;
@@ -68,14 +68,11 @@
 /* ── 图片网格 ── */
 .grid {
   display: grid;
-  gap: 2px;
-  padding: 10px;
+  /* NOTE: auto-fill 自动换行，每格最小 180px，避免超出卡片边界 */
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  padding: 12px;
 }
-
-.grid[data-count="1"] { grid-template-columns: 1fr; }
-.grid[data-count="2"] { grid-template-columns: 1fr 1fr; }
-.grid[data-count="3"] { grid-template-columns: 1fr 1fr 1fr; }
-.grid[data-count="4"] { grid-template-columns: 1fr 1fr; }
 
 /* ── 骨架屏 ── */
 .skeleton {
