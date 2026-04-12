@@ -40,12 +40,12 @@ export function VisualRenderer({
   assetRecommendations = {},
 }: VisualRendererProps) {
   const { generating, images, generate } = useGenerateAsset();
-  // NOTE: 记录已点击的按钮，避免重复触发同类型
-  const [triggered, setTriggered] = useState<Set<AssetType>>(new Set());
+  // NOTE: 记录已点击的按钮下标（或键），避免重复触发同一按钮
+  const [triggered, setTriggered] = useState<Set<string>>(new Set());
 
-  const handleGenerate = async (assetType: AssetType, count: number) => {
-    if (triggered.has(assetType) || generating) return;
-    setTriggered((prev) => new Set(prev).add(assetType));
+  const handleGenerate = async (assetType: AssetType, count: number, keyStr: string) => {
+    if (triggered.has(keyStr) || generating) return;
+    setTriggered((prev) => new Set(prev).add(keyStr));
     await generate(sessionId, assetType, count);
   };
 
@@ -80,25 +80,28 @@ export function VisualRenderer({
             <div className={assetStyles.actionBar}>
               <span className={assetStyles.actionBarLabel}>推荐生成资产</span>
               <div className={assetStyles.actionBtns}>
-                {(assetRecommendations[agentId] || []).map(({ type, label, count }) => (
-                  <button
-                    key={type}
-                    className={`${assetStyles.actionBtn} ${triggered.has(type) ? assetStyles.actionBtnTriggered : ''}`}
-                    onClick={() => void handleGenerate(type, count)}
-                    disabled={!!generating || triggered.has(type)}
-                    title={triggered.has(type) ? '已生成，可在下方查看' : label}
-                  >
-                    {generating === type ? (
-                      <span className={assetStyles.spinner} />
-                    ) : (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M6 1v5M6 6l3-3M6 6L3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                        <rect x="1" y="9" width="10" height="1.5" rx="0.75" fill="currentColor"/>
-                      </svg>
-                    )}
-                    {triggered.has(type) ? '已生成 ✓' : label}
-                  </button>
-                ))}
+                {(assetRecommendations[agentId] || []).map(({ type, label, count }, idx) => {
+                  const keyStr = `${type}-${idx}`;
+                  return (
+                    <button
+                      key={keyStr}
+                      className={`${assetStyles.actionBtn} ${triggered.has(keyStr) ? assetStyles.actionBtnTriggered : ''}`}
+                      onClick={() => void handleGenerate(type, count, keyStr)}
+                      disabled={!!generating || triggered.has(keyStr)}
+                      title={triggered.has(keyStr) ? '已生成，可在下方查看' : label}
+                    >
+                      {generating === type ? (
+                        <span className={assetStyles.spinner} />
+                      ) : (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M6 1v5M6 6l3-3M6 6L3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                          <rect x="1" y="9" width="10" height="1.5" rx="0.75" fill="currentColor"/>
+                        </svg>
+                      )}
+                      {triggered.has(keyStr) ? '已生成 ✓' : label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -108,7 +111,7 @@ export function VisualRenderer({
       )}
 
       {/* 独立图片资产卡片——位于气泡下方，与文字策略完全分离 */}
-      {(assetRecommendations[agentId] || []).map(({ type }) => {
+      {Array.from(new Set((assetRecommendations[agentId] || []).map(r => r.type))).map((type) => {
         const typeImages = imagesByType[type] ?? [];
         const isLoadingThis = generating === type;
         if (!isLoadingThis && typeImages.length === 0) return null;
