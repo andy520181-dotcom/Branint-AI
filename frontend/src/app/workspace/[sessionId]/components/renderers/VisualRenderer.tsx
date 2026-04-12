@@ -70,7 +70,7 @@ export function VisualRenderer({
   }, {});
 
   return (
-    <div className={`${styles.cardOutput} markdown-body`}>
+    <div className={`${styles.cardOutput} markdown-body ${assetStyles.visualContainer}`}>
       {output ? (
         <>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripHandoff(output)}</ReactMarkdown>
@@ -78,10 +78,10 @@ export function VisualRenderer({
           {/* 路径 A：Agent 完成后展示显式生成按钮行 */}
           {isDone && (assetRecommendations[agentId] || []).length > 0 && (
             <div className={assetStyles.actionBar}>
-              <span className={assetStyles.actionBarLabel}>推荐生成资产</span>
               <div className={assetStyles.actionBtns}>
-                {(assetRecommendations[agentId] || []).map(({ type, label, count }, idx) => {
+                {Array.from(new Set((assetRecommendations[agentId] || []).map(r => r.type))).map((type, idx) => {
                   const keyStr = `${type}-${idx}`;
+                  const { label, count } = (assetRecommendations[agentId] || []).find(r => r.type === type) || { label: '', count: 1 };
                   return (
                     <button
                       key={keyStr}

@@ -2,26 +2,26 @@
 
 /* ── 操作按钮行 ── */
 .actionBar {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: 16px;
   animation: fadeIn 0.4s ease both;
+  
+  /* 默认隐藏，hover 容器时显示 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.visualContainer:hover .actionBar {
+  opacity: 1;
+  visibility: visible;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(6px); }
+  to   { transform: translateY(0); }
 }
 
-.actionBarLabel {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.4);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
+
 
 .actionBtns {
   display: flex;
@@ -33,34 +33,34 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.85);
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.14);
+  padding: 7px 16px;
+  border-radius: 999px; /* 彻底的胶囊形 */
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: rgba(201,171,127,0.15);
-  border-color: rgba(201,171,127,0.4);
-  color: #c9ab7f;
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.9);
 }
 
 .actionBtn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
-/* 已触发态：颜色转为淡金色确认 */
+/* 已触发态：灰色高亮或者柔和选中态 */
 .actionBtnTriggered {
-  background: rgba(201,171,127,0.1) !important;
-  border-color: rgba(201,171,127,0.3) !important;
-  color: rgba(201,171,127,0.8) !important;
+  background: rgba(255,255,255,0.1) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  color: rgba(255,255,255,1) !important;
   opacity: 1 !important;
 }
 
