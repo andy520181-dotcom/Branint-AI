@@ -104,6 +104,9 @@ export function WorkspaceFeed({
                       status={state?.status ?? 'waiting'}
                       sessionId={sessionId}
                       isDone={state?.status === 'completed'}
+                      agentImages={agentImages}
+                      agentVideos={agentVideos}
+                      assetRecommendations={assetRecommendations}
                       t={t}
                     />
                   </AgentLayoutWrapper>
