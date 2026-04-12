@@ -9,12 +9,12 @@
   overflow: hidden;
   animation: cardFadeIn 0.4s ease both;
 
-  /* ── 浅灰网格背景，与白底图片形成可辨识的对比 ── */
+  /* ── 极细网格线，仅作背景纹理点缀 ── */
   background-color: #f0f0f0;
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
   border: 1px solid rgba(0, 0, 0, 0.09);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
