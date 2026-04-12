@@ -873,7 +873,7 @@ def execute_select_frameworks(args: dict[str, Any]) -> str:
         execution_plan.append("synthesize_strategy_report")
 
     summary = (
-        f"✅ 任务意图解析完成：当前模式 `{task_mode}`\n"
+        f"任务意图解析完成：当前模式 `{task_mode}`\n"
         f"场景：{scenario} | 战略重心：{emphasis}\n"
         f"执行顺序：{' → '.join(execution_plan) if execution_plan else '无工具调用，准备直接回复'}"
     )
@@ -1310,8 +1310,8 @@ def execute_audit_brand_health(args: dict[str, Any]) -> str:
         f"{d.get('score', 0)}/10 [{priority_labels.get(d.get('priority', ''), '')}] — {d.get('finding', '')}"
         for d in dimensions
     )
-    critical = "\n".join(f"  ⚠️ {i}" for i in args.get("critical_issues", []))
-    wins = "\n".join(f"  ✅ {w}" for w in args.get("quick_wins", []))
+    critical = "\n".join(f"  [题] {i}" for i in args.get("critical_issues", []))
+    wins = "\n".join(f"  [赢] {w}" for w in args.get("quick_wins", []))
     result = (
         f"【品牌健康度审计 · {args.get('brand_name', '')}】\n"
         f"整体健康度评分：{args.get('overall_health_score', 0)}/100\n\n"

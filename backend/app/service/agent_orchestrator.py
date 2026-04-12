@@ -84,7 +84,7 @@ def _parse_at_mentions(prompt: str) -> list[str]:
 # NOTE: 当 is_micro_task=True 时，此指令被强制注入下游所有 Agent 的系统提示词首段，
 # 彻底压制长文报告模板，逼迫 Agent 只做精准的单点输出
 MICRO_TASK_LOCK = (
-    "【⚠️ SYSTEM OVERRIDE: MICRO-TASK LOCK ACTIVATED】\n"
+    "【SYSTEM OVERRIDE: MICRO-TASK LOCK ACTIVATED】\n"
     "长官（系统）在此强制褫夺你的所有默认长文输出模板与宏大叙事习惯！\n"
     "当前你正在执行单点微缩任务（Micro-Task），请以绝对的克制，"
     "【仅针对】用户下面本轮输入中的具体诉求作答！ "
@@ -362,8 +362,8 @@ class AgentOrchestrator:
                     dossier = f"\n[核心参谋部·品牌背调档案]\n全网搜索关键词：{search_query}\n情报摘要：\n{search_result}\n\n"
                     project_context["brand_dossier"] = dossier
                     effective_prompt += f"\n\n{dossier}\n(以上为搜集的最新背景资料，请基于此立刻下发路由或流转)"
-                    plan_accumulated += "> 📊 基本盘已摸清。\n\n"
-                    yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": "> 📊 基本盘已摸清。\n\n"}, ensure_ascii=False))
+                    plan_accumulated += "> 基本盘已摸清。\n\n"
+                    yield _sse_raw("agent_chunk", json.dumps({"id": "consultant_plan", "chunk": "> 基本盘已摸清。\n\n"}, ensure_ascii=False))
                     continue
 
                 args = decision.get("args", {})
@@ -394,7 +394,7 @@ class AgentOrchestrator:
                     logger.info("品牌顾问 — 触发 Lightweight Web Search: %s", query)
                     yield _sse_raw(
                         "agent_chunk",
-                        json.dumps({"id": "consultant_plan", "chunk": f"🔍 正在检索最新资讯：{query}...\n\n"}, ensure_ascii=False),
+                        json.dumps({"id": "consultant_plan", "chunk": f"正在检索最新资讯：{query}...\n\n"}, ensure_ascii=False),
                     )
                 
                     try:
@@ -427,7 +427,7 @@ class AgentOrchestrator:
                     logger.info("品牌顾问 — 触发 Export 动作: %s", doc_title)
                 
                     export_msg = (
-                        f"✅ **{doc_title}**\\n\\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
+                        f"**{doc_title}**\\n\\n您所需的全案已处理完毕。作为基于文本的智能体系统，"
                         "物理文件生成目前处于开发阶段，您可以稍后在系统的【下载面板】查收结果。"
                     )
                 
@@ -472,7 +472,7 @@ class AgentOrchestrator:
                     asset_focus = args.get("asset_focus", "多模态素材")
                     logger.info("品牌顾问 — 触发 Analyze Uploaded Asset 动作: 重点 %s", asset_focus)
                 
-                    explanation = f"⚠️ [系统截阻：目前前端暂未开放上传通道，但系统已正确识别您意图解析的侧重点 `{asset_focus}`。请尝试用纯文字再次描述。]"
+                    explanation = f"[系统截阻：目前前端暂未开放上传通道，但系统已正确识别您意图解析的侧重点 `{asset_focus}`。请尝试用纯文字再次描述。]"
                     async for chunk in run_planning_phase_stream(explanation):
                         plan_accumulated += chunk
                         yield _sse_raw(
