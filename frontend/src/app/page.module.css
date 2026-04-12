@@ -28,7 +28,7 @@
 }
 
 .agentsSectionTitle {
-  font-family: Georgia, Times, 'Times New Roman', serif;
+  font-family: var(--font-serif);
   font-size: 1.3rem;
   font-weight: 500;
   color: #141413;

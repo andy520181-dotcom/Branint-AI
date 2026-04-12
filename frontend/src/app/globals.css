@@ -173,7 +173,7 @@
    * 与此前 Inter + Noto 视觉接近，故「看起来差不多」是正常现象
    */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  --font-serif: Georgia, Times, 'Times New Roman', serif;
+  --font-serif: ui-serif, "New York", "Charter", "Palatino Linotype", "Palatino", "Constantia", "Cambria", "Georgia", serif;
 
   /*
    * 生成页 Agent 流式 Markdown（.markdown-body）语义令牌 — 字号/色/重/间距均由此派生，禁止在组件中写死 px/#hex

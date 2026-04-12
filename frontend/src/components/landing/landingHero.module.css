@@ -34,7 +34,7 @@
 
 /* NOTE: 降低 2 档：4rem → 2.8rem，更内敛，符合 Claude 文学气质 */
 .headlinePrimary {
-  font-family: Georgia, Times, 'Times New Roman', serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.6rem, 3.5vw, 2.8rem);
   font-weight: 500;
   line-height: 1.10;
