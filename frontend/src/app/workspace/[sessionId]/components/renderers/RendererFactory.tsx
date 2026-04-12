@@ -20,6 +20,7 @@ export interface RendererFactoryProps {
   isDone: boolean;
   agentImages?: AgentImage[];
   agentVideos?: AgentVideo[];
+  assetRecommendations?: Record<AgentId, any[]>;
   /** 传入 t 函数，供 MarkdownRenderer 内的品牌屋等子组件使用 i18n */
   t?: (key: string) => string;
 }
@@ -37,6 +38,7 @@ export function RendererFactory({
   status,
   agentImages = [],
   agentVideos = [],
+  assetRecommendations = {},
   t,
 }: RendererFactoryProps) {
   const isRunning = status === 'running';
@@ -89,6 +91,7 @@ export function RendererFactory({
         sessionId={sessionId}
         isDone={isDone}
         isRunning={isRunning}
+        assetRecommendations={assetRecommendations}
       />
     );
   }

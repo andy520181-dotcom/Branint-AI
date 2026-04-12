@@ -221,6 +221,7 @@ async def _load_session_from_db(
         "agent_outputs": record.agent_outputs or {},
         "agent_statuses": record.agent_statuses or {},
         "agent_media": getattr(record, "agent_media", {}),
+        "asset_recommendations": getattr(record, "agent_media", {}).get("assetRecommendations", {}),
         "strategy_clarification_answers": getattr(record, "strategy_clarification_answers", None),
         "strategy_clarify_round": getattr(record, "strategy_clarify_round", 0),
     }
@@ -459,6 +460,22 @@ async def _run_orchestrator_background(
                             try:
                                 payload = _json.loads(line[6:])
                                 await session_repo.update_agent_media(gen_db, session_id, event_type_key, payload)
+                            except Exception:
+                                pass
+
+                if "event: agent_asset_recommendations" in event:
+                    for line in event.split("\n"):
+                        if line.startswith("data: "):
+                            try:
+                                payload = _json.loads(line[6:])
+                                aid = payload.get("id")
+                                recs = payload.get("recommendations", [])
+                                if aid:
+                                    await session_repo.set_asset_recommendations(gen_db, session_id, aid, recs)
+                                    if session_id in _session_cache:
+                                        if "asset_recommendations" not in _session_cache[session_id]:
+                                            _session_cache[session_id]["asset_recommendations"] = {}
+                                        _session_cache[session_id]["asset_recommendations"][aid] = recs
                             except Exception:
                                 pass
 

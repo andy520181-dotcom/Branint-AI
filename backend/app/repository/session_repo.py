@@ -296,4 +296,35 @@ async def update_agent_media(
         .values(agent_media=new_media)
     )
     await db.commit()
-    logger.info("会话报告已落库: %s", session_id)
+
+
+async def set_asset_recommendations(
+    db: AsyncSession,
+    session_id: str,
+    agent_id: str,
+    recommendations: list[dict],
+) -> None:
+    """
+    更新 Session 中 agent_media 下的 assetRecommendations 推荐列表。
+    避免改变底层数据表结构（利用现有的 JSONB 字段）。
+    """
+    result = await db.execute(select(SessionModel).where(SessionModel.id == session_id))
+    record = result.scalar_one_or_none()
+    if not record:
+        return
+
+    new_media = dict(getattr(record, "agent_media", None) or {})
+    if "assetRecommendations" not in new_media:
+        new_media["assetRecommendations"] = {}
+    
+    # 强制克隆一层进行修改，避免指针引用问题
+    new_recs = dict(new_media["assetRecommendations"])
+    new_recs[agent_id] = recommendations
+    new_media["assetRecommendations"] = new_recs
+
+    await db.execute(
+        update(SessionModel)
+        .where(SessionModel.id == session_id)
+        .values(agent_media=new_media)
+    )
+    await db.commit()
