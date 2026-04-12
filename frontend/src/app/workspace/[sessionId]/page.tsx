@@ -32,7 +32,7 @@ export default function WorkspacePage() {
 
   const {
     agents, currentAgentId, selectedAgents,
-    agentImages, agentVideos, finalReport,
+    agentImages, agentVideos, assetRecommendations, finalReport,
     isComplete, isStreaming, error,
     initSession, userPrompt,
     previousRounds, setPreviousRounds,
@@ -347,6 +347,7 @@ export default function WorkspacePage() {
           selectedAgents: selectedAgentsResolved,
           agentImages: snap.agent_media?.agentImages ?? [],
           agentVideos: snap.agent_media?.agentVideos ?? [],
+          assetRecommendations: snap.asset_recommendations ?? {},
           finalReport: snap.report ?? '',
           isComplete: treatAsCompleted,
           isStreaming: liveSession,
@@ -431,6 +432,7 @@ export default function WorkspacePage() {
             selectedAgents: saved.selectedAgents,
             agentImages: saved.agentImages ?? [],
             agentVideos: saved.agentVideos ?? [],
+            assetRecommendations: saved.assetRecommendations ?? {},
             finalReport: saved.finalReport,
             isComplete: saved.isComplete,
             isStreaming: false,
@@ -571,6 +573,7 @@ export default function WorkspacePage() {
               sessionId={sessionId}
               agentImages={agentImages}
               agentVideos={agentVideos}
+              assetRecommendations={assetRecommendations}
               handoffMsg={handoffMsg}
               error={error}
               isClarifying={!!strategyClarify?.isPaused}

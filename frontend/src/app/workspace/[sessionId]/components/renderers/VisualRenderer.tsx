@@ -17,13 +17,11 @@ export interface VisualRendererProps {
   isRunning: boolean;
   /** isDone 为 true 时才显示生成按钮 */
   isDone: boolean;
+  /** 动态推荐的生成资产项 */
+  assetRecommendations?: Record<AgentId, any[]>;
 }
 
-const ASSET_BUTTONS: Array<{ type: AssetType; label: string; count: number }> = [
-  { type: 'logo',   label: '生成 Logo ×2', count: 2 },
-  { type: 'poster', label: '生成品牌海报', count: 1 },
-  { type: 'banner', label: '生成推广 Banner', count: 1 },
-];
+
 
 /**
  * 专为美术指导 Agent (Scher) 设计的渲染器。
@@ -39,6 +37,7 @@ export function VisualRenderer({
   sessionId,
   isRunning,
   isDone,
+  assetRecommendations = {},
 }: VisualRendererProps) {
   const { generating, images, generate } = useGenerateAsset();
   // NOTE: 记录已点击的按钮，避免重复触发同类型
@@ -77,11 +76,11 @@ export function VisualRenderer({
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripHandoff(output)}</ReactMarkdown>
 
           {/* 路径 A：Agent 完成后展示显式生成按钮行 */}
-          {isDone && (
+          {isDone && (assetRecommendations[agentId] || []).length > 0 && (
             <div className={assetStyles.actionBar}>
-              <span className={assetStyles.actionBarLabel}>生成视觉资产</span>
+              <span className={assetStyles.actionBarLabel}>推荐生成资产</span>
               <div className={assetStyles.actionBtns}>
-                {ASSET_BUTTONS.map(({ type, label, count }) => (
+                {(assetRecommendations[agentId] || []).map(({ type, label, count }) => (
                   <button
                     key={type}
                     className={`${assetStyles.actionBtn} ${triggered.has(type) ? assetStyles.actionBtnTriggered : ''}`}
@@ -109,7 +108,7 @@ export function VisualRenderer({
       )}
 
       {/* 独立图片资产卡片——位于气泡下方，与文字策略完全分离 */}
-      {ASSET_BUTTONS.map(({ type }) => {
+      {(assetRecommendations[agentId] || []).map(({ type }) => {
         const typeImages = imagesByType[type] ?? [];
         const isLoadingThis = generating === type;
         if (!isLoadingThis && typeImages.length === 0) return null;

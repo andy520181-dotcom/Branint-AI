@@ -19,7 +19,7 @@ from app.service.consultant_agent import (
 from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
 from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
-from app.service.visual_agent import run_visual_agent_stream, AGENT_CLARIFY_MARKER as _VISUAL_CLARIFY_MARKER
+from app.service.visual_agent import run_visual_agent_stream, AGENT_CLARIFY_MARKER as _VISUAL_CLARIFY_MARKER, RECOMMENDATION_MARKER
 
 # NOTE: 媒体 Marker 字符串保留在 orchestrator 层，供未来前端显式触发图片生成时复用
 # visual_agent 已精简为纯文本流，不再主动发出这两个 Marker
@@ -710,23 +710,20 @@ class AgentOrchestrator:
                     return
                 # NOTE: 处理视觉 Agent 发来的图片物理产出事件
                 elif chunk.startswith(IMAGE_MARKER):
-                    image_data_str = chunk[len(IMAGE_MARKER):]
-                    try:
-                        image_data = json.loads(image_data_str)
-                        yield _sse("agent_image", json.dumps({
-                            "id": "visual",
-                            "type": image_data.get("type", "poster"),
-                            "data_url": image_data.get("data_url", "")
-                        }, ensure_ascii=False))
-                    except Exception as e:
-                        logger.error("解析 IMAGE_MARKER 失败: %s", e)
+                    pass # 不再处理，由前端显式触发
                 # NOTE: 处理视觉 Agent 提交的视频异步生成队列事件
                 elif chunk.startswith(VIDEO_TASK_MARKER):
-                    task_id = chunk[len(VIDEO_TASK_MARKER):]
-                    logger.info("捕获视频生成队列信号，开启后台轮询(task_id=%s)", task_id)
-                    yield _sse("agent_video_start", "visual")
-                    from app.service.video_generator import poll_jimeng_video
-                    video_task = asyncio.create_task(poll_jimeng_video(task_id))
+                    pass # 不再处理，由前端显式触发
+                elif chunk.startswith(RECOMMENDATION_MARKER):
+                    rec_data_str = chunk[len(RECOMMENDATION_MARKER):]
+                    try:
+                        rec_data = json.loads(rec_data_str)
+                        if "asset_recommendations" not in project_context:
+                            project_context["asset_recommendations"] = {}
+                        project_context["asset_recommendations"][agent_key] = rec_data
+                        yield _sse("agent_asset_recommendations", json.dumps({"id": agent_key, "recommendations": rec_data}, ensure_ascii=False))
+                    except Exception as e:
+                        logger.error("解析 RECOMMENDATION_MARKER 失败: %s", e)
                 else:
                     accumulated += chunk
                     yield _sse_raw(

@@ -622,6 +622,7 @@ async def get_snapshot(
         "agent_outputs": agent_outputs,
         "agent_statuses": agent_statuses,
         "agent_media": data.get("agent_media") or {},
+        "asset_recommendations": data.get("asset_recommendations") or {},
         "report": report,
         "selected_agents": data.get("selected_agents") or [],
         "conversation_history": data.get("conversation_history") or [],

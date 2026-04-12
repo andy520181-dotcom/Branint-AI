@@ -46,6 +46,7 @@ interface PersistedState {
   selectedAgents: AgentId[] | null;
   agentImages?: AgentImage[];
   agentVideos?: AgentVideo[];
+  assetRecommendations?: Record<AgentId, any[]>;
   finalReport: string;
   isComplete: boolean;
   userPrompt: string;
@@ -125,6 +126,8 @@ interface WorkspaceState {
   agentImages: AgentImage[];
   /** 美术指导 Agent（visual）生成的品牌视频 */
   agentVideos: AgentVideo[];
+  /** 动态下发的视觉动作按钮推荐清单 */
+  assetRecommendations: Record<AgentId, any[]>;
   finalReport: string;
   isComplete: boolean;
   isStreaming: boolean;
@@ -146,6 +149,8 @@ interface WorkspaceActions {
   addAgentImage: (agentId: AgentId, type: string, dataUrl: string) => void;
   /** 添加 Agent 生成的视频 */
   addAgentVideo: (agentId: AgentId, type: string, dataUrl: string) => void;
+  /** 设置视觉资产推荐列表 */
+  setAssetRecommendations: (id: AgentId, recs: any[]) => void;
   setCurrentAgent: (id: AgentId | null) => void;
   setSelectedAgents: (agents: AgentId[]) => void;
   setFinalReport: (report: string) => void;
@@ -170,6 +175,7 @@ const initialState: WorkspaceState = {
   selectedAgents: null,
   agentImages: [],
   agentVideos: [],
+  assetRecommendations: {} as Record<AgentId, any[]>,
   finalReport: '',
   isComplete: false,
   isStreaming: false,
@@ -178,13 +184,13 @@ const initialState: WorkspaceState = {
   strategyClarify: null,
 };
 
-/** NOTE: 统一的持久化调用点，避免每个 action 重复手写完整的 PersistedState */
 const persist = (s: WorkspaceState) =>
   saveSession(s.sessionId, {
     agents: s.agents,
     selectedAgents: s.selectedAgents,
     agentImages: s.agentImages,
     agentVideos: s.agentVideos,
+    assetRecommendations: s.assetRecommendations,
     finalReport: s.finalReport,
     isComplete: s.isComplete,
     userPrompt: s.userPrompt,
@@ -221,6 +227,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
         agents: initialAgents(), 
         agentImages: [], 
         agentVideos: [], 
+        assetRecommendations: {} as Record<AgentId, any[]>,
         sessionId, 
         userPrompt, 
         isStreaming: true, 
@@ -278,6 +285,13 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
       const agentVideos = [...s.agentVideos, { agentId, type, dataUrl }];
       persist({ ...s, agentVideos });
       return { agentVideos };
+    }),
+
+  setAssetRecommendations: (id, recs) =>
+    set((s) => {
+      const assetRecommendations = { ...s.assetRecommendations, [id]: recs };
+      persist({ ...s, assetRecommendations });
+      return { assetRecommendations };
     }),
 
   setCurrentAgent: (id) => set({ currentAgentId: id }),

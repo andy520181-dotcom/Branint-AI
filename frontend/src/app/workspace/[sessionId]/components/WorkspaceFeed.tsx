@@ -23,6 +23,7 @@ export interface WorkspaceFeedProps {
   visibleConfigs: AgentConfig[];
   agentImages?: AgentImage[];
   agentVideos?: AgentVideo[];
+  assetRecommendations?: Record<AgentId, any[]>;
   handoffMsg: { agentId: AgentId; text: string } | null;
   error: string | null;
   isClarifying?: boolean;
@@ -45,6 +46,7 @@ export function WorkspaceFeed({
   sessionId,
   agentImages = [],
   agentVideos = [],
+  assetRecommendations = {},
   handoffMsg,
   error,
   isClarifying = false,
@@ -182,6 +184,7 @@ export function WorkspaceFeed({
                 isDone={isDone}
                 agentImages={agentImages}
                 agentVideos={agentVideos}
+                assetRecommendations={assetRecommendations}
                 t={t}
               />
             </AgentLayoutWrapper>

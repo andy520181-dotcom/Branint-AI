@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # NOTE: 保留 Marker 常量供 orchestrator 解析层兼容（即使本 Agent 不再主动生成媒体）
 AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 PROGRESS_MARKER = "\x00WACKSMAN_PROGRESS\x00"
+RECOMMENDATION_MARKER = "\x00ASSET_REC\x00"
 
 
 def _make_progress(step: str, label: str = "") -> str:
@@ -88,10 +89,69 @@ async def run_visual_agent_stream(
 
     yield _make_progress("typing", label="Scher 正在亲笔书写全案视觉准则…")
 
+    # NOTE: 并行启动一个小任务，动态分析用户诉求并给出适合的交付按钮清单
+    # 这样主文案流式输出不会被阻塞，几乎不增加整体耗时
+    import asyncio
+    from app.service.llm_provider import call_llm_with_tools
+    
+    async def _fetch_recommendations():
+        recommend_tool = {
+            "type": "function",
+            "function": {
+                "name": "recommend_assets",
+                "description": "基于当前的诉求和背景，推荐 1-3 个最值得生成的视觉设计交付物组合。注意，如果是纯文字规划，也可以推荐适合承载文字的视觉包装类型（如：汇报幻灯片）",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "recommendations": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {"type": "string", "enum": ["logo", "poster", "banner", "digital_ad", "packaging", "presentation"], "description": "资产类型，影响构建生图 prompt 时的纵横比与底层风格"},
+                                    "label": {"type": "string", "description": "按钮上显示给用户看的文字，需要带渲染感，如 '生成极简Logo'、'包装概念图' 等"},
+                                    "count": {"type": "integer", "description": "推荐默认一次生成的张数，建议 1-2"}
+                                },
+                                "required": ["type", "label", "count"]
+                            }
+                        }
+                    },
+                    "required": ["recommendations"]
+                }
+            }
+        }
+        rec_messages = [
+            {"role": "system", "content": "你是一位拥有敏锐商业嗅觉的美术指导，请直接根据用户的只言片语与品牌档案，判断他们最迫切需要什么形式的具体视觉资产来佐证方案。最多推荐3个。"},
+            {"role": "user", "content": f"品牌背景：\n{handoff_context}\n\n具体诉求：\n{user_prompt}\n"}
+        ]
+        try:
+            _, t_calls = await call_llm_with_tools(
+                rec_messages, 
+                tools=[recommend_tool], 
+                tool_choice={"type": "function", "function": {"name": "recommend_assets"}},
+                model=settings.default_model
+            )
+            if t_calls:
+                args = json.loads(t_calls[0]["function"]["arguments"])
+                return args.get("recommendations", [])
+        except Exception as e:
+            logger.warning(f"动态生成推荐资产失败: {e}")
+        # 兜底
+        return [
+            {"type": "logo", "label": "生成极简 Logo ×2", "count": 2},
+            {"type": "poster", "label": "生成品牌视觉海报", "count": 1}
+        ]
+
+    rec_task = asyncio.create_task(_fetch_recommendations())
+
     async for chunk in call_llm_stream(stream_messages, model=settings.default_model):
         yield chunk
 
-    logger.info("Scher 纯文本视觉策略输出完成")
+    # 流式文本结束后，获取并行计算的推荐列表并利用 Marker 发送
+    recs = await rec_task
+    yield f"{RECOMMENDATION_MARKER}{json.dumps(recs, ensure_ascii=False)}"
+
+    logger.info("Scher 纯文本视觉策略与动态推荐按键输出完成")
 
 
 async def run_visual_agent(user_prompt: str, handoff_context: str) -> str:

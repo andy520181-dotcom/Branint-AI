@@ -142,6 +142,16 @@ export function useWorkspaceStream(sessionId: string | null) {
         }
       });
 
+      // 接收 Agent 动态反馈的推荐视觉资产按钮配置
+      es.addEventListener('agent_asset_recommendations', (e) => {
+        try {
+          const { id, recommendations } = JSON.parse(e.data) as { id: AgentId; recommendations: any[] };
+          store().setAssetRecommendations(id, recommendations);
+        } catch {
+          // 忽略解析错误
+        }
+      });
+
       // NOTE: Wacksman 研究循环进度事件——静默期实时反馈
       es.addEventListener('agent_research_progress', (e) => {
         try {
