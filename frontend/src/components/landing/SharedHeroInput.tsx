@@ -198,7 +198,7 @@ export function SharedHeroInput({
           onBlur={onBlur}
           rows={1}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               void onSubmit();
             }

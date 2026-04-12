@@ -89,14 +89,7 @@ export function AgentLayoutWrapper({
           className={`${styles.connectorLine} ${isTransferring ? styles.connectorActive : ''} ${isDone && !isTransferring ? styles.connectorDone : ''}`}
         />
       </div>
-      {handoffMsg?.agentId === cfg.id && (
-        <div className={styles.handoffBubble}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1v7M6 8l-3-3M6 8l3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {handoffMsg.text}
-        </div>
-      )}
+
     </div>
   ) : null;
 
@@ -151,13 +144,13 @@ export function AgentLayoutWrapper({
           >
             {children}
 
-            <div className={styles.aiDisclaimer}>
-              本回答由 AI 生成，内容仅供参考
-            </div>
-
-            {/* 智能体操作底栏：任务完成且不处于首轮打底时显示 */}
+            {/* 智能体生成完毕的附加信息：操作底栏与合规文案 */}
             {isDone && !plainBubble && (
-              <div className={styles.feedActions}>
+              <div style={{ animation: 'fadeSlideIn 0.4s ease' }}>
+                <div className={styles.aiDisclaimer}>
+                  本回答由 AI 生成，内容仅供参考
+                </div>
+                <div className={styles.feedActions}>
                 <button className={styles.actionBtn} onClick={handleCopy} title="复制">
                   {copied ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -186,6 +179,7 @@ export function AgentLayoutWrapper({
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
                 </button>
+              </div>
               </div>
             )}
           </div>
