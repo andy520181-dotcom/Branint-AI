@@ -27,7 +27,8 @@
   flex-direction: column;
   background: var(--color-surface);
   border: none;
-  border-radius: var(--radius-xl);
+  /* NOTE: 与主页 landingHero.module.css .inputWrapper 保持一致，统一为 12px */
+  border-radius: 12px;
   padding: 20px 20px 16px;
   box-shadow: var(--shadow-hero-input);
   flex: 1;
