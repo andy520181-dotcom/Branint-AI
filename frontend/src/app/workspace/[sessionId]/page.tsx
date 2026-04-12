@@ -568,6 +568,7 @@ export default function WorkspacePage() {
               currentAgentId={currentAgentId}
               agents={agents}
               visibleConfigs={visibleConfigs}
+              sessionId={sessionId}
               agentImages={agentImages}
               agentVideos={agentVideos}
               handoffMsg={handoffMsg}

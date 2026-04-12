@@ -1,0 +1,80 @@
+/* VisualRenderer.module.css — 美术指导 Agent 专属样式 */
+
+/* ── 操作按钮行 ── */
+.actionBar {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  animation: fadeIn 0.4s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.actionBarLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.actionBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: rgba(201,171,127,0.15);
+  border-color: rgba(201,171,127,0.4);
+  color: #c9ab7f;
+}
+
+.actionBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* 已触发态：颜色转为淡金色确认 */
+.actionBtnTriggered {
+  background: rgba(201,171,127,0.1) !important;
+  border-color: rgba(201,171,127,0.3) !important;
+  color: rgba(201,171,127,0.8) !important;
+  opacity: 1 !important;
+}
+
+/* ── 行内加载 Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(201,171,127,0.3);
+  border-top-color: #c9ab7f;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

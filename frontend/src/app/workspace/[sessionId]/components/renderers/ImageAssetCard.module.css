@@ -1,0 +1,154 @@
+/* ImageAssetCard.module.css — 独立图片资产卡片样式 */
+
+.card {
+  margin-top: 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  animation: cardFadeIn 0.4s ease both;
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 头部 ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.headerIcon {
+  color: var(--color-accent, #c9ab7f);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+
+.generatingBadge {
+  font-size: 11px;
+  color: var(--color-accent, #c9ab7f);
+  background: rgba(201,171,127,0.12);
+  border: 1px solid rgba(201,171,127,0.25);
+  border-radius: 20px;
+  padding: 2px 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ── 图片网格 ── */
+.grid {
+  display: grid;
+  gap: 2px;
+  padding: 2px;
+}
+
+.grid[data-count="1"] { grid-template-columns: 1fr; }
+.grid[data-count="2"] { grid-template-columns: 1fr 1fr; }
+.grid[data-count="3"] { grid-template-columns: 1fr 1fr 1fr; }
+.grid[data-count="4"] { grid-template-columns: 1fr 1fr; }
+
+/* ── 骨架屏 ── */
+.skeleton {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+}
+
+.skeletonInner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.10) 37%,
+    rgba(255,255,255,0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ── 单张图片 ── */
+.imageWrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111;
+  cursor: pointer;
+  aspect-ratio: 1;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.imageWrap:hover .image {
+  transform: scale(1.03);
+}
+
+/* ── 悬停操作栏 ── */
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.72), transparent);
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.imageWrap:hover .overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.overlayBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.overlayBtn:hover {
+  background: rgba(255,255,255,0.25);
+}

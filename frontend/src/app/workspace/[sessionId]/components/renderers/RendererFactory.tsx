@@ -14,6 +14,10 @@ export interface RendererFactoryProps {
   agentId: AgentId;
   output: string;
   status: string;
+  /** 当前 session ID，供美术指导 Agent 的显式生成接口使用 */
+  sessionId: string;
+  /** Agent 是否已完成输出，用于控制生成按钮的显隐 */
+  isDone: boolean;
   agentImages?: AgentImage[];
   agentVideos?: AgentVideo[];
   /** 传入 t 函数，供 MarkdownRenderer 内的品牌屋等子组件使用 i18n */
@@ -28,6 +32,8 @@ export interface RendererFactoryProps {
 export function RendererFactory({
   agentId,
   output,
+  sessionId,
+  isDone,
   status,
   agentImages = [],
   agentVideos = [],
@@ -74,14 +80,14 @@ export function RendererFactory({
     }
   }
 
-  // 2. 拦截美术指导 Agent，交由专有的多媒体视图负责
+  // 2. 拦截美术指导 Agent，交由路径 A 专有的纯文本+独立图片卡片视图负责
   if (agentId === 'visual') {
     return (
       <VisualRenderer
         agentId={agentId}
         output={displayOutput}
-        agentImages={agentImages}
-        agentVideos={agentVideos}
+        sessionId={sessionId}
+        isDone={isDone}
         isRunning={isRunning}
       />
     );

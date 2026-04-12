@@ -26,6 +26,8 @@ export interface WorkspaceFeedProps {
   handoffMsg: { agentId: AgentId; text: string } | null;
   error: string | null;
   isClarifying?: boolean;
+  /** 当前 session ID，供美术指导 Agent 的显式生成接口使用 */
+  sessionId: string;
   /** Toast 回调：由 page.tsx 传入，避免 AgentLayoutWrapper 使用 alert() */
   onToast?: (msg: string) => void;
   t: TFn;
@@ -40,6 +42,7 @@ export function WorkspaceFeed({
   currentAgentId,
   agents,
   visibleConfigs,
+  sessionId,
   agentImages = [],
   agentVideos = [],
   handoffMsg,
@@ -97,6 +100,8 @@ export function WorkspaceFeed({
                       agentId={cfg.id as AgentId}
                       output={output}
                       status={state?.status ?? 'waiting'}
+                      sessionId={sessionId}
+                      isDone={state?.status === 'completed'}
                       t={t}
                     />
                   </AgentLayoutWrapper>
@@ -131,6 +136,8 @@ export function WorkspaceFeed({
               agentId={isClarifying ? 'strategy' : 'consultant_plan'}
               output=""
               status="running"
+              sessionId={sessionId}
+              isDone={false}
               t={t}
             />
           </AgentLayoutWrapper>
@@ -171,6 +178,8 @@ export function WorkspaceFeed({
                 agentId={cfg.id as AgentId}
                 output={output}
                 status={status}
+                sessionId={sessionId}
+                isDone={isDone}
                 agentImages={agentImages}
                 agentVideos={agentVideos}
                 t={t}

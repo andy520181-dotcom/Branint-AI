@@ -15,8 +15,10 @@ from collections.abc import AsyncGenerator
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import AsyncSessionFactory
 
 from app.db.database import get_db
 from app.repository import session_repo, event_repo
@@ -625,3 +627,80 @@ async def get_snapshot(
         "conversation_history": data.get("conversation_history") or [],
     }
 
+
+# ─── 视觉资产显式生成接口（路径 A：用户主动触发）─────────────────────
+
+class GenerateAssetRequest(BaseModel):
+    """用户从 Scher 气泡下方点击按钮触发的图片生成请求体"""
+    asset_type: str = "logo"   # "logo" | "poster" | "banner"
+    count: int = 1             # 生成数量，限 1-4 张
+
+
+@router.post("/{session_id}/generate-asset")
+async def generate_asset(
+    session_id: str,
+    body: GenerateAssetRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    路径 A 视觉资产生成接口：用户主动触发，返回生成后的图片 URL 列表。
+
+    NOTE: 从该 session 的 agent_outputs 中提取品牌上下文，
+          自动拼接高品质英文生图 prompt，避免用户手动填提示词。
+    """
+    session_data = await _load_session_from_db(session_id, db)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    agent_outputs: dict = session_data.get("agent_outputs") or {}
+    brand_context = " ".join([
+        v[:400] for k, v in agent_outputs.items()
+        if isinstance(v, str) and len(v) > 20
+    ])
+    context_hint = brand_context[:120].replace("\n", " ").strip()
+
+    asset_type = body.asset_type
+    base_prompts = {
+        "logo": (
+            "Minimalist professional brand logo design, clean geometric shapes, "
+            "scalable vector style, white background, modern typography, high contrast, award-winning design"
+        ),
+        "poster": (
+            "Premium brand poster design, bold visual hierarchy, sophisticated color palette, "
+            "professional layout, print-ready quality, contemporary aesthetic"
+        ),
+        "banner": (
+            "Modern brand banner design, wide format, clean composition, "
+            "strong brand identity, digital advertising quality"
+        ),
+    }
+    base_prompt = base_prompts.get(asset_type, base_prompts["logo"])
+    final_prompt = f"{base_prompt}. Brand context: {context_hint}" if context_hint else base_prompt
+    aspect_ratio = {"logo": "1:1", "poster": "9:16", "banner": "16:9"}.get(asset_type, "1:1")
+    count = max(1, min(body.count, 4))
+
+    from app.service.image_generator import generate_brand_images
+    import asyncio
+
+    tasks = [generate_brand_images(asset_type, final_prompt, aspect_ratio) for _ in range(count)]
+    results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
+    images = []
+    for result in results_list:
+        if isinstance(result, list):
+            images.extend(result)
+        elif isinstance(result, Exception):
+            logger.error("图片生成任务失败: %s", result)
+
+    if not images:
+        raise HTTPException(status_code=500, detail="图片生成失败，请稍后重试")
+
+    async with AsyncSessionFactory() as media_db:
+        for img in images:
+            await session_repo.update_agent_media(
+                media_db, session_id, "agentImages",
+                {"id": "visual", "type": asset_type, "data_url": img.get("data_url", "")}
+            )
+
+    logger.info("Session %s 成功生成 %d 张 %s 资产", session_id[:8], len(images), asset_type)
+    return {"images": images}
