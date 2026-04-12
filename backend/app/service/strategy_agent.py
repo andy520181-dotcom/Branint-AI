@@ -1,20 +1,29 @@
 """
-品牌战略 Agent — Trout v5.0
+品牌战略 Agent — Trout v5.1
 
-工作流（四层理论体系 · 已对齐 strategy.md + trout_skills.py v5.0）：
-  Phase -1: 自适应反问 — 评估5个关键信息维度的完整度，针对缺口追问，最多3轮
-  Phase  0: 输入组装 — 注入 System Prompt + 用户回答 + Wacksman handoff
-  Phase  1: 工具调用循环（max 10轮）
-    ① select_applicable_frameworks → 全局规划 theory_combo
-    ② apply_layer0_macro_strategy  → Layer 0 宏观大盘
-    ③ apply_layer1_industry_os     → Layer 1 行业底座引擎
-    ④ apply_layer2_positioning     → Layer 2 心智定位尖刀
-    ⑤ apply_layer3_brand_identity  → Layer 3 身份血肉包装（0-2次）
-    ⑥ build_brand_house            → 品牌屋（强制）
-    ⑦ design_brand_architecture    → 可选
-    ⑧ generate_naming_candidates   → 可选
-    ⑨ synthesize_strategy_report   → 触发报告，循环结束
-  Phase  2: 流式生成 Markdown 品牌战略报告
+三车道工作流架构：
+  ① Full-Strategy 车道（is_micro_task=False，默认）：
+     四层理论体系全案推演，最多 10 轮工具调用，输出完整 Markdown 品牌战略报告。
+
+  ② Micro-Task / Modular 车道（is_micro_task=True）：
+     单点模块执行车道，识别意图后调用「唯一最相关」的单个战略工具，
+     支持追问挂起和 patch 热更新。
+
+  ③ Pure Advisory 纯对话快车道（is_pure_advisory=True）：
+     对于无需任何工具的纯战略问答（如"哪种定位理论适合XX市场"等），
+     完全绕过工具调用循环，直接以资深顾问口吻进行流式对话。
+     提升响应速度，减少不必要的 API 调用开销。
+
+工具权威制度（全案路径，最多 10 轮）：
+  ① select_applicable_frameworks → 全局规划 theory_combo
+  ② apply_layer0_macro_strategy  → Layer 0 宏观大盘
+  ③ apply_layer1_industry_os     → Layer 1 行业底座引擎
+  ④ apply_layer2_positioning     → Layer 2 心智定位尖刀
+  ⑤ apply_layer3_brand_identity  → Layer 3 身份血肉包装（0-2次）
+  ⑥ build_brand_house            → 品牌屋（强制）
+  ⑦ design_brand_architecture    → 可选
+  ⑧ generate_naming_candidates   → 可选
+  ⑨ synthesize_strategy_report   → 触发报告，循环结束
 """
 from __future__ import annotations
 
@@ -61,6 +70,7 @@ async def run_strategy_agent_stream(
     patch_instruction: str | None = None,
     old_output: str = "",
     is_micro_task: bool = False,
+    is_pure_advisory: bool = False,
 ) -> AsyncGenerator[str, None]:
     """
     品牌战略 Agent 主入口（流式输出）。
@@ -70,11 +80,39 @@ async def run_strategy_agent_stream(
         handoff_context:         Wacksman 市场研究 handoff 交接摘要
         clarification_answers:   用户对追问的回答（None 表示尚未追问）
         clarify_round:           当前是第几轮反问（由 orchestrator 传入）
+        is_micro_task:           True = Modular 单点工具车道
+        is_pure_advisory:        True = 纯对话快车道，完全绕过工具循环
 
     Yields:
         str: 流式输出的文本 chunk，或以 AGENT_CLARIFY_MARKER 开头的追问信号
     """
 
+
+    # ─── Pure Advisory 纯对话快车道 ────────────────────────────
+    # NOTE: 完全绕过工具循环，适用于无需数据的纯概念性战略问答
+    if is_pure_advisory:
+        logger.info("Trout Pure Advisory 快车道启动，绕过工具循环直接啊出")
+        yield _make_progress("start", label="Trout 收到战略问题，个人观点直接上阵…")
+
+        system_prompt = load_agent_prompt("strategy")
+        advisory_content = f"用户战略问题：\n{user_prompt}"
+        if handoff_context:
+            advisory_content += f"\n\n[项目背景（Wacksman handoff）]\n{handoff_context}"
+        if clarification_answers:
+            advisory_content += f"\n\n[用户补充信息]\n{clarification_answers}"
+        advisory_content += (
+            "\n\n[车道说明] 本次属于『纯战略问答』模式。"
+            "请不调用任何工具，直接以 Trout 的口吻——简洁、锐利、有洱源——回答用户的战略问题。"
+            "无需输出完整报告模板，但可用简短 Markdown 小标题结构化关键观点。"
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": advisory_content},
+        ]
+        async for chunk in call_llm_stream(messages):
+            yield chunk
+        logger.info("Trout Pure Advisory 快车道完成")
+        return
 
     # ─── 统一入口启动 ────────────────────────────────────
     if patch_instruction:

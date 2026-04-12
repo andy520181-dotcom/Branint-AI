@@ -1,9 +1,18 @@
 """
 市场研究 Agent — Wacksman（增强型联网 Agent + 实时进度反馈）
 
-工作流（中型检索模式，5-7 次 API 调用）：
-  Phase 1: 研究循环（async generator，边检索边 yield 进度事件）
-  Phase 2: 流式生成最终报告
+三车道工作流架构：
+  ① Full-Research 车道（is_micro_task=False，默认）：
+     完整深度研究，5-10 次 API 工具调用，输出完整 Markdown 市场报告 + handoff
+
+  ② Execution 单议题快报车道（is_execution_brief=True）：
+     针对单一议题（如某竞品分析/某平台口碑/某赛道机会）精准调1-3个工具，
+     输出结构化「单议题快报」（含标题/核心数据/洞察/引用），而非全套研究报告。
+     支持信息不足时 AGENT_CLARIFY_MARKER 追问挂起。
+
+  ③ Micro-Task 车道（is_micro_task=True）：
+     快速数据查询或轻量研究问题，工具调用后以简洁分析师口吻直接作答，
+     不产出正式格式报告。
 """
 from __future__ import annotations
 
@@ -364,13 +373,122 @@ async def run_market_agent_stream(
     user_prompt: str,
     handoff_context: str = "",
     is_micro_task: bool = False,
+    is_execution_brief: bool = False,
 ) -> AsyncGenerator[str, None]:
     """
     市场研究 Agent（流式 + 实时进度反馈）
 
-    is_micro_task=False: 全流程深度研究（默认）
-    is_micro_task=True:  单点微缩任务车道，支持自适应进问 + 直接调单个工具
+    is_micro_task=False, is_execution_brief=False: 全流程深度研究（默认）
+    is_execution_brief=True: 单议题快报车道，精准工具调用 + 结构化快报输出
+    is_micro_task=True: 轻量微缩任务车道，简洁分析师口吻直接作答
     """
+    # ─── Execution 单议题快报车道 ─────────────────────────────
+    # NOTE: 优先于 Micro-Task 判断，is_execution_brief 是更重量级的执行路径
+    if is_execution_brief:
+        logger.info("Wacksman 单议题快报车道启动")
+        yield _make_progress("start", label="Wacksman 收到单议题研究指令，准备精准快报作业…")
+
+        system_prompt = load_agent_prompt("market")
+        context_block = f"\n\n## 品牌顾问移交的项目背景\n{handoff_context}\n" if handoff_context else ""
+
+        brief_directive = (
+            "\n\n[执行指令] 本次属于【单议题快报 (Execution Brief)】任务模式。\n\n"
+            "## 信息充分性原则（最优先）\n"
+            "在执行工具之前，请先评估是否包含完成快报所必需的关键信息。\n"
+            "缺少关键信息时（如议题对象/品类/平台/竞品名称等），"
+            "你必须以 `__AGENT_CLARIFY__:` 开头追问，然后立刻停止，不得继续创作。\n\n"
+            "## 执行原则\n"
+            "如果信息充分，精准调用 1-3 个最相关的工具收集数据，禁止走全流程研究路径。\n"
+            "工具调用完成后，以结构化「单议题快报」格式输出，包含：\n"
+            "  **📋 [议题名称] 快报** | 研究维度 | 核心数据亮点（3条） | 洞察结论（2-3句）| 数据引用来源\n"
+            "快报篇幅控制在 400-600 字，语气：资深研究分析师，克制专业。\n"
+            "禁止：输出完整深度研究报告 / 调用 synthesize_research_report 工具。"
+        )
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"单议题研究诉求：\n\n{user_prompt}{context_block}{brief_directive}"},
+        ]
+
+        search_citations: list[dict] = []
+        MAX_BRIEF_ROUNDS = 4  # NOTE: 快报最多调 4 轮工具，控制成本
+
+        for round_num in range(MAX_BRIEF_ROUNDS):
+            content, tool_calls = await call_llm_with_tools(
+                messages=messages,
+                tools=WACKSMAN_TOOLS,
+            )
+            text_content = (content or "").strip()
+
+            # 情形 A：直接返回文本（追问 or 快报已完成）
+            if not tool_calls:
+                if text_content.startswith(AGENT_CLARIFY_MARKER):
+                    logger.info("Wacksman 单议题快报：信息不足，追问挂起")
+                    yield text_content
+                else:
+                    logger.info("Wacksman 单议题快报 Round %d 文本直出", round_num + 1)
+                    yield text_content
+                    if search_citations:
+                        yield f"\n\n<market_citations>{json.dumps(search_citations, ensure_ascii=False)}</market_citations>"
+                return
+
+            # 情形 B：工具调用
+            parsed = parse_wacksman_tool_calls(tool_calls)
+            if not parsed:
+                break
+
+            action = parsed["action"]
+            args = parsed["args"]
+
+            # synthesize 是全流程收尾协议，快报车道不触发
+            if action == "synthesize_research_report":
+                break
+
+            # 处理追问工具
+            if action == "clarify_research_scope":
+                question = args.get("question", "")
+                logger.info("Wacksman 快报：clarify_research_scope 追问 %s", question)
+                yield f"{AGENT_CLARIFY_MARKER}{question}"
+                return
+
+            action_label = _ACTION_LABELS.get(action, f"执行 {action}…")
+            yield _make_progress(action, action_label)
+
+            clean_content = _strip_tool_xml(content) or None
+            messages.append({
+                "role": "assistant",
+                "content": clean_content,
+                "tool_calls": [{
+                    "id": tool_calls[0].get("id", f"brief_{round_num}"),
+                    "type": "function",
+                    "function": {"name": action, "arguments": json.dumps(args, ensure_ascii=False)},
+                }],
+            })
+
+            tool_result = await _execute_single_tool(action, args, round_num, search_citations)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_calls[0].get("id", f"brief_{round_num}"),
+                "content": tool_result,
+            })
+
+        # 工具循环结束，要求 LLM 输出结构化快报
+        messages.append({
+            "role": "user",
+            "content": (
+                "调研数据已收集完画。请现在按「单议题快报」格式，"
+                "输出一份结构化、专业的快报文件（400-600字）。\n"
+                "格式：**📋 [议题名称] 快报** → 研究维度 → 核心数据亮点（3条）→ 洞察结论（2-3句）→ 数据来源。"
+            ),
+        })
+
+        async for chunk in call_llm_stream(messages):
+            yield chunk
+
+        if search_citations:
+            yield f"\n\n<market_citations>{json.dumps(search_citations, ensure_ascii=False)}</market_citations>"
+        return
+
     # ─── Micro-Task 车道 ───────────────────────────────────────
     if is_micro_task:
         logger.info("Wacksman Micro-Task 车道启动")
