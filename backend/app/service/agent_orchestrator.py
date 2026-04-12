@@ -19,7 +19,12 @@ from app.service.consultant_agent import (
 from app.service.market_agent import run_market_agent_stream, PROGRESS_MARKER
 from app.service.strategy_agent import run_strategy_agent_stream
 from app.service.content_agent import run_content_agent_stream
-from app.service.visual_agent import run_visual_agent_stream, AGENT_CLARIFY_MARKER, IMAGE_MARKER, VIDEO_TASK_MARKER
+from app.service.visual_agent import run_visual_agent_stream, AGENT_CLARIFY_MARKER as _VISUAL_CLARIFY_MARKER
+
+# NOTE: 媒体 Marker 字符串保留在 orchestrator 层，供未来前端显式触发图片生成时复用
+# visual_agent 已精简为纯文本流，不再主动发出这两个 Marker
+IMAGE_MARKER = "\x00AGENT_IMAGE\x00"
+VIDEO_TASK_MARKER = "\x00AGENT_VIDEO_TASK\x00"
 from app.service.skills.wacksman_skills import execute_tavily_search
 
 logger = logging.getLogger(__name__)

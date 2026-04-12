@@ -1,197 +1,99 @@
 """
 美术指导 Agent — Scher
 
-工作流（原生真流式 三车道架构）：
-  - 预调度路线（静默）：解析用户意图，如果需要反问则打回；如果需要出图出视频，则抓取 prompt。
-  - 物理媒体路线（异步）：将大模型拆解出的生图/生视频任务抛入后台异步并发。
-  - 纯文本路线（流式）：彻底摆脱工具链束缚，直接调用原生流式接口生成充满色彩、排版、字体的视觉指导规范。
+工作流（路径 A：纯净文本流）：
+  图像和视频的生成已从 Agent 输出流中彻底剥离，
+  改由用户在前端的视觉资产区中显式点击按钮触发。
+
+  Scher 的核心职责收窄为：以最顶尖的美术指导口吻，
+  输出完整的品牌视觉策略——色彩体系、字体规范、构图语法，
+  以及足够精准的设计方向描述，
+  让设计师和用户有清晰的执行锚点。
 """
 from __future__ import annotations
 
 import logging
 import json
-import asyncio
-from typing import Any
 from collections.abc import AsyncGenerator
 
 from app.config import settings
-from app.service.llm_provider import call_llm_with_tools, call_llm_stream
+from app.service.llm_provider import call_llm_stream
 from app.service.prompt_loader import load_agent_prompt
-from app.service.skills.scher_skills import execute_clarify_visual_requirement
 
 logger = logging.getLogger(__name__)
 
+# NOTE: 保留 Marker 常量供 orchestrator 解析层兼容（即使本 Agent 不再主动生成媒体）
 AGENT_CLARIFY_MARKER = "__AGENT_CLARIFY__:"
 PROGRESS_MARKER = "\x00WACKSMAN_PROGRESS\x00"
-IMAGE_MARKER = "\x00AGENT_IMAGE\x00"
-VIDEO_TASK_MARKER = "\x00AGENT_VIDEO_TASK\x00"
+
 
 def _make_progress(step: str, label: str = "") -> str:
     payload = {"step": step, "label": label, "detail": ""}
     return f"{PROGRESS_MARKER}{json.dumps(payload, ensure_ascii=False)}"
 
-async def _worker_generate_image(queue: asyncio.Queue, task_def: dict[str, Any]):
-    """独立车道：生成图片"""
-    try:
-        from app.service.image_generator import generate_brand_images
-        image_type = task_def.get("image_type", "poster")
-        prompt = task_def.get("midjourney_prompt", "")
-        aspect_ratio = task_def.get("aspect_ratio", "16:9")
-        
-        images_info = await generate_brand_images(image_type, prompt, aspect_ratio)
-        if images_info:
-            await queue.put(f"{IMAGE_MARKER}{json.dumps(images_info[0])}")
-    except Exception as e:
-        logger.error("图片引擎生成失败: %s", e)
-    finally:
-        await queue.put({"type": "worker_done", "lane": "image"})
-
-async def _worker_generate_video(queue: asyncio.Queue, task_def: dict[str, Any]):
-    """独立车道：生成视频"""
-    try:
-        from app.service.video_generator import submit_jimeng_video
-        prompt = task_def.get("cinematic_prompt", "")
-        task_id = submit_jimeng_video(prompt)
-        if task_id:
-            await queue.put(f"{VIDEO_TASK_MARKER}{task_id}")
-    except Exception as e:
-        logger.error("视频引擎生成失败: %s", e)
-    finally:
-        await queue.put({"type": "worker_done", "lane": "video"})
 
 async def run_visual_agent_stream(
     user_prompt: str,
     handoff_context: str,
     is_micro_task: bool = False,
 ) -> AsyncGenerator[str, None]:
+    """
+    美术指导 Agent 主入口（纯文本流式输出）。
+
+    Args:
+        user_prompt:      用户的视觉诉求或品牌信息
+        handoff_context:  上游 Agent（品牌顾问、战略、市场）的交接摘要
+        is_micro_task:    True = 单点快速输出模式（简洁）；False = 全案视觉规范模式
+
+    Yields:
+        str: 流式输出的文本 chunk，或以 AGENT_CLARIFY_MARKER 开头的追问信号
+    """
     system_prompt = load_agent_prompt("visual")
     context_block = f"\n\n## 上游交接背景\n{handoff_context}\n" if handoff_context else ""
-    
-    # 【车道 1：静默预调度判别】
-    yield _make_progress("start", label="Scher 拉取视觉交接档案，构思全局方案…")
 
-    dispatch_tool = {
-        "type": "function",
-        "function": {
-            "name": "dispatch_visual_intent",
-            "description": "评估当前的视觉需求，决定是否需要生成图片、生成视频或发起反问。你只能从背景档案中提取生成所需的prompt！如果无需生成，则让tasks为空数组。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "need_clarify": {"type": "boolean", "description": "如果缺少极度关键的品牌调性导致完全无法作业，设为true"},
-                    "clarify_question": {"type": "string", "description": "需要向用户抛出的核心反问问题"},
-                    "image_tasks": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "image_type": {"type": "string", "enum": ["logo", "banner", "poster"]},
-                                "midjourney_prompt": {"type": "string", "description": "全英文，不要夹带任何汉字。包含极致细节、灯光、材质。"},
-                                "aspect_ratio": {"type": "string", "enum": ["1:1", "16:9", "9:16", "4:3"]}
-                            },
-                        }
-                    },
-                    "video_tasks": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "cinematic_prompt": {"type": "string", "description": "全英文视频运镜提示词，极致描述动态过程。"}
-                            },
-                        }
-                    }
-                },
-                "required": ["need_clarify", "image_tasks", "video_tasks"]
-            }
-        }
-    }
+    yield _make_progress("start", label="Scher 正在研读品牌档案，构建视觉语言体系…")
 
-    preflight_messages = [
-        {"role": "system", "content": system_prompt + "\n\n【隐秘提示】：你当前处于底层前置意图探测阶段，请务必只调用 dispatch_visual_intent 工具。绝对不要直接用文字回答。"},
-        {"role": "user", "content": f"用户执行诉求：\n{user_prompt}{context_block}"}
-    ]
-
-    _, tool_calls = await call_llm_with_tools(
-        messages=preflight_messages,
-        tools=[dispatch_tool],
-        tool_choice={"type": "function", "function": {"name": "dispatch_visual_intent"}},
-        model=settings.default_model,
-    )
-
-    args = {}
-    if tool_calls:
-        try:
-            args = json.loads(tool_calls[0]["function"]["arguments"])
-        except Exception:
-            pass
-
-    if args.get("need_clarify") and args.get("clarify_question"):
-        yield f"{AGENT_CLARIFY_MARKER}{args['clarify_question']}"
-        return
-
-    # 【车道 2：物理媒体异步执行】
-    queue = asyncio.Queue()
-    active_workers = 0
-
-    image_tasks = args.get("image_tasks", [])
-    video_tasks = args.get("video_tasks", [])
-    
-    # 若 MicroTask 请求图像且未抽取到，主动加上保底兜底，防止 preflight 失效
-    if is_micro_task and (not image_tasks and not video_tasks):
-        image_tasks = [{"image_type": "poster", "midjourney_prompt": "Minimalist modern branding design, high quality", "aspect_ratio": "16:9"}]
-
-    if image_tasks:
-        yield _make_progress("generating", label="Scher 派发云端节点进行图像渲染…")
-        for img in image_tasks:
-            asyncio.create_task(_worker_generate_image(queue, img))
-            active_workers += 1
-
-    if video_tasks:
-        yield _make_progress("generating", label="Scher 将运镜推流发射至视频矩阵…")
-        for vid in video_tasks:
-            asyncio.create_task(_worker_generate_video(queue, vid))
-            active_workers += 1
-
-    # 【车道 3：纯净流式主文案生成】
-    yield _make_progress("typing", label="Scher 正在亲笔书写全案视觉准则…")
-
+    # NOTE: 根据任务类型注入不同的输出指令
+    # is_micro_task = 用户单点发起（比如"给我写一段配色方向"），简洁精炼
+    # 完整模式 = 作为全案流程的一环，输出完整的视觉规范报告
     if is_micro_task:
-        sys_directive = "你处于单兵作战模式，直接用富有魅力的资深的美术指导口吻输出，不用写 Markdown 全案长文，只写几十个字的寄语即可。"
+        output_directive = (
+            "你处于单兵作战模式。"
+            "直接以资深美术指导的口吻给出精炼的视觉方向建议，"
+            "不超过200字，不用写 Markdown 标题框架，只要核心洞察即可。"
+        )
     else:
-        sys_directive = "请你作为顶尖美术指导，基于交接文档，用极其优雅专业的文字，直接输出关于该品牌的色彩定义、排版和视觉总结。请保持真人的流式诉说节奏，绝不能显得像一个机器人在汇报。不要提及图片/视频已经生成了，只要专注视觉概念设计。"
+        output_directive = (
+            "请以全球顶尖美术指导的口吻，基于上游交接的品牌背景，"
+            "输出完整的品牌视觉策略报告，涵盖：\n"
+            "1. 色彩体系（主色 / 辅色 / 情绪校准）\n"
+            "2. 字体规范（中英文字体选型逻辑与层级）\n"
+            "3. 构图与图像语法（留白哲学、几何语言、质感取向）\n"
+            "4. 品牌视觉人格总结（一句话定义视觉基因）\n\n"
+            "保持真人对话的流式节奏，有洞察、有温度，绝不像机器人在汇报清单。"
+            "不要提及“图片已生成”或任何与 AI 工具调用有关的话语。"
+        )
 
     stream_messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"{context_block}\n\n请求：{user_prompt}\n\n【核心约束】{sys_directive}"}
+        {
+            "role": "user",
+            "content": (
+                f"{context_block}\n\n"
+                f"用户诉求：{user_prompt}\n\n"
+                f"【输出要求】{output_directive}"
+            )
+        }
     ]
 
-    llm_generator = call_llm_stream(stream_messages, model=settings.default_model)
+    yield _make_progress("typing", label="Scher 正在亲笔书写全案视觉准则…")
 
-    async def _consume_llm(q: asyncio.Queue):
-        try:
-            async for chunk in llm_generator:
-                await q.put({"type": "chunk", "data": chunk})
-        except Exception as e:
-            logger.error("Scher 文本流生成异常: %s", e)
-        finally:
-            await q.put({"type": "llm_done"})
+    async for chunk in call_llm_stream(stream_messages, model=settings.default_model):
+        yield chunk
 
-    asyncio.create_task(_consume_llm(queue))
+    logger.info("Scher 纯文本视觉策略输出完成")
 
-    llm_active = True
-    while llm_active or active_workers > 0:
-        msg = await queue.get()
-        if isinstance(msg, dict):
-            if msg["type"] == "chunk":
-                yield msg["data"]
-            elif msg["type"] == "llm_done":
-                llm_active = False
-            elif msg["type"] == "worker_done":
-                active_workers -= 1
-        elif isinstance(msg, str):
-            yield msg
-
-    logger.info("Scher 完全体三车道并行宣告圆满收官！")
 
 async def run_visual_agent(user_prompt: str, handoff_context: str) -> str:
-    return "Scher 三车道系统必须使用流式调用。"
+    """非流式入口（仅作 fallback，正式链路请使用 run_visual_agent_stream）"""
+    return "Scher 当前仅支持流式调用，请使用 run_visual_agent_stream。"

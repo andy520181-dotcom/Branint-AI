@@ -15,6 +15,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings, configure_litellm_keys
 from app.api import sessions, auth, assets
+# NOTE: 必须在 create_all 之前导入所有 ORM 模型，否则 SQLAlchemy 不知道要建哪些表
+from app.model import session as _session_model  # noqa: F401
+from app.model import agent_event as _agent_event_model  # noqa: F401
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,8 +36,20 @@ async def lifespan(app: FastAPI):
     - 启动：完成配置加载等准备工作
     - 关闭：清理资源
     """
-    logger.info("应用启动，开始接受请求...")
-    # NOTE: 不再使用 create_all，请使用 `alembic upgrade head` 进行数据库迁移和表结构更新
+    # NOTE: 使用 NullPool 创建一次性独立引擎执行 create_all，
+    # 避免与主连接池冲突导致 lifespan 启动时 asyncio.TimeoutError
+    from sqlalchemy.ext.asyncio import create_async_engine
+    from sqlalchemy.pool import NullPool
+    from app.db.database import Base, _async_url
+    init_engine = create_async_engine(_async_url, poolclass=NullPool)
+    try:
+        async with init_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+        logger.info("应用启动，数据库表已就绪，开始接受请求...")
+    except Exception as e:
+        logger.warning("数据库表初始化失败（将使用降级快照路径）: %s", e)
+    finally:
+        await init_engine.dispose()
     yield
     logger.info("应用关闭")
 

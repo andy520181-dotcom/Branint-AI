@@ -280,8 +280,15 @@ async def stream_session(
     async def _replay_from_eventlog() -> AsyncGenerator[str, None]:
         """纯只读回放，绝不会等待未来事件，放完就关。"""
         from app.db.database import AsyncSessionFactory
-        async with AsyncSessionFactory() as replay_db:
-            events = await event_repo.fetch_since(replay_db, session_id, resume_seq)
+        events = []
+        try:
+            async with AsyncSessionFactory() as replay_db:
+                events = await event_repo.fetch_since(replay_db, session_id, resume_seq)
+        except Exception as e:
+            # NOTE: 兜底容错——如果 agent_events 表不存在或查询失败，
+            # 直接降级到 DB 快照路径，确保刷新后图片不丢失
+            logger.warning("event_log 查询失败，降级走快照回放: %s (%s)", session_id, e)
+            events = []
 
         if events:
             for ev in events:
