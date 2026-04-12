@@ -222,11 +222,12 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set)
   initSession: (sessionId, userPrompt) => {
     set((s) => {
       // 保留 previousRounds！否则多轮对话只要提交就会因 initSession 把历史记录重置为空！
+      // NOTE: agentImages / agentVideos 是 session 级别的永久资产，新一轮对话不应清空
       const finalState = { 
         ...initialState, 
         agents: initialAgents(), 
-        agentImages: [], 
-        agentVideos: [], 
+        agentImages: s.agentImages,       // 保留已生成的视觉资产
+        agentVideos: s.agentVideos,       // 保留已生成的视频资产
         assetRecommendations: {} as Record<AgentId, any[]>,
         sessionId, 
         userPrompt, 
