@@ -93,7 +93,8 @@ export default function WorkspacePage() {
   }, [bottomPrompt]);
 
   // ── SSE 流连接 ─────────────────────────────────────────────────────
-  const { cancel } = useWorkspaceStream(restored === false ? sessionId : null);
+  // 极致优化：如果会话已经 complete，切断 SSE 连接。杜绝后端的冗余全量历史 chunk 发送造成的渲染卡死。
+  const { cancel } = useWorkspaceStream(restored === false && !isComplete ? sessionId : null);
 
   // ── 统一提交入口 ────────────────────────────────────────────────────
 

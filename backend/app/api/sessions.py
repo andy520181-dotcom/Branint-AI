@@ -280,45 +280,13 @@ async def stream_session(
                 logger.info("自动将孤儿运行态超度为 error（禁止重新生成）: %s", session_id)
         asyncio.create_task(_fix_ghost_session(), name=f"fix-ghost-{session_id[:8]}")
 
-    async def _replay_from_eventlog() -> AsyncGenerator[str, None]:
-        """纯只读回放，绝不会等待未来事件，放完就关。"""
-        from app.db.database import AsyncSessionFactory
-        events = []
-        try:
-            async with AsyncSessionFactory() as replay_db:
-                events = await event_repo.fetch_since(replay_db, session_id, resume_seq)
-        except Exception as e:
-            # NOTE: 兜底容错——如果 agent_events 表不存在或查询失败，
-            # 直接降级到 DB 快照路径，确保刷新后图片不丢失
-            logger.warning("event_log 查询失败，降级走快照回放: %s (%s)", session_id, e)
-            events = []
+    # NOTE: 极致性能优化 —— 彻底废除全量历史碎片的 SSE 重放机制。
+    # 既然前端必定优先通过 /snapshot 拿到全量组装好的最终文本，
+    # 就不应再通过流连接接收历史的分块 token 或是全量 DB 快照流放（这些都会直接卡死浏览器的 React 渲染主线程）。
+    async def _finished_stream() -> AsyncGenerator[str, None]:
+        yield "event: session_complete\ndata: {}\n\n"
 
-        if events:
-            for ev in events:
-                yield f"id: {ev.seq}\n{ev.raw_sse}"
-                if not ev.raw_sse.endswith("\n\n"):
-                    yield "\n"
-        else:
-            # 降级：event_log 无记录，从 DB 快照强行塞入
-            report = session_data.get("report")
-            agent_outputs = session_data.get("agent_outputs") or {}
-            selected = session_data.get("selected_agents") or []
-            agent_media = session_data.get("agent_media") or {}
-
-            if selected:
-                yield f"event: routing_decided\ndata: {_json.dumps(selected)}\n\n"
-            for aid, output in agent_outputs.items():
-                if output:
-                    yield f"event: agent_start\ndata: {aid}\n\n"
-                    yield f"event: agent_output\ndata: {_json.dumps({'id': aid, 'content': output}, ensure_ascii=False)}\n\n"
-                    yield f"event: agent_complete\ndata: {aid}\n\n"
-            for img in agent_media.get("agentImages", []):
-                yield f"event: agent_image\ndata: {_json.dumps(img, ensure_ascii=False)}\n\n"
-            for vid in agent_media.get("agentVideos", []):
-                yield f"event: agent_video\ndata: {_json.dumps(vid, ensure_ascii=False)}\n\n"
-            yield f"event: session_complete\ndata: {_json.dumps({'report': report or ''})}\n\n"
-
-    return StreamingResponse(_replay_from_eventlog(), media_type="text/event-stream", headers=SSE_HEADERS)
+    return StreamingResponse(_finished_stream(), media_type="text/event-stream", headers=SSE_HEADERS)
 
 
 
