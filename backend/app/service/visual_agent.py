@@ -237,11 +237,39 @@ async def run_visual_agent_stream(
     async for chunk in call_llm_stream(stream_messages, model=settings.default_model):
         yield chunk
 
-    # 流式文本结束后，获取并行计算的推荐列表并利用 Marker 发送
-    recs = await rec_task
+    # NOTE: 流式文本结束后等待推荐列表，但设置最大等待时间（12s）
+    # 避免推荐 LLM 调用过慢倒致 agent_complete 大幅延迟，
+    # 让用户误以为文字"一次性出现"（实际是文字流完后长时间无反应）
+    try:
+        recs = await asyncio.wait_for(rec_task, timeout=12.0)
+    except asyncio.TimeoutError:
+        rec_task.cancel()
+        logger.warning("推荐资产 LLM 超时（>12s），降级为关键词兜底")
+        # 直接使用关键词兜底（不走 LLM），保证按钮能立即出现
+        n = _extract_requested_count() if callable(getattr(
+            run_visual_agent_stream, '_extract_count_fn', None
+        ), ) else 1
+        prompt_lower = user_prompt.lower()
+        if any(kw in prompt_lower for kw in ["logo", "标志", "图标"]):
+            recs = [{"type": "logo", "label": "生成极简 Logo", "count": 1},
+                    {"type": "banner", "label": "生成品牌 Banner", "count": 1}]
+        elif any(kw in prompt_lower for kw in ["poster", "海报", "宣传"]):
+            recs = [{"type": "poster", "label": "生成品牌海报", "count": 1},
+                    {"type": "banner", "label": "生成横幅宣传图", "count": 1}]
+        elif any(kw in prompt_lower for kw in ["packaging", "包装", "产品"]):
+            recs = [{"type": "packaging", "label": "生成包装概念图", "count": 1},
+                    {"type": "poster", "label": "生成产品宣传海报", "count": 1}]
+        elif any(kw in prompt_lower for kw in ["banner", "横幅", "广告"]):
+            recs = [{"type": "banner", "label": "生成广告 Banner", "count": 1},
+                    {"type": "digital_ad", "label": "生成小红书竖版广告", "count": 1}]
+        else:
+            recs = [{"type": "logo", "label": "生成品牌主视觉 Logo", "count": 1},
+                    {"type": "poster", "label": "生成品牌视觉海报", "count": 1}]
+
     yield f"{RECOMMENDATION_MARKER}{json.dumps(recs, ensure_ascii=False)}"
 
     logger.info("Scher 纯文本视觉策略与动态推荐按键输出完成")
+
 
 
 async def run_visual_agent(user_prompt: str, handoff_context: str) -> str:

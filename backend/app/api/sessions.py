@@ -439,19 +439,33 @@ async def _run_orchestrator_background(
                                 aid = payload.get("id", "")
                                 content = payload.get("content", "")
                                 merged = payload.get("merged_content")
-                                
+
                                 if aid and content:
                                     _chunk_buffers[aid] = content
-                                    await session_repo.update_agent_output(
-                                        gen_db, session_id, aid, content, status="completed"
-                                    )
-                                    if merged:
-                                        # 隐藏写入：后端树使用完整的文档，但不渲染给前端
-                                        await session_repo.update_agent_output(
-                                            gen_db, session_id, f"{aid}_merged", merged, status="completed"
-                                        )
+                                    # NOTE: 将 DB 写入改为后台任务，不阻塞 agent_complete 的推送。
+                                    # 原来的 await 写法曾导致 agent_complete 被推迟 20+ 秒，
+                                    # 用户看到文字流后"卡死"从而误认为内容是一次性出现的。
+                                    async def _persist_output(
+                                        _aid=aid, _content=content, _merged=merged
+                                    ) -> None:
+                                        from app.db.database import AsyncSessionFactory
+                                        try:
+                                            async with AsyncSessionFactory() as bg_db:
+                                                await session_repo.update_agent_output(
+                                                    bg_db, session_id, _aid, _content, status="completed"
+                                                )
+                                                if _merged:
+                                                    await session_repo.update_agent_output(
+                                                        bg_db, session_id, f"{_aid}_merged", _merged, status="completed"
+                                                    )
+                                        except Exception as _e:
+                                            logger.warning("后台 agent_output 落盘失败: %s", _e)
+
+                                    import asyncio as _asyncio
+                                    _asyncio.create_task(_persist_output())
                             except Exception:
                                 pass
+
 
                 if "event: agent_image" in event or "event: agent_video" in event:
                     event_type_key = "agentImages" if "agent_image" in event else "agentVideos"
