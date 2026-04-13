@@ -27,11 +27,40 @@ KLING_POLL_INTERVAL = 6   # 秒
 KLING_MAX_WAIT = 180       # 秒
 
 
+def _generate_kling_jwt() -> str:
+    """
+    根据 Kling AI 官方鉴权规范，用 Access Key + Secret Key 生成 JWT Token。
+
+    规范：
+      Header: {"alg": "HS256", "typ": "JWT"}
+      Payload: {"iss": access_key, "exp": now + 1800, "nbf": now - 5}
+      签名密钥: secret_key
+    """
+    import time
+    try:
+        import jwt as pyjwt
+    except ImportError:
+        raise RuntimeError("请先安装 PyJWT：pip install PyJWT")
+
+    access_key = os.getenv("KLING_ACCESS_KEY", "")
+    secret_key = os.getenv("KLING_SECRET_KEY", "")
+    if not access_key or not secret_key:
+        raise RuntimeError("KLING_ACCESS_KEY 或 KLING_SECRET_KEY 未设置")
+
+    now = int(time.time())
+    payload = {
+        "iss": access_key,
+        "exp": now + 1800,  # 30 分钟有效期
+        "nbf": now - 5,     # 允许 5 秒时钟偏差
+    }
+    token = pyjwt.encode(payload, secret_key, algorithm="HS256")
+    return token if isinstance(token, str) else token.decode("utf-8")
+
+
 def _kling_headers() -> dict[str, str]:
-    api_key = os.getenv("KLING_API_KEY", "")
-    if not api_key:
-        raise RuntimeError("KLING_API_KEY 未设置")
-    return {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    token = _generate_kling_jwt()
+    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
 
 
 async def _generate_video_kling(
@@ -238,7 +267,7 @@ async def generate_brand_video(
     Returns:
         {'type': 'video', 'mime': 'video/mp4', 'data_url': '...'} 或 None
     """
-    if os.getenv("KLING_API_KEY"):
+    if os.getenv("KLING_ACCESS_KEY") and os.getenv("KLING_SECRET_KEY"):
         logger.info("使用 Kling AI 引擎生成品牌视频…")
         return await _generate_video_kling(cinematic_prompt, aspect_ratio, duration)
 
