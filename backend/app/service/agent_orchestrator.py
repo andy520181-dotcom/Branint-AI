@@ -671,7 +671,8 @@ class AgentOrchestrator:
                 stream = run_content_agent_stream(enriched_user_prompt, handoff_context)
             elif agent_key == "visual":
                 handoff_context = _build_handoff_context(project_context, ["market", "strategy", "content"])
-                stream = run_visual_agent_stream(enriched_user_prompt, handoff_context)
+                # NOTE: 修复：传入 is_micro_task，确保单兵模式（@Scher）使用精炼输出而非全案长报告
+                stream = run_visual_agent_stream(enriched_user_prompt, handoff_context, is_micro_task=is_micro_task)
             else:
                 logger.warning("未知 Agent key: %s，跳过", agent_key)
                 continue

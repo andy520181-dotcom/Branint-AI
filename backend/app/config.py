@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     aliyun_access_key: str = ""
     aliyun_nlp_secret: str = ""
 
+    # NOTE: Kling AI 视频生成 API Key（快手可图）
+    # 申请地址：https://klingai.kuaishou.com
+    kling_api_key: str = ""
+
     # NOTE: MVP 阶段固定 DeepSeek，Phase 2 根据用户订阅级别动态切换
     default_model: str = "deepseek/deepseek-chat"
     pro_model: str = "gpt-4o"

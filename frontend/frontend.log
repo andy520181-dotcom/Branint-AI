@@ -18,3 +18,69 @@
     at async handleGenerate (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:4697:9)
 ✓ Compiled in 304ms
  GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 197ms (next.js: 81ms, application-code: 117ms)
+✓ Compiled in 350ms
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'reduce')
+    at VisualRenderer (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:4741:33)
+    at Object.react_stack_bottom_frame (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33)
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13)
+    at RendererFactory (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:5423:218)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:5554:249)
+    at Array.map (<anonymous>)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:5540:58)
+    at Array.map (<anonymous>)
+    at WorkspaceFeed (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:5499:28)
+    at WorkspacePage (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/src_12mt_jw._.js:6973:227)
+    at ClientPageRoot (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_0z8ikg~._.js:4688:50)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 235ms
+[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
+    at completeWork (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6945:102)
+    at runWithFiberInDEV (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at completeUnitOfWork (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9622:23)
+    at performUnitOfWork (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9557:28)
+    at workLoopSync (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:186)
+    at performSyncWorkOnRoot (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33)
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at <unknown> (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13) (file:///Users/andy/Desktop/Branin AI/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6945:102)
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 352ms (next.js: 117ms, application-code: 235ms)
+✓ Compiled in 157ms
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 248ms (next.js: 140ms, application-code: 107ms)
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 33ms (next.js: 3ms, application-code: 30ms)
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 144ms (next.js: 13ms, application-code: 130ms)
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 53ms (next.js: 10ms, application-code: 43ms)
+✓ Compiled in 179ms
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 70ms (next.js: 28ms, application-code: 42ms)
+✓ Compiled in 80ms
+✓ Compiled in 70ms
+✓ Compiled in 87ms
+✓ Compiled in 195ms
+✓ Compiled in 90ms
+✓ Compiled in 90ms
+✓ Compiled in 474ms
+✓ Compiled in 551ms
+✓ Compiled in 160ms
+ GET /workspace/6d64f0bd-cadb-4c7e-b9f2-cb69ec280c29 200 in 281ms (next.js: 92ms, application-code: 189ms)

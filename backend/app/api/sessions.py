@@ -723,3 +723,69 @@ async def generate_asset(
 
     logger.info("Session %s 成功生成 %d 张 %s 资产", session_id[:8], len(images), asset_type)
     return {"images": images}
+
+
+# ─── 视频生成接口 ──────────────────────────────────────
+
+class GenerateVideoRequest(BaseModel):
+    """用户从 Scher 气泡下方点击按钮触发的品牌概念视频生成请求体"""
+    prompt: str = ""        # 如果前端未传则由后端根据会话上下文自动生成
+    duration: int = 5       # 视频时长（秒），Kling 支持 5 或 10
+    aspect_ratio: str = "16:9"  # 视频比例
+
+
+@router.post("/{session_id}/generate-video")
+async def generate_video(
+    session_id: str,
+    body: GenerateVideoRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    品牌概念视频生成接口：用户主动触发，返回生成后的视频 URL。
+
+    NOTE: 自动从会话 agent_outputs 中提取视觉 Agent 的策略描述，
+          转换为英文电影感运镜 prompt 后调用视频 API。
+          优先使用 Kling AI，若未配置则回落到即梦（火山引擎）。
+    """
+    session_data = await _load_session_from_db(session_id, db)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    # ── 构建生图 prompt ──
+    cinematic_prompt = body.prompt.strip()
+    if not cinematic_prompt:
+        # 自动从 visual agent 输出中提取关键词作为 prompt
+        agent_outputs: dict = session_data.get("agent_outputs") or {}
+        visual_output = agent_outputs.get("visual", "")
+        brand_hint = visual_output[:300].replace("\n", " ").strip() if visual_output else ""
+        user_prompt_hint = (session_data.get("user_prompt") or "")[:80]
+
+        # NOTE: 构造通用的品牌短片 prompt，将中文品牌背景转为英文电影描述
+        cinematic_prompt = (
+            f"Cinematic brand concept film. {user_prompt_hint}. "
+            "Premium visual storytelling, smooth camera movement, "
+            "elegant product reveal with soft bokeh background, "
+            "warm luxury lighting, 4K ultra-detailed, "
+            "professional commercial photography style."
+        )
+
+    from app.service.video_generator import generate_brand_video
+
+    result = await generate_brand_video(
+        cinematic_prompt=cinematic_prompt,
+        aspect_ratio=body.aspect_ratio,
+        duration=body.duration,
+    )
+
+    if not result:
+        raise HTTPException(status_code=500, detail="视频生成失败，请稍后重试")
+
+    # 持久化写入数据库
+    async with AsyncSessionFactory() as media_db:
+        await session_repo.update_agent_media(
+            media_db, session_id, "agentVideos",
+            {"id": "visual", "type": "video", "data_url": result["data_url"]}
+        )
+
+    logger.info("Session %s 成功生成品牌概念视频", session_id[:8])
+    return {"video": result}
