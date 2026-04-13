@@ -121,26 +121,76 @@ async def run_visual_agent_stream(
             }
         }
         rec_messages = [
-            {"role": "system", "content": "你是一位拥有敏锐商业嗅觉的美术指导，请直接根据用户的只言片语与品牌档案，判断他们最迫切需要什么形式的具体视觉资产来佐证方案。最多推荐3个。"},
-            {"role": "user", "content": f"品牌背景：\n{handoff_context}\n\n具体诉求：\n{user_prompt}\n"}
+            {
+                "role": "system",
+                "content": (
+                    "你是一位拥有敏锐商业嗅觉的美术指导，请根据用户的只言片语与品牌档案，"
+                    "判断其最迫切需要什么形式的具体视觉资产来佐证方案。"
+                    "最多推荐 3 个，按优先级排列。"
+                    "注意：如果用户未提供品牌背景，直接根据请求内容判断。"
+                )
+            },
+            {
+                "role": "user",
+                # NOTE: 单兵模式下 handoff_context 为空字符串；
+                # 此时用 user_prompt 填充品牌背景字段，确保推荐 LLM 有足够判断依据，
+                # 而不是面对空白上下文触发无意义的兜底
+                "content": (
+                    f"品牌背景：\n{handoff_context or '用户未提供品牌背景，请直接根据请求内容分析'}\n\n"
+                    f"用户请求：\n{user_prompt}\n"
+                )
+            }
         ]
         try:
             _, t_calls = await call_llm_with_tools(
-                rec_messages, 
-                tools=[recommend_tool], 
+                rec_messages,
+                tools=[recommend_tool],
                 tool_choice={"type": "function", "function": {"name": "recommend_assets"}},
                 model=settings.default_model
             )
             if t_calls:
                 args = json.loads(t_calls[0]["function"]["arguments"])
-                return args.get("recommendations", [])
+                recs = args.get("recommendations", [])
+                if recs:  # 成功得到非空推荐，直接返回
+                    return recs
         except Exception as e:
             logger.warning(f"动态生成推荐资产失败: {e}")
-        # 兜底
-        return [
-            {"type": "logo", "label": "生成极简 Logo ×2", "count": 2},
-            {"type": "poster", "label": "生成品牌视觉海报", "count": 1}
-        ]
+
+        # NOTE: 智能兜底 —— 基于用户请求关键词判断，
+        # 比固定返回 logo+海报 准确得多
+        prompt_lower = user_prompt.lower()
+        if any(kw in prompt_lower for kw in ["logo", "标志", "图标"]):
+            return [
+                {"type": "logo", "label": "生成极简 Logo", "count": 2},
+                {"type": "banner", "label": "生成品牌 Banner", "count": 1},
+            ]
+        elif any(kw in prompt_lower for kw in ["poster", "海报", "宣传", "作海报"]):
+            return [
+                {"type": "poster", "label": "生成品牌海报 ×2", "count": 2},
+                {"type": "banner", "label": "生成横幅宣传图", "count": 1},
+            ]
+        elif any(kw in prompt_lower for kw in ["packaging", "包装", "产品"]):
+            return [
+                {"type": "packaging", "label": "生成包装概念图", "count": 1},
+                {"type": "poster", "label": "生成产品宣传海报", "count": 1},
+            ]
+        elif any(kw in prompt_lower for kw in ["ppt", "汇报", "presentation", "幻灯片"]):
+            return [
+                {"type": "presentation", "label": "生成品牌汇报封面", "count": 1},
+                {"type": "banner", "label": "生成配套封面图", "count": 1},
+            ]
+        elif any(kw in prompt_lower for kw in ["banner", "横幅", "广告", "投放"]):
+            return [
+                {"type": "banner", "label": "生成数字广告 Banner ×2", "count": 2},
+                {"type": "digital_ad", "label": "生成小红书竖版广告", "count": 1},
+            ]
+        else:
+            # 完全未识别关键词，返回最通用的 logo+poster 组合
+            return [
+                {"type": "logo", "label": "生成品牌主视觉 Logo", "count": 1},
+                {"type": "poster", "label": "生成品牌视觉海报", "count": 1},
+            ]
+
 
     rec_task = asyncio.create_task(_fetch_recommendations())
 
