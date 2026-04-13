@@ -130,73 +130,9 @@ async def run_visual_agent_stream(
         # 优先提取用户明确要求的数量；未指定则默认 1
         explicit_count = _extract_requested_count()
 
-        recommend_tool = {
-            "type": "function",
-            "function": {
-                "name": "recommend_assets",
-                "description": "基于当前的诉求和背景，推荐 1-3 个最值得生成的视觉设计交付物组合。注意，如果是纯文字规划，也可以推荐适合承载文字的视觉包装类型（如：汇报幻灯片）",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "recommendations": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {"type": "string", "enum": ["logo", "poster", "banner", "digital_ad", "packaging", "presentation"], "description": "资产类型"},
-                                    "label": {"type": "string", "description": "按钮上显示给用户看的文字，如「生成极简Logo」「包装概念图」"},
-                                    # NOTE: 向 LLM 告知用户明确指定的数量，优先尊重用户意图
-                                    "count": {"type": "integer", "description": f"一次生成张数。{'用户明确要求生成 ' + str(explicit_count) + ' 张，第一个推荐项请设为此值。' if explicit_count else '默认 1 张，除非有明确数量诉求。'}"}
-                                },
-                                "required": ["type", "label", "count"]
-                            }
-                        }
-                    },
-                    "required": ["recommendations"]
-                }
-            }
-        }
-        rec_messages = [
-            {
-                "role": "system",
-                "content": (
-                    "你是一位拥有敏锐商业嗅觉的美术指导，请根据用户的只言片语与品牌档案，"
-                    "判断其最迫切需要什么形式的具体视觉资产来佐证方案。"
-                    "最多推荐 3 个，按优先级排列。"
-                    "注意：如果用户未提供品牌背景，直接根据请求内容判断。"
-                )
-            },
-            {
-                "role": "user",
-                # NOTE: 单兵模式下 handoff_context 为空字符串；
-                # 此时用 user_prompt 填充品牌背景字段，确保推荐 LLM 有足够判断依据
-                "content": (
-                    f"品牌背景：\n{handoff_context or '用户未提供品牌背景，请直接根据请求内容分析'}\n\n"
-                    f"用户请求：\n{user_prompt}\n"
-                )
-            }
-        ]
-        try:
-            _, t_calls = await call_llm_with_tools(
-                rec_messages,
-                tools=[recommend_tool],
-                tool_choice={"type": "function", "function": {"name": "recommend_assets"}},
-                model=settings.default_model
-            )
-            if t_calls:
-                args = json.loads(t_calls[0]["function"]["arguments"])
-                recs = args.get("recommendations", [])
-                if recs:
-                    # NOTE: 如果用户明确指定了数量，强制覆盖第一项推荐的 count
-                    # LLM 可能没有严格遵守 tool 描述里的提示
-                    if explicit_count and recs:
-                        recs[0]["count"] = explicit_count
-                    return recs
-        except Exception as e:
-            logger.warning(f"动态生成推荐资产失败: {e}")
-
-        # NOTE: 智能关键词兜底 —— LLM 失败时使用
-        # explicit_count 优先；未指定均默认 1 张
+        # NOTE: 极致性能优化 —— 移除了导致 12 秒卡死的 LLM Tool Calling。
+        # 依赖于精准正则匹配和预设的交付物字典，不仅能在 0ms 内即时响应，
+        # 且推荐的规格更加符合当前架构预期的 type。
         n = explicit_count or 1
         prompt_lower = user_prompt.lower()
         count_label = f" ×{n}" if n > 1 else ""

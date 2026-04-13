@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
     # NOTE: MVP 阶段固定 DeepSeek，Phase 2 根据用户订阅级别动态切换
     default_model: str = "deepseek/deepseek-chat"
+    # NOTE: 用于耗时敏感、不要求长文笔的结构化提取任务（如路由分发）
+    fast_model: str = "dashscope/qwen-plus"
     pro_model: str = "gpt-4o"
     # 应用
     secret_key: str = "dev-secret-key"

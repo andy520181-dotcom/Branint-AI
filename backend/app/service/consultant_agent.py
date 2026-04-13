@@ -15,6 +15,7 @@ import re
 from collections.abc import AsyncGenerator
 from typing import Literal
 
+from app.config import settings
 from app.service.llm_provider import call_llm, call_llm_stream, call_llm_with_tools
 from app.service.prompt_loader import load_agent_prompt
 from app.service.skills.ogilvy_skills import OGILVY_TOOLS, parse_ogilvy_tool_calls
@@ -192,6 +193,7 @@ async def run_ogilvy_decision(
     content, tool_calls = await call_llm_with_tools(
         messages=messages, 
         tools=OGILVY_TOOLS,
+        model=settings.fast_model,
     )
     
     parsed_tool = parse_ogilvy_tool_calls(tool_calls) if tool_calls else None
