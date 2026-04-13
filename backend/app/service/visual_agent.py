@@ -206,10 +206,13 @@ async def run_visual_agent_stream(
                 {"type": "logo", "label": f"生成极简 Logo{count_label}", "count": n},
                 {"type": "banner", "label": "生成品牌 Banner", "count": 1},
             ]
-        elif any(kw in prompt_lower for kw in ["poster", "海报", "宣传", "作海报"]):
+        elif any(kw in prompt_lower for kw in [
+            "poster", "海报", "宣传", "作海报",
+            "kv", "主kv", "主视觉", "key visual", "品牌主图", "全案视觉",
+        ]):
             return [
-                {"type": "poster", "label": f"生成品牌海报{count_label}", "count": n},
-                {"type": "banner", "label": "生成横幅宣传图", "count": 1},
+                {"type": "poster", "label": f"生成品牌主 KV 海报{count_label}", "count": n},
+                {"type": "banner", "label": "生成横幅 Banner", "count": 1},
             ]
         elif any(kw in prompt_lower for kw in ["packaging", "包装", "产品"]):
             return [
@@ -221,16 +224,23 @@ async def run_visual_agent_stream(
                 {"type": "presentation", "label": f"生成品牌汇报封面{count_label}", "count": n},
                 {"type": "banner", "label": "生成配套封面图", "count": 1},
             ]
-        elif any(kw in prompt_lower for kw in ["banner", "横幅", "广告", "投放"]):
+        elif any(kw in prompt_lower for kw in ["banner", "横幅", "广告", "投放", "信息流"]):
             return [
                 {"type": "banner", "label": f"生成数字广告 Banner{count_label}", "count": n},
                 {"type": "digital_ad", "label": "生成小红书竖版广告", "count": 1},
             ]
-        else:
+        elif any(kw in prompt_lower for kw in ["小红书", "竖版", "短视频", "reels"]):
             return [
-                {"type": "logo", "label": f"生成品牌主视觉 Logo{count_label}", "count": n},
-                {"type": "poster", "label": "生成品牌视觉海报", "count": 1},
+                {"type": "digital_ad", "label": f"生成小红书竖版广告{count_label}", "count": n},
+                {"type": "poster", "label": "生成品牌海报", "count": 1},
             ]
+        else:
+            # NOTE: 通用品牌需求默认推 poster（KV级）+ logo，比 logo-first 更实用
+            return [
+                {"type": "poster", "label": f"生成品牌主视觉 KV{count_label}", "count": n},
+                {"type": "logo", "label": "生成品牌极简 Logo", "count": 1},
+            ]
+
 
 
     rec_task = asyncio.create_task(_fetch_recommendations())

@@ -690,26 +690,105 @@ async def generate_asset(
         v[:400] for k, v in agent_outputs.items()
         if isinstance(v, str) and len(v) > 20
     ])
-    context_hint = brand_context[:120].replace("\n", " ").strip()
+    context_hint = brand_context[:150].replace("\n", " ").strip()
 
-    asset_type = body.asset_type
-    base_prompts = {
-        "logo": (
-            "Minimalist professional brand logo design, clean geometric shapes, "
-            "scalable vector style, white background, modern typography, high contrast, award-winning design"
-        ),
-        "poster": (
-            "Premium brand poster design, bold visual hierarchy, sophisticated color palette, "
-            "professional layout, print-ready quality, contemporary aesthetic"
-        ),
-        "banner": (
-            "Modern brand banner design, wide format, clean composition, "
-            "strong brand identity, digital advertising quality"
-        ),
+    raw_type = body.asset_type.lower().strip()
+
+    # NOTE: 关键词映射 —— 前端推荐系统可能用中文或宽泛描述，
+    # 这里统一规范化为内部类型代码，避免 fallback 到 logo
+    _TYPE_ALIASES: dict[str, str] = {
+        # logo 类
+        "logo": "logo", "标志": "logo", "图标": "logo",
+        # poster / KV 类（最常混淆！）
+        "poster": "poster", "海报": "poster", "主kv": "poster", "kv": "poster",
+        "主视觉": "poster", "key visual": "poster", "品牌海报": "poster",
+        # banner 横幅类
+        "banner": "banner", "横幅": "banner", "网幅": "banner",
+        # 数字广告类
+        "digital_ad": "digital_ad", "digital ad": "digital_ad",
+        "小红书": "digital_ad", "信息流": "digital_ad", "竖版广告": "digital_ad",
+        # 包装类
+        "packaging": "packaging", "包装": "packaging", "产品包装": "packaging",
+        # 演示/幻灯片类
+        "presentation": "presentation", "ppt": "presentation",
+        "幻灯片": "presentation", "汇报封面": "presentation",
     }
-    base_prompt = base_prompts.get(asset_type, base_prompts["logo"])
-    final_prompt = f"{base_prompt}. Brand context: {context_hint}" if context_hint else base_prompt
-    aspect_ratio = {"logo": "1:1", "poster": "9:16", "banner": "16:9"}.get(asset_type, "1:1")
+    # 先精确匹配，再模糊包含匹配
+    asset_type = _TYPE_ALIASES.get(raw_type)
+    if not asset_type:
+        for alias, mapped in _TYPE_ALIASES.items():
+            if alias in raw_type:
+                asset_type = mapped
+                break
+    if not asset_type:
+        asset_type = "poster"  # 默认 poster 比 logo 更通用
+
+    # NOTE: 每种资产类型的专属规格：
+    # prompt    = 英文生图指令基底（越具体生图质量越高）
+    # ratio     = Imagen 支持的宽高比（1:1 / 16:9 / 9:16 / 4:3）
+    # style_tag = 画风关键词，与品牌上下文组合
+    ASSET_SPECS: dict[str, dict] = {
+        "logo": {
+            "ratio": "1:1",
+            "prompt": (
+                "Minimalist professional brand logo design, clean geometric shapes, "
+                "scalable vector style, white or transparent background, modern typography, "
+                "high contrast, award-winning design, isolated symbol mark, brand icon"
+            ),
+        },
+        "poster": {
+            "ratio": "9:16",
+            "prompt": (
+                "Premium brand key visual (KV) poster design, vertical format 9:16, "
+                "bold visual hierarchy, sophisticated color palette, editorial-level photography composition, "
+                "professional print layout, full-bleed imagery, contemporary aesthetic, "
+                "high-end advertising campaign visual, cinematic lighting"
+            ),
+        },
+        "banner": {
+            "ratio": "16:9",
+            "prompt": (
+                "Modern horizontal brand banner design, wide landscape format 16:9, "
+                "strong visual impact, clean composition, prominent brand identity placement, "
+                "digital advertising quality, billboard-style layout, attention-grabbing headline space"
+            ),
+        },
+        "digital_ad": {
+            "ratio": "9:16",
+            "prompt": (
+                "Vertical social media ad design 9:16, suitable for Instagram Reels / Xiaohongshu / TikTok, "
+                "eye-catching lifestyle photography, trendy Gen-Z aesthetic, vibrant color story, "
+                "mobile-first composition, product hero shot, modern content creator style"
+            ),
+        },
+        "packaging": {
+            "ratio": "4:3",
+            "prompt": (
+                "Premium product packaging design, 3D perspective render, structural dieline concept, "
+                "high-end material texture (matte / glossy / emboss), sophisticated color blocking, "
+                "luxury brand packaging aesthetic, retail shelf appeal, clean product photography style"
+            ),
+        },
+        "presentation": {
+            "ratio": "16:9",
+            "prompt": (
+                "Professional brand presentation slide cover design, widescreen 16:9, "
+                "executive boardroom aesthetic, clean Swiss typography layout, bold brand color blocking, "
+                "minimal geometric patterns, corporate identity system, conference-ready visual"
+            ),
+        },
+    }
+
+    spec = ASSET_SPECS.get(asset_type, ASSET_SPECS["poster"])
+    base_prompt = spec["prompt"]
+    aspect_ratio = spec["ratio"]
+
+    # 将品牌上下文（中文摘要）注入到英文 prompt 尾部作为额外语义增强
+    final_prompt = (
+        f"{base_prompt}. Brand context and style direction: {context_hint}"
+        if context_hint else base_prompt
+    )
+
     count = max(1, min(body.count, 4))
 
     from app.service.image_generator import generate_brand_images
@@ -717,6 +796,7 @@ async def generate_asset(
 
     tasks = [generate_brand_images(asset_type, final_prompt, aspect_ratio) for _ in range(count)]
     results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
 
     images = []
     for result in results_list:

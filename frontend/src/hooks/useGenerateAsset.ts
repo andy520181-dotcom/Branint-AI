@@ -11,7 +11,8 @@
 import { useState, useCallback } from 'react';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 
-export type AssetType = 'logo' | 'poster' | 'banner' | 'presentation';
+// NOTE: 与后端 ASSET_SPECS 保持同步，后端有关键词映射兜底，前端直接传 type 字符串即可
+export type AssetType = 'logo' | 'poster' | 'banner' | 'digital_ad' | 'packaging' | 'presentation' | string;
 
 export interface GeneratedImage {
   type: AssetType;
